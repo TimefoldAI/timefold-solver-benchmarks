@@ -63,4 +63,4 @@ jobs:
       - name: Build and test timefold-solver-benchmarks
         working-directory: ./timefold-solver-benchmarks
         shell: bash
-        run: mvn -B clean verify
+        run: mvn -B -DskipJMH clean verify

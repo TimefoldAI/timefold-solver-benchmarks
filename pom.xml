@@ -55,13 +55,6 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>tools.profiler</groupId>
-            <artifactId>async-profiler-converter</artifactId>
-            <version>${version.tools.profiler}</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/${async.profiler.directory}/lib/converter.jar</systemPath>
-        </dependency>
-        <dependency>
             <groupId>ai.timefold.solver.enterprise</groupId>
             <artifactId>timefold-solver-enterprise-core</artifactId>
             <version>${version.ai.timefold.solver}</version>
@@ -245,5 +238,25 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>jmh</id>
+            <activation>
+                <property>
+                    <name>!skipJMH</name>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>tools.profiler</groupId>
+                    <artifactId>async-profiler-converter</artifactId>
+                    <version>${version.tools.profiler}</version>
+                    <scope>system</scope>
+                    <systemPath>${project.basedir}/${async.profiler.directory}/lib/converter.jar</systemPath>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
 </project>

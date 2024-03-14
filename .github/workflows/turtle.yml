@@ -57,4 +57,4 @@ jobs:
 
       - name: Run the test per example
         working-directory: ./timefold-solver-benchmarks/examples
-        run: mvn -B -Dai.timefold.solver.benchmarks.examples.turtle=${{matrix.example}} -Dai.timefold.solver.benchmarks.examples.turtle.runTimeLimitMinutes=300 test
+        run: mvn -B -DskipJMH -Dai.timefold.solver.benchmarks.examples.turtle=${{matrix.example}} -Dai.timefold.solver.benchmarks.examples.turtle.runTimeLimitMinutes=300 test
