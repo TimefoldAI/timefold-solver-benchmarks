@@ -14,6 +14,13 @@ jobs:
       matrix:
         example: [cloudbalancing, conferencescheduling, curriculumcourse, examination, flightcrewscheduling, machinereassignment, meetingscheduling, nurserostering, pas, projectjobscheduling, taskassigning, tennis, travelingtournament, tsp, vehiclerouting]
     steps:
+      # Clone timefold-solver
+      - name: Checkout timefold-solver
+        uses: actions/checkout@v4
+        with:
+          repository: TimefoldAI/timefold-solver
+          path: ./timefold-solver
+
       - name: Setup Temurin 21 and Maven
         uses: actions/setup-java@v4
         with:
@@ -21,12 +28,6 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      # Clone timefold-solver
-      - name: Checkout timefold-solver
-        uses: actions/checkout@v4
-        with:
-          repository: TimefoldAI/timefold-solver
-          path: ./timefold-solver
       - name: Quickly build timefold-solver
         working-directory: ./timefold-solver
         shell: bash
