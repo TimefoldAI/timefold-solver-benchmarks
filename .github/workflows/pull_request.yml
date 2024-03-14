@@ -1,0 +1,66 @@
+name: Test coverage
+
+on:
+  # Enables the workflow to run on PRs from forks;
+  # token sharing is safe here, because enterprise is a private repo and therefore fully under our control.
+  pull_request_target:
+    branches: [main, '*.x']
+    types:
+      - opened
+      - reopened
+      - synchronize
+    paths-ignore:
+      - 'LICENSE*'
+      - '.gitignore'
+      - '**.md'
+      - '**.adoc'
+      - '*.txt'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pr-${{ github.event_name }}-${{ github.head_ref }}
+      cancel-in-progress: true
+    timeout-minutes: 120
+    steps:
+      - name: Setup Temurin 21 and Maven
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      # Clone timefold-solver
+      - name: Checkout timefold-solver
+        uses: actions/checkout@v4
+        with:
+          repository: TimefoldAI/timefold-solver
+          path: ./timefold-solver
+      - name: Quickly build timefold-solver
+        working-directory: ./timefold-solver
+        shell: bash
+        run: mvn -B -Dquickly clean install
+
+      # Clone timefold-solver-enterprise
+      - name: Checkout timefold-solver-enterprise
+        uses: actions/checkout@v4
+        with:
+          repository: TimefoldAI/timefold-solver-enterprise
+          token: ${{ secrets.JRELEASER_GITHUB_TOKEN }} # Safe; only used to clone the repo and not stored in the fork.
+          path: ./timefold-solver-enterprise
+      - name: Quickly build timefold-solver-enterprise
+        working-directory: ./timefold-solver-enterprise
+        shell: bash
+        run: mvn -B -Dquickly clean install
+
+      # Clone timefold-solver-benchmarks
+      - name: Checkout timefold-solver-benchmarks
+        uses: actions/checkout@v4
+        with:
+          repository: TimefoldAI/timefold-solver-benchmarks
+          path: ./timefold-solver-benchmarks
+      - name: Build and test timefold-solver-benchmarks
+        working-directory: ./timefold-solver-benchmarks
+        shell: bash
+        run: mvn -B clean verify
