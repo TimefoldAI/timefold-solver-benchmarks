@@ -28,7 +28,7 @@ public enum Example {
         @Override
         <Solution_> Solution_ loadDataset() {
             var io = new ConferenceSchedulingXlsxFileIO();
-            return (Solution_) io.read(new File("data/conferencescheduling-216-18-20.xlsx"));
+            return (Solution_) io.read(new File("data/conferencescheduling/conferencescheduling-216-18-20.xlsx"));
         }
     },
     TSP(TspConstraintProvider.class, TspSolution.class, Visit.class) {
@@ -37,7 +37,7 @@ public enum Example {
             while (true) {
                 try {
                     var io = new TspSolutionFileIO();
-                    return (Solution_) io.read(new File("data/tsp-lu980.json"));
+                    return (Solution_) io.read(new File("data/tsp/tsp-lu980.json"));
                 } catch (StackOverflowError stackOverflowError) {
                     // Do nothing.
                 }
@@ -49,7 +49,7 @@ public enum Example {
         @Override
         <Solution_> Solution_ loadDataset() {
             var io = new VehicleRoutingSolutionFileIO();
-            return (Solution_) io.read(new File("data/vehiclerouting-belgium-tw-n2750-k55.json"));
+            return (Solution_) io.read(new File("data/vehiclerouting/vehiclerouting-belgium-tw-n2750-k55.json"));
         }
     };
 
