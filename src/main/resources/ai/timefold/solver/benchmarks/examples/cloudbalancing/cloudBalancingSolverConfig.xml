@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<solver xmlns="https://timefold.ai/xsd/solver" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="https://timefold.ai/xsd/solver https://timefold.ai/xsd/solver/solver.xsd">
+    <!-- To slowly prove there are no bugs in this code -->
+    <!--<environmentMode>FULL_ASSERT</environmentMode>-->
+    <!-- To solve faster by saturating multiple CPU cores -->
+    <!--<moveThreadCount>AUTO</moveThreadCount>-->
+
+    <!-- Domain model configuration -->
+    <solutionClass>ai.timefold.solver.benchmarks.examples.cloudbalancing.domain.CloudBalance</solutionClass>
+    <entityClass>ai.timefold.solver.benchmarks.examples.cloudbalancing.domain.CloudProcess</entityClass>
+
+    <!-- Score configuration -->
+    <scoreDirectorFactory>
+        <constraintProviderClass>
+            ai.timefold.solver.benchmarks.examples.cloudbalancing.score.CloudBalancingConstraintProvider
+        </constraintProviderClass>
+        <initializingScoreTrend>ONLY_DOWN</initializingScoreTrend>
+        <!--<assertionScoreDirectorFactory>-->
+        <!--<easyScoreCalculatorClass>ai.timefold.solver.examples.cloudbalancing.optional.score.CloudBalancingMapBasedEasyScoreCalculator</easyScoreCalculatorClass>-->
+        <!--</assertionScoreDirectorFactory>-->
+    </scoreDirectorFactory>
+
+    <!-- Optimization algorithms configuration -->
+    <termination>
+        <minutesSpentLimit>2</minutesSpentLimit>
+    </termination>
+
+</solver>

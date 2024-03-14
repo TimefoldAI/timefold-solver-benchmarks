@@ -1,0 +1,32 @@
+= Select Benchmarks for Timefold Solver
+
+This repository is a continuous work in progress, and it will change as our needs change.
+There are no guarantees that anything in this repository will still be here tomorrow,
+or that it will look anything like it looks today,
+or that it will work against any particular version of the Solver.
+
+== Usage
+
+To run the benchmarks, you need access to Timefold Solver Enterprise Edition.
+Having acquired that, run any of the benchmarks:
+
+[source,shell]
+----
+./run-coldstart.sh
+./run-scoredirector.sh
+----
+
+In the default configuration, the benchmark will run for many hours and fully occupy 1 CPU.
+Only run the benchmark on a quiet machine, otherwise results will be skewed.
+
+=== Async profiler
+
+The benchmark can optionally produce flame graphs using https://github.com/async-profiler/async-profiler[Async Profiler].
+On the first run, if Async Profiler is not found, a message will be logged.
+Let the message point you in the right direction.
+
+== Configuring the benchmark
+
+The benchmark is configured using the `coldstart-benchmark.properties` and `scoredirector-benchmark.properties` file.
+The file is well-commented, and should be self-explanatory.
+Modify it to suit your needs.

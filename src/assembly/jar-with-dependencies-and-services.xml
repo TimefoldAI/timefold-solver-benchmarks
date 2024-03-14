@@ -1,0 +1,43 @@
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.1.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.1.0 http://maven.apache.org/xsd/assembly-2.1.0.xsd">
+    <id>jar-with-dependencies-and-services</id>
+    <formats>
+        <format>jar</format>
+    </formats>
+    <containerDescriptorHandlers>
+        <containerDescriptorHandler>
+            <handlerName>metaInf-services</handlerName>
+        </containerDescriptorHandler>
+    </containerDescriptorHandlers>
+    <includeBaseDirectory>false</includeBaseDirectory>
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>/</outputDirectory>
+            <useProjectArtifact>true</useProjectArtifact>
+            <unpack>true</unpack>
+            <unpackOptions> <!-- Do not inherit Logback config from timefold-solver-examples. -->
+                <excludes>
+                    <exclude>**/logback.xml</exclude>
+                </excludes>
+            </unpackOptions>
+            <scope>runtime</scope>
+        </dependencySet>
+        <dependencySet> <!-- Include the converter JAR. -->
+            <outputDirectory>/</outputDirectory>
+            <unpack>true</unpack>
+            <scope>system</scope>
+        </dependencySet>
+    </dependencySets>
+    <fileSets>
+        <fileSet> <!-- But make sure we include the logback.xml from this project. -->
+            <outputDirectory>/</outputDirectory>
+            <directory>${project.basedir}/src/main/resources</directory>
+            <filtered>true</filtered>
+            <includes>
+                <include>logback.xml</include>
+                <include>buildtime.properties</include>
+            </includes>
+        </fileSet>
+    </fileSets>
+</assembly>

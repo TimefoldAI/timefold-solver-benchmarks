@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<solver xmlns="https://timefold.ai/xsd/solver" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://timefold.ai/xsd/solver https://timefold.ai/xsd/solver/solver.xsd">
+  <!-- To slowly prove there are no bugs in this code -->
+  <!--<environmentMode>FULL_ASSERT</environmentMode>-->
+  <!-- To solve faster by saturating multiple CPU cores -->
+  <!--<moveThreadCount>AUTO</moveThreadCount>-->
+
+  <solutionClass>ai.timefold.solver.benchmarks.examples.travelingtournament.domain.TravelingTournament</solutionClass>
+  <entityClass>ai.timefold.solver.benchmarks.examples.travelingtournament.domain.Match</entityClass>
+
+  <scoreDirectorFactory>
+    <constraintProviderClass>ai.timefold.solver.benchmarks.examples.travelingtournament.score.TravelingTournamentConstraintProvider</constraintProviderClass>
+  </scoreDirectorFactory>
+
+  <termination>
+    <bestScoreLimit>0hard/0soft</bestScoreLimit>
+  </termination>
+
+  <localSearch>
+    <unionMoveSelector>
+      <changeMoveSelector/>
+      <swapMoveSelector/>
+      <pillarChangeMoveSelector/>
+      <pillarSwapMoveSelector/>
+    </unionMoveSelector>
+    <acceptor>
+      <simulatedAnnealingStartingTemperature>2hard/10000soft</simulatedAnnealingStartingTemperature>
+    </acceptor>
+    <forager>
+      <acceptedCountLimit>4</acceptedCountLimit>
+    </forager>
+  </localSearch>
+</solver>

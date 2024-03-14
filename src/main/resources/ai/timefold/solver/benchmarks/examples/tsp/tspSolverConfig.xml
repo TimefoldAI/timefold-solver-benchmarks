@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<solver xmlns="https://timefold.ai/xsd/solver" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="https://timefold.ai/xsd/solver https://timefold.ai/xsd/solver/solver.xsd">
+    <!-- To slowly prove there are no bugs in this code -->
+    <!--<environmentMode>FULL_ASSERT</environmentMode>-->
+    <!-- To solve faster by saturating multiple CPU cores -->
+    <!--<moveThreadCount>AUTO</moveThreadCount>-->
+
+    <solutionClass>ai.timefold.solver.benchmarks.examples.tsp.domain.TspSolution</solutionClass>
+    <entityClass>ai.timefold.solver.benchmarks.examples.tsp.domain.Visit</entityClass>
+
+    <scoreDirectorFactory>
+        <constraintProviderClass>ai.timefold.solver.benchmarks.examples.tsp.score.TspConstraintProvider
+        </constraintProviderClass>
+        <initializingScoreTrend>ONLY_DOWN</initializingScoreTrend>
+    </scoreDirectorFactory>
+
+    <termination>
+        <minutesSpentLimit>2</minutesSpentLimit>
+    </termination>
+
+    <nearbyDistanceMeterClass>ai.timefold.solver.benchmarks.examples.tsp.domain.solver.nearby.VisitNearbyDistanceMeter
+    </nearbyDistanceMeterClass>
+
+    <constructionHeuristic>
+        <constructionHeuristicType>FIRST_FIT_DECREASING</constructionHeuristicType>
+    </constructionHeuristic>
+    <localSearch>
+        <unionMoveSelector>
+            <changeMoveSelector/>
+            <swapMoveSelector/>
+            <subChainChangeMoveSelector>
+                <subChainSelector>
+                    <maximumSubChainSize>50</maximumSubChainSize>
+                </subChainSelector>
+                <selectReversingMoveToo>true</selectReversingMoveToo>
+            </subChainChangeMoveSelector>
+            <subChainSwapMoveSelector>
+                <subChainSelector>
+                    <maximumSubChainSize>50</maximumSubChainSize>
+                </subChainSelector>
+                <selectReversingMoveToo>true</selectReversingMoveToo>
+            </subChainSwapMoveSelector>
+        </unionMoveSelector>
+        <acceptor>
+            <lateAcceptanceSize>400</lateAcceptanceSize>
+        </acceptor>
+        <forager>
+            <acceptedCountLimit>1</acceptedCountLimit>
+        </forager>
+    </localSearch>
+</solver>

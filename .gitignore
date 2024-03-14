@@ -1,0 +1,9 @@
+*.log
+hs_err_pid*
+/.idea
+/target
+/local
+*.iml
+dependency-reduced-pom.xml
+/results
+/async-profiler*/**/*
