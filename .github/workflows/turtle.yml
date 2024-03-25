@@ -51,11 +51,7 @@ jobs:
         with:
           repository: TimefoldAI/timefold-solver-benchmarks
           path: ./timefold-solver-benchmarks
-      - name: Build and test timefold-solver-benchmarks
+      - name: Run and test timefold-solver-benchmarks per example
         working-directory: ./timefold-solver-benchmarks
         shell: bash
-        run: mvn -B -DskipJMH -Dquickly clean install
-
-      - name: Run the test per example
-        working-directory: ./timefold-solver-benchmarks/examples
         run: mvn -B -DskipJMH -Dai.timefold.solver.benchmarks.examples.turtle=${{matrix.example}} -Dai.timefold.solver.benchmarks.examples.turtle.runTimeLimitMinutes=300 test
