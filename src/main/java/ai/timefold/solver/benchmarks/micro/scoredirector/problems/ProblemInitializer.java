@@ -22,7 +22,6 @@ import ai.timefold.solver.core.impl.constructionheuristic.DefaultConstructionHeu
 import ai.timefold.solver.core.impl.constructionheuristic.DefaultConstructionHeuristicPhaseFactory;
 import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
 import ai.timefold.solver.core.impl.heuristic.HeuristicConfigPolicy;
-import ai.timefold.solver.core.impl.phase.scope.AbstractPhaseScope;
 import ai.timefold.solver.core.impl.score.director.InnerScoreDirectorFactory;
 import ai.timefold.solver.core.impl.solver.ClassInstanceCache;
 import ai.timefold.solver.core.impl.solver.DefaultSolver;
@@ -30,7 +29,6 @@ import ai.timefold.solver.core.impl.solver.event.SolverEventSupport;
 import ai.timefold.solver.core.impl.solver.random.DefaultRandomFactory;
 import ai.timefold.solver.core.impl.solver.recaller.BestSolutionRecallerFactory;
 import ai.timefold.solver.core.impl.solver.scope.SolverScope;
-import ai.timefold.solver.core.impl.solver.termination.AbstractTermination;
 import ai.timefold.solver.core.impl.solver.termination.BasicPlumbingTermination;
 import ai.timefold.solver.core.impl.solver.termination.TerminationFactory;
 
@@ -94,8 +92,8 @@ public final class ProblemInitializer {
             solverScope.setSolverMetricSet(EnumSet.noneOf(SolverMetric.class));
             solverScope.startingNow();
             var solver = new DefaultSolver<>(EnvironmentMode.REPRODUCIBLE, new DefaultRandomFactory(RandomType.JDK, 0L),
-                    bestSolutionRecaller, null, new NoopTermination<>(), List.of(constructionHeuristicPhase), solverScope,
-                    null);
+                    bestSolutionRecaller, null, new BasicPlumbingTermination<>(false), List.of(constructionHeuristicPhase),
+                    solverScope, null);
             constructionHeuristicPhase.setSolver(solver);
 
             // Start the construction heuristic.
@@ -113,25 +111,4 @@ public final class ProblemInitializer {
         }
     }
 
-    private static final class NoopTermination<Solution_> extends AbstractTermination<Solution_> {
-        @Override
-        public boolean isSolverTerminated(SolverScope<Solution_> solverScope) {
-            return false;
-        }
-
-        @Override
-        public boolean isPhaseTerminated(AbstractPhaseScope<Solution_> phaseScope) {
-            return false;
-        }
-
-        @Override
-        public double calculateSolverTimeGradient(SolverScope<Solution_> solverScope) {
-            return 0;
-        }
-
-        @Override
-        public double calculatePhaseTimeGradient(AbstractPhaseScope<Solution_> phaseScope) {
-            return 0;
-        }
-    }
 }
