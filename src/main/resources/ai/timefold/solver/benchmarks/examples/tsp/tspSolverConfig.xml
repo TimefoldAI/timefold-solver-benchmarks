@@ -22,9 +22,7 @@
     <nearbyDistanceMeterClass>ai.timefold.solver.benchmarks.examples.tsp.domain.solver.nearby.VisitNearbyDistanceMeter
     </nearbyDistanceMeterClass>
 
-    <constructionHeuristic>
-        <constructionHeuristicType>FIRST_FIT_DECREASING</constructionHeuristicType>
-    </constructionHeuristic>
+    <constructionHeuristic />
     <localSearch>
         <unionMoveSelector>
             <changeMoveSelector/>
