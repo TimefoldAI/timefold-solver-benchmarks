@@ -25,11 +25,31 @@ jobs:
     timeout-minutes: 120
     steps:
       # Clone timefold-solver
-      - name: Checkout timefold-solver
+      # Need to check for stale repo, since Github is not aware of the build chain and therefore doesn't automate it.
+      - name: Checkout timefold-solver (PR) # Checkout the PR branch first, if it exists
+        id: checkout-solver
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          repository: ${{ github.actor }}/timefold-solver
+          ref: ${{ github.head_ref }}
+          path: ./timefold-solver
+          fetch-depth: 0 # Otherwise merge will fail on account of not having history.
+      - name: Checkout timefold-solver (main) # Checkout the main branch if the PR branch does not exist
+        if: steps.checkout-solver.outcome != 'success'
         uses: actions/checkout@v4
         with:
           repository: TimefoldAI/timefold-solver
+          ref: main
           path: ./timefold-solver
+          fetch-depth: 0 # Otherwise merge will fail on account of not having history.
+      - name: Prevent stale fork of timefold-solver
+        env:
+          BLESSED_REPO: "timefold-solver"
+          BLESSED_BRANCH: ${{ endsWith(github.head_ref, '.x') && github.head_ref || 'main' }}
+        shell: bash
+        working-directory: ./timefold-solver
+        run: .github/scripts/prevent_stale_fork.sh
 
       - name: Setup Temurin 21 and Maven
         uses: actions/setup-java@v4
@@ -44,12 +64,33 @@ jobs:
         run: mvn -B -Dquickly clean install
 
       # Clone timefold-solver-enterprise
-      - name: Checkout timefold-solver-enterprise
+      # Need to check for stale repo, since Github is not aware of the build chain and therefore doesn't automate it.
+      - name: Checkout timefold-solver-enterprise (PR) # Checkout the PR branch first, if it exists
+        id: checkout-solver-enterprise
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          repository: TimefoldAI/timefold-solver-enterprise
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.JRELEASER_GITHUB_TOKEN }} # Safe; only used to clone the repo and not stored in the fork.
+          path: ./timefold-solver-enterprise
+          fetch-depth: 0 # Otherwise merge will fail on account of not having history.
+      - name: Checkout timefold-solver-enterprise (main) # Checkout the main branch if the PR branch does not exist
+        if: steps.checkout-solver-enterprise.outcome != 'success'
         uses: actions/checkout@v4
         with:
           repository: TimefoldAI/timefold-solver-enterprise
+          ref: main
           token: ${{ secrets.JRELEASER_GITHUB_TOKEN }} # Safe; only used to clone the repo and not stored in the fork.
           path: ./timefold-solver-enterprise
+          fetch-depth: 0 # Otherwise merge will fail on account of not having history.
+      - name: Prevent stale fork of timefold-solver-enterprise
+        env:
+          BLESSED_REPO: "timefold-solver-enterprise"
+          BLESSED_BRANCH: ${{ endsWith(github.head_ref, '.x') && github.head_ref || 'main' }}
+        shell: bash
+        working-directory: ./timefold-solver-enterprise
+        run: ../timefold-solver/.github/scripts/prevent_stale_fork.sh
       - name: Quickly build timefold-solver-enterprise
         working-directory: ./timefold-solver-enterprise
         shell: bash
