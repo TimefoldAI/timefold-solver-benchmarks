@@ -39,9 +39,7 @@ import ai.timefold.solver.test.api.score.stream.SingleConstraintVerification;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
-class NurseRosteringConstraintProviderTest
-        extends
-        AbstractConstraintProviderTest<ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider, NurseRoster> {
+class NurseRosteringConstraintProviderTest extends AbstractConstraintProviderTest<NurseRosteringConstraintProvider, NurseRoster> {
 
     private final ThreadLocal<AtomicLong> idSupplier = ThreadLocal.withInitial(() -> new AtomicLong(0));
     private final ThreadLocal<Map<Pair<Integer, ShiftType>, Shift>> indexShiftTypePairToShiftMap =
@@ -75,12 +73,8 @@ class NurseRosteringConstraintProviderTest
     }
 
     @Override
-    protected
-            ConstraintVerifier<ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider, NurseRoster>
-            createConstraintVerifier() {
-        return ConstraintVerifier.build(
-                new ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider(),
-                NurseRoster.class, ShiftAssignment.class);
+    protected ConstraintVerifier<NurseRosteringConstraintProvider, NurseRoster> createConstraintVerifier() {
+        return ConstraintVerifier.build(new NurseRosteringConstraintProvider(), NurseRoster.class, ShiftAssignment.class);
     }
 
     private long getNextId() {
@@ -314,7 +308,7 @@ class NurseRosteringConstraintProviderTest
     // ******************************************************
     @ConstraintProviderTest
     void oneShiftPerDay(
-            ConstraintVerifier<ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
+            ConstraintVerifier<NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
         Employee employee = getEmployee();
         ShiftAssignment shift1 = getShiftAssignment(0, employee);
         ShiftAssignment shift2 = getShiftAssignment(0, employee);
@@ -323,13 +317,13 @@ class NurseRosteringConstraintProviderTest
         ShiftAssignment shift5 = getShiftAssignment(2, employee);
 
         constraintVerifier.verifyThat(
-                ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider::oneShiftPerDay)
+                NurseRosteringConstraintProvider::oneShiftPerDay)
                 .given(shift1, shift2, shift3, shift4, shift5).penalizesBy(2);
     }
 
     @ConstraintProviderTest
     void minimumAndMaximumNumberOfAssignments(
-            ConstraintVerifier<ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
+            ConstraintVerifier<NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
         Contract contract = new MinMaxContractBuilder(ContractLineType.TOTAL_ASSIGNMENTS)
                 .withMinimum(2)
                 .withMaximum(3)
@@ -345,7 +339,7 @@ class NurseRosteringConstraintProviderTest
 
         SingleConstraintVerification<NurseRoster> minimumAndMaximumNumberOfAssignmentsConstraint =
                 constraintVerifier.verifyThat(
-                        ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider::minimumAndMaximumNumberOfAssignments);
+                        NurseRosteringConstraintProvider::minimumAndMaximumNumberOfAssignments);
 
         minimumAndMaximumNumberOfAssignmentsConstraint
                 .given(contract.getFirstConstractLine(), employee, shift1, shift2, shift3, shift4, shift5)
@@ -368,7 +362,7 @@ class NurseRosteringConstraintProviderTest
 
     @ConstraintProviderTest
     void consecutiveWorkingDays(
-            ConstraintVerifier<ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
+            ConstraintVerifier<NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
         Contract contract = new MinMaxContractBuilder(ContractLineType.CONSECUTIVE_WORKING_DAYS)
                 .withMinimum(2)
                 .withMaximum(3)
@@ -384,7 +378,7 @@ class NurseRosteringConstraintProviderTest
 
         SingleConstraintVerification<NurseRoster> consecutiveWorkingDaysConstraint =
                 constraintVerifier.verifyThat(
-                        ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider::consecutiveWorkingDays);
+                        NurseRosteringConstraintProvider::consecutiveWorkingDays);
 
         consecutiveWorkingDaysConstraint
                 .given(contract.getFirstConstractLine(), employee, shift1, shift2, shift3, shift4, shift5)
@@ -405,7 +399,7 @@ class NurseRosteringConstraintProviderTest
 
     @ConstraintProviderTest
     void consecutiveFreeDays(
-            ConstraintVerifier<ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
+            ConstraintVerifier<NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
         Contract contract = new MinMaxContractBuilder(ContractLineType.CONSECUTIVE_FREE_DAYS)
                 .withMinimum(2)
                 .withMaximum(3)
@@ -424,7 +418,7 @@ class NurseRosteringConstraintProviderTest
 
         SingleConstraintVerification<NurseRoster> consecutiveFreeDaysConstraint =
                 constraintVerifier.verifyThat(
-                        ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider::consecutiveFreeDays);
+                        NurseRosteringConstraintProvider::consecutiveFreeDays);
 
         consecutiveFreeDaysConstraint
                 .given(contract.getFirstConstractLine(), employee, nurseRosterParametrization, shift1, shift7)
@@ -452,7 +446,7 @@ class NurseRosteringConstraintProviderTest
 
     @ConstraintProviderTest
     void maximumConsecutiveFreeDaysNoAssignments(
-            ConstraintVerifier<ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
+            ConstraintVerifier<NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
         Contract contract = new MinMaxContractBuilder(ContractLineType.CONSECUTIVE_FREE_DAYS)
                 .withMaximum(1)
                 .withMaximumWeight(1)
@@ -466,7 +460,7 @@ class NurseRosteringConstraintProviderTest
                 new NurseRosterParametrization(getNextId(), getShiftDate(0), getShiftDate(5), getShiftDate(0));
 
         constraintVerifier.verifyThat(
-                ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider::maximumConsecutiveFreeDaysNoAssignments)
+                NurseRosteringConstraintProvider::maximumConsecutiveFreeDaysNoAssignments)
                 .given(contract.getFirstConstractLine(),
                         employeeNoShifts, employeeWithShifts,
                         shift, nurseRosterParametrization)
@@ -474,8 +468,7 @@ class NurseRosteringConstraintProviderTest
     }
 
     @ConstraintProviderTest
-    void consecutiveWorkingWeekends(
-            ConstraintVerifier<ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
+    void consecutiveWorkingWeekends(ConstraintVerifier<NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
         Contract contract = new MinMaxContractBuilder(ContractLineType.CONSECUTIVE_WORKING_WEEKENDS)
                 .withMinimum(2)
                 .withMinimumWeight(2)
@@ -494,7 +487,7 @@ class NurseRosteringConstraintProviderTest
 
         SingleConstraintVerification<NurseRoster> consecutiveWorkingWeekendsConstraint =
                 constraintVerifier.verifyThat(
-                        ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider::consecutiveWorkingWeekends);
+                        NurseRosteringConstraintProvider::consecutiveWorkingWeekends);
 
         consecutiveWorkingWeekendsConstraint
                 .given(contract.getFirstConstractLine(), employee, shift1, shift2, shift3, shift4, shift5, shift6)
@@ -516,7 +509,7 @@ class NurseRosteringConstraintProviderTest
 
     @ConstraintProviderTest
     void startOnNotFirstDayOfWeekend(
-            ConstraintVerifier<ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
+            ConstraintVerifier<NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
         Contract contract = new BooleanContractBuilder(ContractLineType.COMPLETE_WEEKENDS)
                 .withWeight(3)
                 .build();
@@ -532,7 +525,7 @@ class NurseRosteringConstraintProviderTest
 
         SingleConstraintVerification<NurseRoster> startOnNotFirstDayOfWeekendConstraint =
                 constraintVerifier.verifyThat(
-                        ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider::startOnNotFirstDayOfWeekend);
+                        NurseRosteringConstraintProvider::startOnNotFirstDayOfWeekend);
 
         startOnNotFirstDayOfWeekendConstraint
                 .given(contract.getFirstConstractLine(), employee, shift2, shift3, shift4, shift5)
@@ -554,7 +547,7 @@ class NurseRosteringConstraintProviderTest
 
     @ConstraintProviderTest
     void endOnNotLastDayOfWeekend(
-            ConstraintVerifier<ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
+            ConstraintVerifier<NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
         Contract contract = new BooleanContractBuilder(ContractLineType.COMPLETE_WEEKENDS)
                 .withWeight(3)
                 .build();
@@ -569,7 +562,7 @@ class NurseRosteringConstraintProviderTest
 
         SingleConstraintVerification<NurseRoster> endOnNotLastDayOfWeekendConstraint =
                 constraintVerifier.verifyThat(
-                        ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider::endOnNotLastDayOfWeekend);
+                        NurseRosteringConstraintProvider::endOnNotLastDayOfWeekend);
 
         endOnNotLastDayOfWeekendConstraint.given(contract.getFirstConstractLine(), employee, shift1)
                 .penalizesBy(3);
@@ -590,7 +583,7 @@ class NurseRosteringConstraintProviderTest
 
     @ConstraintProviderTest
     void identicalShiftTypesDuringWeekend(
-            ConstraintVerifier<ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
+            ConstraintVerifier<NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
         Contract contract = new BooleanContractBuilder(ContractLineType.IDENTICAL_SHIFT_TYPES_DURING_WEEKEND)
                 .withWeight(3)
                 .build();
@@ -606,7 +599,7 @@ class NurseRosteringConstraintProviderTest
 
         SingleConstraintVerification<NurseRoster> identicalShiftTypesDuringWeekendConstraint =
                 constraintVerifier.verifyThat(
-                        ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider::identicalShiftTypesDuringWeekend);
+                        NurseRosteringConstraintProvider::identicalShiftTypesDuringWeekend);
 
         identicalShiftTypesDuringWeekendConstraint
                 .given(contract.getFirstConstractLine(), employee, shift1Day, shift2Night, shift1Day.getShiftDate(),
@@ -631,7 +624,7 @@ class NurseRosteringConstraintProviderTest
 
     @ConstraintProviderTest
     void dayOffRequest(
-            ConstraintVerifier<ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
+            ConstraintVerifier<NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
         Employee employee = getEmployee();
         DayOffRequest dayOffRequest1 = getDayOffRequest(employee, getShiftDate(1), 3);
         DayOffRequest dayOffRequest2 = getDayOffRequest(employee, getShiftDate(3), 5);
@@ -643,7 +636,7 @@ class NurseRosteringConstraintProviderTest
 
         SingleConstraintVerification<NurseRoster> dayOffRequestConstraint =
                 constraintVerifier.verifyThat(
-                        ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider::dayOffRequest);
+                        NurseRosteringConstraintProvider::dayOffRequest);
 
         dayOffRequestConstraint.given(dayOffRequest1, dayOffRequest2, shift1Day, shift2)
                 .penalizesBy(3);
@@ -660,7 +653,7 @@ class NurseRosteringConstraintProviderTest
 
     @ConstraintProviderTest
     void dayOnRequest(
-            ConstraintVerifier<ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
+            ConstraintVerifier<NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
         Employee employee = getEmployee();
         DayOnRequest dayOnRequest1 = getDayOnRequest(employee, getShiftDate(1), 3);
         DayOnRequest dayOnRequest2 = getDayOnRequest(employee, getShiftDate(3), 5);
@@ -672,7 +665,7 @@ class NurseRosteringConstraintProviderTest
 
         SingleConstraintVerification<NurseRoster> dayOnRequestConstraint =
                 constraintVerifier.verifyThat(
-                        ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider::dayOnRequest);
+                        NurseRosteringConstraintProvider::dayOnRequest);
         dayOnRequestConstraint.given(dayOnRequest1, dayOnRequest2, shift1Day, shift2)
                 .penalizesBy(5);
 
@@ -688,7 +681,7 @@ class NurseRosteringConstraintProviderTest
 
     @ConstraintProviderTest
     void shiftOffRequest(
-            ConstraintVerifier<ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
+            ConstraintVerifier<NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
         Employee employee = getEmployee();
         ShiftAssignment shift1Day = getShiftAssignment(1, employee, dayShiftType);
         ShiftAssignment shift1Night = getShiftAssignment(1, employee, nightShiftType);
@@ -700,7 +693,7 @@ class NurseRosteringConstraintProviderTest
 
         SingleConstraintVerification<NurseRoster> shiftOffRequestConstraint =
                 constraintVerifier.verifyThat(
-                        ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider::shiftOffRequest);
+                        NurseRosteringConstraintProvider::shiftOffRequest);
 
         shiftOffRequestConstraint.given(shiftOffRequest1, shiftOffRequest2, shift1Day, shift2)
                 .penalizesBy(3);
@@ -720,7 +713,7 @@ class NurseRosteringConstraintProviderTest
 
     @ConstraintProviderTest
     void shiftOnRequest(
-            ConstraintVerifier<ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
+            ConstraintVerifier<NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
         Employee employee = getEmployee();
         ShiftAssignment shift1Day = getShiftAssignment(1, employee, dayShiftType);
         ShiftAssignment shift1Night = getShiftAssignment(1, employee, nightShiftType);
@@ -732,7 +725,7 @@ class NurseRosteringConstraintProviderTest
 
         SingleConstraintVerification<NurseRoster> shiftOnRequestConstraint =
                 constraintVerifier.verifyThat(
-                        ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider::shiftOnRequest);
+                        NurseRosteringConstraintProvider::shiftOnRequest);
 
         shiftOnRequestConstraint.given(shiftOffRequest1, shiftOffRequest2, shift1Day, shift2)
                 .penalizesBy(5);
@@ -752,7 +745,7 @@ class NurseRosteringConstraintProviderTest
 
     @ConstraintProviderTest
     void alternativeSkill(
-            ConstraintVerifier<ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
+            ConstraintVerifier<NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
         Contract contract = new BooleanContractBuilder(ContractLineType.ALTERNATIVE_SKILL_CATEGORY)
                 .withWeight(3)
                 .build();
@@ -767,7 +760,7 @@ class NurseRosteringConstraintProviderTest
 
         SingleConstraintVerification<NurseRoster> alternativeSkillConstraint =
                 constraintVerifier.verifyThat(
-                        ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider::alternativeSkill);
+                        NurseRosteringConstraintProvider::alternativeSkill);
 
         alternativeSkillConstraint
                 .given(contract.getFirstConstractLine(), shiftTypeSkillRequirement, skillProficiency, dayShift1)
@@ -786,7 +779,7 @@ class NurseRosteringConstraintProviderTest
 
     @ConstraintProviderTest
     void unwantedPatternFreeBefore2DaysWithAWorkDayPattern(
-            ConstraintVerifier<ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
+            ConstraintVerifier<NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
         Pair<PatternContractLine, Contract> patternContractPair = new PatternContractBuilder()
                 .freeBefore2DaysWithAWorkDay(DayOfWeek.WEDNESDAY)
                 .build();
@@ -803,7 +796,7 @@ class NurseRosteringConstraintProviderTest
         SingleConstraintVerification<NurseRoster> unwantedPatternFreeBefore2DaysWithAWorkDayPatternConstraint =
                 constraintVerifier
                         .verifyThat(
-                                ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider::unwantedPatternFreeBefore2DaysWithAWorkDayPattern);
+                                NurseRosteringConstraintProvider::unwantedPatternFreeBefore2DaysWithAWorkDayPattern);
 
         unwantedPatternFreeBefore2DaysWithAWorkDayPatternConstraint
                 .given(patternContractLine, employee, freeShift.getShiftDate(), afterFreeShift2)
@@ -832,7 +825,7 @@ class NurseRosteringConstraintProviderTest
 
     @ConstraintProviderTest
     void unwantedPatternShiftType2DaysPattern(
-            ConstraintVerifier<ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
+            ConstraintVerifier<NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
         Pair<PatternContractLine, Contract> patternContractPair = new PatternContractBuilder()
                 .shiftType2DaysPattern(dayShiftType, nightShiftType)
                 .build();
@@ -853,7 +846,7 @@ class NurseRosteringConstraintProviderTest
 
         SingleConstraintVerification<NurseRoster> unwantedPatternShiftType2DaysPatternConstraint =
                 constraintVerifier.verifyThat(
-                        ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider::unwantedPatternShiftType2DaysPattern);
+                        NurseRosteringConstraintProvider::unwantedPatternShiftType2DaysPattern);
 
         unwantedPatternShiftType2DaysPatternConstraint.given(patternContractLine, employee, shift1Day, shift2Night)
                 .penalizesBy(1);
@@ -874,7 +867,7 @@ class NurseRosteringConstraintProviderTest
 
     @ConstraintProviderTest
     void unwantedPatternShiftType2DaysPatternNullSecondShiftType(
-            ConstraintVerifier<ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
+            ConstraintVerifier<NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
         Pair<PatternContractLine, Contract> patternContractPair = new PatternContractBuilder()
                 .shiftType2DaysPattern(dayShiftType, null)
                 .build();
@@ -895,7 +888,7 @@ class NurseRosteringConstraintProviderTest
 
         SingleConstraintVerification<NurseRoster> unwantedPatternShiftType2DaysPatternConstraint =
                 constraintVerifier.verifyThat(
-                        ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider::unwantedPatternShiftType2DaysPattern);
+                        NurseRosteringConstraintProvider::unwantedPatternShiftType2DaysPattern);
 
         unwantedPatternShiftType2DaysPatternConstraint.given(patternContractLine, employee, shift1Day, shift2Night)
                 .penalizesBy(1);
@@ -916,7 +909,7 @@ class NurseRosteringConstraintProviderTest
 
     @ConstraintProviderTest
     void unwantedPatternShiftType3DaysPattern(
-            ConstraintVerifier<ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
+            ConstraintVerifier<NurseRosteringConstraintProvider, NurseRoster> constraintVerifier) {
         Pair<PatternContractLine, Contract> patternContractPair = new PatternContractBuilder()
                 .shiftType3DaysPattern(dayShiftType, nightShiftType, nightShiftType)
                 .build();

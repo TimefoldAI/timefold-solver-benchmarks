@@ -12,7 +12,7 @@ class CloudBalancingSmokeTest extends SolverSmokeTest<CloudBalance, HardSoftScor
     private static final String UNSOLVED_DATA_FILE = "data/cloudbalancing/unsolved/200computers-600processes.json";
 
     @Override
-    protected ai.timefold.solver.benchmarks.examples.cloudbalancing.app.CloudBalancingApp createCommonApp() {
+    protected CloudBalancingApp createCommonApp() {
         return new CloudBalancingApp();
     }
 

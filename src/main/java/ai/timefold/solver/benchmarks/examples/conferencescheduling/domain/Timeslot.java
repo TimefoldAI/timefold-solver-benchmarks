@@ -12,7 +12,7 @@ public class Timeslot extends AbstractPersistable {
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
 
-    private Set<ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.TalkType> talkTypeSet;
+    private Set<TalkType> talkTypeSet;
     private Set<String> tagSet;
 
     // Cached
@@ -37,25 +37,24 @@ public class Timeslot extends AbstractPersistable {
         if (this == other) {
             return true;
         }
-        return startDateTime.compareTo(other.endDateTime) < 0
-                && other.startDateTime.compareTo(endDateTime) < 0;
+        return startDateTime.isBefore(other.endDateTime) && other.startDateTime.isBefore(endDateTime);
     }
 
     public int getOverlapInMinutes(Timeslot other) {
         if (this == other) {
             return durationInMinutes;
         }
-        LocalDateTime startMaximum = (startDateTime.compareTo(other.startDateTime) < 0) ? other.startDateTime : startDateTime;
-        LocalDateTime endMinimum = (endDateTime.compareTo(other.endDateTime) < 0) ? endDateTime : other.endDateTime;
+        LocalDateTime startMaximum = (startDateTime.isBefore(other.startDateTime)) ? other.startDateTime : startDateTime;
+        LocalDateTime endMinimum = (endDateTime.isBefore(other.endDateTime)) ? endDateTime : other.endDateTime;
         return (int) Duration.between(startMaximum, endMinimum).toMinutes();
     }
 
     public boolean startsAfter(Timeslot other) {
-        return other.endDateTime.compareTo(startDateTime) <= 0;
+        return !other.endDateTime.isAfter(startDateTime);
     }
 
     public boolean endsBefore(Timeslot other) {
-        return endDateTime.compareTo(other.startDateTime) <= 0;
+        return !endDateTime.isAfter(other.startDateTime);
     }
 
     public boolean isOnSameDayAs(Timeslot other) {
@@ -103,11 +102,11 @@ public class Timeslot extends AbstractPersistable {
                 : (int) Duration.between(startDateTime, endDateTime).toMinutes();
     }
 
-    public Set<ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.TalkType> getTalkTypeSet() {
+    public Set<TalkType> getTalkTypeSet() {
         return talkTypeSet;
     }
 
-    public void setTalkTypeSet(Set<ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.TalkType> talkTypeSet) {
+    public void setTalkTypeSet(Set<TalkType> talkTypeSet) {
         this.talkTypeSet = talkTypeSet;
     }
 

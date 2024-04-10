@@ -9,7 +9,7 @@ public class Speaker extends AbstractPersistable {
 
     private String name;
 
-    private Set<ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Timeslot> unavailableTimeslotSet;
+    private Set<Timeslot> unavailableTimeslotSet;
 
     private Set<String> requiredTimeslotTagSet;
     private Set<String> preferredTimeslotTagSet;
@@ -44,12 +44,11 @@ public class Speaker extends AbstractPersistable {
         this.name = name;
     }
 
-    public Set<ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Timeslot> getUnavailableTimeslotSet() {
+    public Set<Timeslot> getUnavailableTimeslotSet() {
         return unavailableTimeslotSet;
     }
 
-    public void setUnavailableTimeslotSet(
-            Set<ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Timeslot> unavailableTimeslotSet) {
+    public void setUnavailableTimeslotSet(Set<Timeslot> unavailableTimeslotSet) {
         this.unavailableTimeslotSet = unavailableTimeslotSet;
     }
 

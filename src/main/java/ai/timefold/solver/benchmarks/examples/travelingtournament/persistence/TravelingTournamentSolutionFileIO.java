@@ -8,25 +8,23 @@ import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractJsonSol
 import ai.timefold.solver.benchmarks.examples.travelingtournament.domain.Team;
 import ai.timefold.solver.benchmarks.examples.travelingtournament.domain.TravelingTournament;
 
-public class TravelingTournamentSolutionFileIO extends
-        AbstractJsonSolutionFileIO<ai.timefold.solver.benchmarks.examples.travelingtournament.domain.TravelingTournament> {
+public class TravelingTournamentSolutionFileIO extends AbstractJsonSolutionFileIO<TravelingTournament> {
 
     public TravelingTournamentSolutionFileIO() {
-        super(ai.timefold.solver.benchmarks.examples.travelingtournament.domain.TravelingTournament.class);
+        super(TravelingTournament.class);
     }
 
     @Override
-    public ai.timefold.solver.benchmarks.examples.travelingtournament.domain.TravelingTournament read(File inputSolutionFile) {
+    public TravelingTournament read(File inputSolutionFile) {
         TravelingTournament travelingTournament = super.read(inputSolutionFile);
 
         var teamsById = travelingTournament.getTeamList().stream()
-                .collect(Collectors.toMap(ai.timefold.solver.benchmarks.examples.travelingtournament.domain.Team::getId,
-                        Function.identity()));
+                .collect(Collectors.toMap(Team::getId, Function.identity()));
         /*
          * Replace the duplicate team instances in the distanceToTeamMap by references to instances from
          * the teamList.
          */
-        for (ai.timefold.solver.benchmarks.examples.travelingtournament.domain.Team team : travelingTournament.getTeamList()) {
+        for (Team team : travelingTournament.getTeamList()) {
             var newTravelDistanceMap = deduplicateMap(team.getDistanceToTeamMap(),
                     teamsById, Team::getId);
             team.setDistanceToTeamMap(newTravelDistanceMap);

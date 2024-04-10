@@ -169,13 +169,12 @@ public class TaskAssigningGenerator extends LoggingMain {
     }
 
     private void createCustomerList(TaskAssigningSolution solution, int customerListSize) {
-        List<ai.timefold.solver.benchmarks.examples.taskassigning.domain.Customer> customerList =
-                new ArrayList<>(customerListSize);
+        List<Customer> customerList = new ArrayList<>(customerListSize);
         customerNameGenerator.predictMaximumSizeAndReset(customerListSize);
         for (int i = 0; i < customerListSize; i++) {
             String customerName = customerNameGenerator.generateNextValue();
-            ai.timefold.solver.benchmarks.examples.taskassigning.domain.Customer customer =
-                    new ai.timefold.solver.benchmarks.examples.taskassigning.domain.Customer(i, customerName);
+            Customer customer =
+                    new Customer(i, customerName);
             logger.trace("Created skill with customerName ({}).", customerName);
             customerList.add(customer);
         }
@@ -184,7 +183,7 @@ public class TaskAssigningGenerator extends LoggingMain {
 
     private void createEmployeeList(TaskAssigningSolution solution, int employeeListSize) {
         List<Skill> skillList = solution.getSkillList();
-        List<ai.timefold.solver.benchmarks.examples.taskassigning.domain.Customer> customerList = solution.getCustomerList();
+        List<Customer> customerList = solution.getCustomerList();
         Affinity[] affinities = Affinity.values();
         List<Employee> employeeList = new ArrayList<>(employeeListSize);
         int skillListIndex = 0;
@@ -202,9 +201,8 @@ public class TaskAssigningGenerator extends LoggingMain {
                 skillListIndex = (skillListIndex + 1) % skillList.size();
             }
             employee.setSkillSet(skillSet);
-            Map<ai.timefold.solver.benchmarks.examples.taskassigning.domain.Customer, Affinity> affinityMap =
-                    new LinkedHashMap<>(customerList.size());
-            for (ai.timefold.solver.benchmarks.examples.taskassigning.domain.Customer customer : customerList) {
+            Map<Customer, Affinity> affinityMap = new LinkedHashMap<>(customerList.size());
+            for (Customer customer : customerList) {
                 affinityMap.put(customer, affinities[random.nextInt(affinities.length)]);
             }
             employee.setAffinityMap(affinityMap);

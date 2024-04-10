@@ -17,20 +17,19 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonIdentityInfo(generator = JacksonUniqueIdGenerator.class)
 public abstract class ContractLine extends AbstractPersistable {
 
-    private ai.timefold.solver.benchmarks.examples.nurserostering.domain.contract.Contract contract;
-    private ai.timefold.solver.benchmarks.examples.nurserostering.domain.contract.ContractLineType contractLineType;
+    private Contract contract;
+    private ContractLineType contractLineType;
 
     protected ContractLine() {
     }
 
-    protected ContractLine(long id, ai.timefold.solver.benchmarks.examples.nurserostering.domain.contract.Contract contract,
-            ai.timefold.solver.benchmarks.examples.nurserostering.domain.contract.ContractLineType contractLineType) {
+    protected ContractLine(long id, Contract contract, ContractLineType contractLineType) {
         super(id);
         this.contract = contract;
         this.contractLineType = contractLineType;
     }
 
-    public ai.timefold.solver.benchmarks.examples.nurserostering.domain.contract.Contract getContract() {
+    public Contract getContract() {
         return contract;
     }
 
@@ -38,7 +37,7 @@ public abstract class ContractLine extends AbstractPersistable {
         this.contract = contract;
     }
 
-    public ai.timefold.solver.benchmarks.examples.nurserostering.domain.contract.ContractLineType getContractLineType() {
+    public ContractLineType getContractLineType() {
         return contractLineType;
     }
 

@@ -13,13 +13,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -39,13 +37,10 @@ import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-public class FlightCrewSchedulingXlsxFileIO extends
-        AbstractXlsxSolutionFileIO<ai.timefold.solver.benchmarks.examples.flightcrewscheduling.domain.FlightCrewSolution> {
-
-    public static final DateTimeFormatter MILITARY_TIME_FORMATTER = DateTimeFormatter.ofPattern("HHmm", Locale.ENGLISH);
+public class FlightCrewSchedulingXlsxFileIO extends AbstractXlsxSolutionFileIO<FlightCrewSolution> {
 
     @Override
-    public ai.timefold.solver.benchmarks.examples.flightcrewscheduling.domain.FlightCrewSolution read(File inputSolutionFile) {
+    public FlightCrewSolution read(File inputSolutionFile) {
         try (InputStream in = new BufferedInputStream(new FileInputStream(inputSolutionFile))) {
             XSSFWorkbook workbook = new XSSFWorkbook(in);
             return new FlightCrewSchedulingXlsxReader(workbook).read();
@@ -55,8 +50,7 @@ public class FlightCrewSchedulingXlsxFileIO extends
         }
     }
 
-    private static class FlightCrewSchedulingXlsxReader extends
-            AbstractXlsxReader<ai.timefold.solver.benchmarks.examples.flightcrewscheduling.domain.FlightCrewSolution, HardSoftLongScore> {
+    private static class FlightCrewSchedulingXlsxReader extends AbstractXlsxReader<FlightCrewSolution, HardSoftLongScore> {
 
         private Map<String, Skill> skillMap;
         private Map<String, Employee> nameToEmployeeMap;
@@ -67,7 +61,7 @@ public class FlightCrewSchedulingXlsxFileIO extends
         }
 
         @Override
-        public ai.timefold.solver.benchmarks.examples.flightcrewscheduling.domain.FlightCrewSolution read() {
+        public FlightCrewSolution read() {
             solution = new FlightCrewSolution();
             readConfiguration();
             readSkillList();
@@ -204,7 +198,7 @@ public class FlightCrewSchedulingXlsxFileIO extends
                 String[] skillNames = nextStringCell().getStringCellValue().split(", ");
                 Set<Skill> skillSet = new LinkedHashSet<>(skillNames.length);
                 for (String skillName : skillNames) {
-                    ai.timefold.solver.benchmarks.examples.flightcrewscheduling.domain.Skill skill = skillMap.get(skillName);
+                    Skill skill = skillMap.get(skillName);
                     if (skill == null) {
                         throw new IllegalStateException(currentPosition()
                                 + ": The employee (" + employee + ")'s skill (" + skillName
@@ -244,8 +238,7 @@ public class FlightCrewSchedulingXlsxFileIO extends
             readHeaderCell("Employee skill requirements");
             readHeaderCell("Employee assignments");
             List<Flight> flightList = new ArrayList<>(currentSheet.getLastRowNum() - 1);
-            List<ai.timefold.solver.benchmarks.examples.flightcrewscheduling.domain.FlightAssignment> flightAssignmentList =
-                    new ArrayList<>((currentSheet.getLastRowNum() - 1) * 5);
+            List<FlightAssignment> flightAssignmentList = new ArrayList<>((currentSheet.getLastRowNum() - 1) * 5);
             long id = 0L;
             long flightAssignmentId = 0L;
             while (nextRow()) {
@@ -275,7 +268,7 @@ public class FlightCrewSchedulingXlsxFileIO extends
                 String[] skillNames = nextStringCell().getStringCellValue().split(", ");
                 String[] employeeNames = nextStringCell().getStringCellValue().split(", ");
                 for (int i = 0; i < skillNames.length; i++) {
-                    ai.timefold.solver.benchmarks.examples.flightcrewscheduling.domain.Skill requiredSkill =
+                    Skill requiredSkill =
                             skillMap.get(skillNames[i]);
                     if (requiredSkill == null) {
                         throw new IllegalStateException(currentPosition()
@@ -284,7 +277,7 @@ public class FlightCrewSchedulingXlsxFileIO extends
                                 + ") does not exist in the skills (" + skillMap.keySet()
                                 + ") of the other sheet (Skills).");
                     }
-                    ai.timefold.solver.benchmarks.examples.flightcrewscheduling.domain.FlightAssignment flightAssignment =
+                    FlightAssignment flightAssignment =
                             new FlightAssignment(flightAssignmentId, flight, i, requiredSkill);
                     if (employeeNames.length > i && !employeeNames[i].isEmpty()) {
                         Employee employee = nameToEmployeeMap.get(employeeNames[i]);

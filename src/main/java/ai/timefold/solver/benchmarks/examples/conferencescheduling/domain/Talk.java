@@ -14,8 +14,8 @@ public class Talk extends AbstractPersistable {
 
     private String code;
     private String title;
-    private ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.TalkType talkType;
-    private List<ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Speaker> speakerList;
+    private TalkType talkType;
+    private List<Speaker> speakerList;
     private Set<String> themeTrackTagSet;
     private Set<String> sectorTagSet;
     private Set<String> audienceTypeSet;
@@ -34,17 +34,17 @@ public class Talk extends AbstractPersistable {
     private Set<Talk> prerequisiteTalkSet;
     private int favoriteCount;
     private int crowdControlRisk;
-    private ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Timeslot publishedTimeslot;
-    private ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Room publishedRoom;
+    private Timeslot publishedTimeslot;
+    private Room publishedRoom;
 
     @PlanningPin
     private boolean pinnedByUser = false;
 
     @PlanningVariable
-    private ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Timeslot timeslot;
+    private Timeslot timeslot;
 
     @PlanningVariable
-    private ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Room room;
+    private Room room;
 
     public Talk() {
     }
@@ -53,7 +53,7 @@ public class Talk extends AbstractPersistable {
         super(id);
     }
 
-    public boolean hasSpeaker(ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Speaker speaker) {
+    public boolean hasSpeaker(Speaker speaker) {
         return speakerList.contains(speaker);
     }
 
@@ -177,7 +177,7 @@ public class Talk extends AbstractPersistable {
             return 0;
         }
         int count = 0;
-        for (ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Speaker speaker : speakerList) {
+        for (Speaker speaker : speakerList) {
             count += missingCount(speaker.getRequiredTimeslotTagSet(), timeslot.getTagSet());
         }
         return count;
@@ -188,7 +188,7 @@ public class Talk extends AbstractPersistable {
             return 0;
         }
         int count = 0;
-        for (ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Speaker speaker : speakerList) {
+        for (Speaker speaker : speakerList) {
             count += missingCount(speaker.getPreferredTimeslotTagSet(), timeslot.getTagSet());
         }
         return count;
@@ -199,7 +199,7 @@ public class Talk extends AbstractPersistable {
             return 0;
         }
         int count = 0;
-        for (ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Speaker speaker : speakerList) {
+        for (Speaker speaker : speakerList) {
             count += overlappingCount(speaker.getProhibitedTimeslotTagSet(), timeslot.getTagSet());
         }
         return count;
@@ -210,7 +210,7 @@ public class Talk extends AbstractPersistable {
             return 0;
         }
         int count = 0;
-        for (ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Speaker speaker : speakerList) {
+        for (Speaker speaker : speakerList) {
             count += overlappingCount(speaker.getUndesiredTimeslotTagSet(), timeslot.getTagSet());
         }
         return count;
@@ -221,7 +221,7 @@ public class Talk extends AbstractPersistable {
             return 0;
         }
         int count = 0;
-        for (ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Speaker speaker : speakerList) {
+        for (Speaker speaker : speakerList) {
             count += missingCount(speaker.getRequiredRoomTagSet(), room.getTagSet());
         }
         return count;
@@ -232,7 +232,7 @@ public class Talk extends AbstractPersistable {
             return 0;
         }
         int count = 0;
-        for (ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Speaker speaker : speakerList) {
+        for (Speaker speaker : speakerList) {
             count += missingCount(speaker.getPreferredRoomTagSet(), room.getTagSet());
         }
         return count;
@@ -243,7 +243,7 @@ public class Talk extends AbstractPersistable {
             return 0;
         }
         int count = 0;
-        for (ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Speaker speaker : speakerList) {
+        for (Speaker speaker : speakerList) {
             count += overlappingCount(speaker.getProhibitedRoomTagSet(), room.getTagSet());
         }
         return count;
@@ -254,7 +254,7 @@ public class Talk extends AbstractPersistable {
             return 0;
         }
         int count = 0;
-        for (ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Speaker speaker : speakerList) {
+        for (Speaker speaker : speakerList) {
             count += overlappingCount(speaker.getUndesiredRoomTagSet(), room.getTagSet());
         }
         return count;
@@ -272,7 +272,7 @@ public class Talk extends AbstractPersistable {
     }
 
     public boolean hasMutualSpeaker(Talk other) {
-        for (ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Speaker speaker : speakerList) {
+        for (Speaker speaker : speakerList) {
             if (other.hasSpeaker(speaker)) {
                 return true;
             }
@@ -314,12 +314,12 @@ public class Talk extends AbstractPersistable {
     }
 
     @ValueRangeProvider
-    public Set<ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Timeslot> getTimeslotRange() {
+    public Set<Timeslot> getTimeslotRange() {
         return talkType.getCompatibleTimeslotSet();
     }
 
     @ValueRangeProvider
-    public Set<ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Room> getRoomRange() {
+    public Set<Room> getRoomRange() {
         return talkType.getCompatibleRoomSet();
     }
 
@@ -343,11 +343,11 @@ public class Talk extends AbstractPersistable {
         this.title = title;
     }
 
-    public ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.TalkType getTalkType() {
+    public TalkType getTalkType() {
         return talkType;
     }
 
-    public void setTalkType(ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.TalkType talkType) {
+    public void setTalkType(TalkType talkType) {
         this.talkType = talkType;
     }
 
@@ -355,7 +355,7 @@ public class Talk extends AbstractPersistable {
         this.language = language;
     }
 
-    public List<ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Speaker> getSpeakerList() {
+    public List<Speaker> getSpeakerList() {
         return speakerList;
     }
 
@@ -403,7 +403,7 @@ public class Talk extends AbstractPersistable {
         return language;
     }
 
-    public void setSpeakerList(List<ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Speaker> speakerList) {
+    public void setSpeakerList(List<Speaker> speakerList) {
         this.speakerList = speakerList;
     }
 
@@ -479,19 +479,19 @@ public class Talk extends AbstractPersistable {
         this.pinnedByUser = pinnedByUser;
     }
 
-    public ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Timeslot getTimeslot() {
+    public Timeslot getTimeslot() {
         return timeslot;
     }
 
-    public void setTimeslot(ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Timeslot timeslot) {
+    public void setTimeslot(Timeslot timeslot) {
         this.timeslot = timeslot;
     }
 
-    public ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Room getRoom() {
+    public Room getRoom() {
         return room;
     }
 
-    public void setRoom(ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Room room) {
+    public void setRoom(Room room) {
         this.room = room;
     }
 
@@ -527,20 +527,19 @@ public class Talk extends AbstractPersistable {
         this.crowdControlRisk = crowdControlRisk;
     }
 
-    public ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Timeslot getPublishedTimeslot() {
+    public Timeslot getPublishedTimeslot() {
         return publishedTimeslot;
     }
 
-    public void setPublishedTimeslot(
-            ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Timeslot publishedTimeslot) {
+    public void setPublishedTimeslot(Timeslot publishedTimeslot) {
         this.publishedTimeslot = publishedTimeslot;
     }
 
-    public ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Room getPublishedRoom() {
+    public Room getPublishedRoom() {
         return publishedRoom;
     }
 
-    public void setPublishedRoom(ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Room publishedRoom) {
+    public void setPublishedRoom(Room publishedRoom) {
         this.publishedRoom = publishedRoom;
     }
 

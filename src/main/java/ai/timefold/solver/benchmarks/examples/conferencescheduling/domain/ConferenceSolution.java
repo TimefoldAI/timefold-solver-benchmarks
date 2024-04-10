@@ -18,7 +18,7 @@ public class ConferenceSolution extends AbstractPersistable {
     private ConferenceConstraintConfiguration constraintConfiguration;
 
     @ProblemFactCollectionProperty
-    private List<ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.TalkType> talkTypeList;
+    private List<TalkType> talkTypeList;
 
     @ProblemFactCollectionProperty
     private List<Timeslot> timeslotList;
@@ -67,12 +67,11 @@ public class ConferenceSolution extends AbstractPersistable {
         this.constraintConfiguration = constraintConfiguration;
     }
 
-    public List<ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.TalkType> getTalkTypeList() {
+    public List<TalkType> getTalkTypeList() {
         return talkTypeList;
     }
 
-    public void
-            setTalkTypeList(List<ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.TalkType> talkTypeList) {
+    public void setTalkTypeList(List<TalkType> talkTypeList) {
         this.talkTypeList = talkTypeList;
     }
 

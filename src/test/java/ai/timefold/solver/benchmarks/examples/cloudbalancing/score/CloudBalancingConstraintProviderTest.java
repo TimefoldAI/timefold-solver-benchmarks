@@ -9,11 +9,10 @@ import ai.timefold.solver.test.api.score.stream.ConstraintVerifier;
 
 class CloudBalancingConstraintProviderTest
         extends
-        AbstractConstraintProviderTest<ai.timefold.solver.benchmarks.examples.cloudbalancing.score.CloudBalancingConstraintProvider, CloudBalance> {
+        AbstractConstraintProviderTest<CloudBalancingConstraintProvider, CloudBalance> {
 
     @ConstraintProviderTest
-    void requiredCpuPowerTotal(
-            ConstraintVerifier<ai.timefold.solver.benchmarks.examples.cloudbalancing.score.CloudBalancingConstraintProvider, CloudBalance> constraintVerifier) {
+    void requiredCpuPowerTotal(ConstraintVerifier<CloudBalancingConstraintProvider, CloudBalance> constraintVerifier) {
         CloudComputer computer1 = new CloudComputer(1, 1, 1, 1, 2);
         CloudComputer computer2 = new CloudComputer(2, 2, 2, 2, 4);
         CloudProcess unassignedProcess = new CloudProcess(0, 1, 1, 1);
@@ -27,14 +26,14 @@ class CloudBalancingConstraintProviderTest
         process3.setComputer(computer2);
 
         constraintVerifier.verifyThat(
-                ai.timefold.solver.benchmarks.examples.cloudbalancing.score.CloudBalancingConstraintProvider::requiredCpuPowerTotal)
+                CloudBalancingConstraintProvider::requiredCpuPowerTotal)
                 .given(unassignedProcess, process1, process2, process3)
                 .penalizesBy(1); // Only the first computer.
     }
 
     @ConstraintProviderTest
     void requiredMemoryTotal(
-            ConstraintVerifier<ai.timefold.solver.benchmarks.examples.cloudbalancing.score.CloudBalancingConstraintProvider, CloudBalance> constraintVerifier) {
+            ConstraintVerifier<CloudBalancingConstraintProvider, CloudBalance> constraintVerifier) {
         CloudComputer computer1 = new CloudComputer(1, 1, 1, 1, 2);
         CloudComputer computer2 = new CloudComputer(2, 2, 2, 2, 4);
         CloudProcess unassignedProcess = new CloudProcess(0, 1, 1, 1);
@@ -48,14 +47,14 @@ class CloudBalancingConstraintProviderTest
         process3.setComputer(computer2);
 
         constraintVerifier.verifyThat(
-                ai.timefold.solver.benchmarks.examples.cloudbalancing.score.CloudBalancingConstraintProvider::requiredMemoryTotal)
+                CloudBalancingConstraintProvider::requiredMemoryTotal)
                 .given(unassignedProcess, process1, process2, process3)
                 .penalizesBy(1); // Only the first computer.
     }
 
     @ConstraintProviderTest
     void requiredNetworkBandwidthTotal(
-            ConstraintVerifier<ai.timefold.solver.benchmarks.examples.cloudbalancing.score.CloudBalancingConstraintProvider, CloudBalance> constraintVerifier) {
+            ConstraintVerifier<CloudBalancingConstraintProvider, CloudBalance> constraintVerifier) {
         CloudComputer computer1 = new CloudComputer(1, 1, 1, 1, 2);
         CloudComputer computer2 = new CloudComputer(2, 2, 2, 2, 4);
         CloudProcess unassignedProcess = new CloudProcess(0, 1, 1, 1);
@@ -69,14 +68,13 @@ class CloudBalancingConstraintProviderTest
         process3.setComputer(computer2);
 
         constraintVerifier.verifyThat(
-                ai.timefold.solver.benchmarks.examples.cloudbalancing.score.CloudBalancingConstraintProvider::requiredNetworkBandwidthTotal)
+                CloudBalancingConstraintProvider::requiredNetworkBandwidthTotal)
                 .given(unassignedProcess, process1, process2, process3)
                 .penalizesBy(1); // Only the first computer.
     }
 
     @ConstraintProviderTest
-    void computerCost(
-            ConstraintVerifier<ai.timefold.solver.benchmarks.examples.cloudbalancing.score.CloudBalancingConstraintProvider, CloudBalance> constraintVerifier) {
+    void computerCost(ConstraintVerifier<CloudBalancingConstraintProvider, CloudBalance> constraintVerifier) {
         CloudComputer computer1 = new CloudComputer(1, 1, 1, 1, 2);
         CloudComputer computer2 = new CloudComputer(2, 2, 2, 2, 4);
         CloudProcess unassignedProcess = new CloudProcess(0, 1, 1, 1);
@@ -84,15 +82,13 @@ class CloudBalancingConstraintProviderTest
         process.setComputer(computer1);
 
         constraintVerifier.verifyThat(
-                ai.timefold.solver.benchmarks.examples.cloudbalancing.score.CloudBalancingConstraintProvider::computerCost)
+                CloudBalancingConstraintProvider::computerCost)
                 .given(computer1, computer2, unassignedProcess, process)
                 .penalizesBy(2);
     }
 
     @Override
-    protected
-            ConstraintVerifier<ai.timefold.solver.benchmarks.examples.cloudbalancing.score.CloudBalancingConstraintProvider, CloudBalance>
-            createConstraintVerifier() {
+    protected ConstraintVerifier<CloudBalancingConstraintProvider, CloudBalance> createConstraintVerifier() {
         return ConstraintVerifier.build(new CloudBalancingConstraintProvider(), CloudBalance.class, CloudProcess.class);
     }
 

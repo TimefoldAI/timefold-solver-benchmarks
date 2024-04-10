@@ -12,7 +12,7 @@ class NurseRosteringSmokeTest extends SolverSmokeTest<NurseRoster, HardSoftScore
     private static final String UNSOLVED_DATA_FILE = "data/nurserostering/unsolved/medium_late01_initialized.json";
 
     @Override
-    protected ai.timefold.solver.benchmarks.examples.nurserostering.app.NurseRosteringApp createCommonApp() {
+    protected NurseRosteringApp createCommonApp() {
         return new NurseRosteringApp();
     }
 

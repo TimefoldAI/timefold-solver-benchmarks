@@ -9,7 +9,7 @@ public class Room extends AbstractPersistable {
     private String name;
     private int capacity;
 
-    private Set<ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.TalkType> talkTypeSet;
+    private Set<TalkType> talkTypeSet;
     private Set<Timeslot> unavailableTimeslotSet;
     private Set<String> tagSet;
 
@@ -45,11 +45,11 @@ public class Room extends AbstractPersistable {
         this.capacity = capacity;
     }
 
-    public Set<ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.TalkType> getTalkTypeSet() {
+    public Set<TalkType> getTalkTypeSet() {
         return talkTypeSet;
     }
 
-    public void setTalkTypeSet(Set<ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.TalkType> talkTypeSet) {
+    public void setTalkTypeSet(Set<TalkType> talkTypeSet) {
         this.talkTypeSet = talkTypeSet;
     }
 

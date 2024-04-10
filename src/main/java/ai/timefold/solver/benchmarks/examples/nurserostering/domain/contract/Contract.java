@@ -14,7 +14,7 @@ public class Contract extends AbstractPersistable {
 
     private String code;
     private String description;
-    private ai.timefold.solver.benchmarks.examples.nurserostering.domain.WeekendDefinition weekendDefinition;
+    private WeekendDefinition weekendDefinition;
     private List<ContractLine> contractLineList;
 
     public Contract() {
@@ -46,7 +46,7 @@ public class Contract extends AbstractPersistable {
         this.description = description;
     }
 
-    public ai.timefold.solver.benchmarks.examples.nurserostering.domain.WeekendDefinition getWeekendDefinition() {
+    public WeekendDefinition getWeekendDefinition() {
         return weekendDefinition;
     }
 

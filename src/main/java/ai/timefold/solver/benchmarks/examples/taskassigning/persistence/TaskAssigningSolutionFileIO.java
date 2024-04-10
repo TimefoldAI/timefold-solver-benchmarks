@@ -20,8 +20,7 @@ public class TaskAssigningSolutionFileIO extends AbstractJsonSolutionFileIO<Task
         TaskAssigningSolution taskAssigningSolution = super.read(inputSolutionFile);
 
         var customersById = taskAssigningSolution.getCustomerList().stream()
-                .collect(Collectors.toMap(ai.timefold.solver.benchmarks.examples.taskassigning.domain.Customer::getId,
-                        Function.identity()));
+                .collect(Collectors.toMap(Customer::getId, Function.identity()));
         /*
          * Replace the duplicate customer instances in the affinityMap by references to instances from
          * the customerList.

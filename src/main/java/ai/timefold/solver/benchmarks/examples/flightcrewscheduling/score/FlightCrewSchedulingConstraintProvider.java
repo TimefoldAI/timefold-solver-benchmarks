@@ -30,7 +30,7 @@ public class FlightCrewSchedulingConstraintProvider implements ConstraintProvide
 
     private Constraint requiredSkill(ConstraintFactory constraintFactory) {
         return constraintFactory
-                .forEach(ai.timefold.solver.benchmarks.examples.flightcrewscheduling.domain.FlightAssignment.class)
+                .forEach(FlightAssignment.class)
                 .filter(flightAssignment -> {
                     Skill requiredSkill = flightAssignment.getRequiredSkill();
                     return !flightAssignment.getEmployee().hasSkill(requiredSkill);
@@ -41,8 +41,8 @@ public class FlightCrewSchedulingConstraintProvider implements ConstraintProvide
 
     private Constraint flightConflict(ConstraintFactory constraintFactory) {
         return constraintFactory
-                .forEachUniquePair(ai.timefold.solver.benchmarks.examples.flightcrewscheduling.domain.FlightAssignment.class,
-                        equal(ai.timefold.solver.benchmarks.examples.flightcrewscheduling.domain.FlightAssignment::getEmployee),
+                .forEachUniquePair(FlightAssignment.class,
+                        equal(FlightAssignment::getEmployee),
                         overlapping(flightAssignment -> flightAssignment.getFlight().getDepartureUTCDateTime(),
                                 flightAssignment -> flightAssignment.getFlight().getArrivalUTCDateTime()))
                 .penalize(HardSoftLongScore.ofHard(10))
@@ -50,8 +50,8 @@ public class FlightCrewSchedulingConstraintProvider implements ConstraintProvide
     }
 
     private Constraint transferBetweenTwoFlights(ConstraintFactory constraintFactory) {
-        return constraintFactory.forEach(ai.timefold.solver.benchmarks.examples.flightcrewscheduling.domain.Employee.class)
-                .expand(ai.timefold.solver.benchmarks.examples.flightcrewscheduling.domain.Employee::countInvalidConnections)
+        return constraintFactory.forEach(Employee.class)
+                .expand(Employee::countInvalidConnections)
                 .filter((employee, invalidConnections) -> invalidConnections > 0)
                 .penalizeLong(HardSoftLongScore.ofHard(1),
                         (employee, invalidConnections) -> invalidConnections)
@@ -70,7 +70,7 @@ public class FlightCrewSchedulingConstraintProvider implements ConstraintProvide
     }
 
     private Constraint firstAssignmentNotDepartingFromHome(ConstraintFactory constraintFactory) {
-        return constraintFactory.forEach(ai.timefold.solver.benchmarks.examples.flightcrewscheduling.domain.Employee.class)
+        return constraintFactory.forEach(Employee.class)
                 .filter(employee -> !employee.isFirstAssignmentDepartingFromHome())
                 .penalize(HardSoftLongScore.ofSoft(1_000_000))
                 .asConstraint("First assignment not departing from home");

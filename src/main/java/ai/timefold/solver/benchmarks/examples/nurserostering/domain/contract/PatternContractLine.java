@@ -6,7 +6,7 @@ import ai.timefold.solver.benchmarks.examples.nurserostering.domain.pattern.Patt
 public class PatternContractLine extends AbstractPersistable {
 
     private Contract contract;
-    private ai.timefold.solver.benchmarks.examples.nurserostering.domain.pattern.Pattern pattern;
+    private Pattern pattern;
 
     public PatternContractLine() {
     }
@@ -15,8 +15,7 @@ public class PatternContractLine extends AbstractPersistable {
         super(id);
     }
 
-    public PatternContractLine(long id, Contract contract,
-            ai.timefold.solver.benchmarks.examples.nurserostering.domain.pattern.Pattern pattern) {
+    public PatternContractLine(long id, Contract contract, Pattern pattern) {
         super(id);
         this.contract = contract;
         this.pattern = pattern;
@@ -30,7 +29,7 @@ public class PatternContractLine extends AbstractPersistable {
         this.contract = contract;
     }
 
-    public ai.timefold.solver.benchmarks.examples.nurserostering.domain.pattern.Pattern getPattern() {
+    public Pattern getPattern() {
         return pattern;
     }
 

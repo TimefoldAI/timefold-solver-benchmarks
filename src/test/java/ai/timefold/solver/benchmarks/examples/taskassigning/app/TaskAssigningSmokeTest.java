@@ -12,7 +12,7 @@ class TaskAssigningSmokeTest extends SolverSmokeTest<TaskAssigningSolution, Bend
     private static final String UNSOLVED_DATA_FILE = "data/taskassigning/unsolved/50tasks-5employees.json";
 
     @Override
-    protected ai.timefold.solver.benchmarks.examples.taskassigning.app.TaskAssigningApp createCommonApp() {
+    protected TaskAssigningApp createCommonApp() {
         return new TaskAssigningApp();
     }
 
