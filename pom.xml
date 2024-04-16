@@ -259,4 +259,12 @@
         </profile>
     </profiles>
 
+    <repositories>
+        <repository>
+            <id>timefold-solver-enterprise</id>
+            <name>Timefold Solver Enterprise Edition</name>
+            <url>https://timefold.jfrog.io/artifactory/releases/</url>
+        </repository>
+    </repositories>
+
 </project>
