@@ -21,7 +21,6 @@ import ai.timefold.solver.benchmarks.micro.scoredirector.problems.PatientAdmissi
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.Problem;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.ProjectJobSchedulingProblem;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.TaskAssigningProblem;
-import ai.timefold.solver.benchmarks.micro.scoredirector.problems.TennisProblem;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.TravelingTournamentProblem;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.TspProblem;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.VehicleRoutingProblem;
@@ -50,7 +49,6 @@ public enum Example {
             ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED),
     TASK_ASSIGNING(TaskAssigningProblem::new, ScoreDirectorType.CONSTRAINT_STREAMS,
             ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED),
-    TENNIS(TennisProblem::new, ScoreDirectorType.CONSTRAINT_STREAMS, ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED),
     TRAVELING_TOURNAMENT(TravelingTournamentProblem::new, ScoreDirectorType.CONSTRAINT_STREAMS,
             ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED),
     TSP(TspProblem::new, VisitNearbyDistanceMeter.class),
