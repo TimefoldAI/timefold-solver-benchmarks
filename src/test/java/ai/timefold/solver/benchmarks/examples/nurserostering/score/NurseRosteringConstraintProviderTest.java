@@ -39,7 +39,8 @@ import ai.timefold.solver.test.api.score.stream.SingleConstraintVerification;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
-class NurseRosteringConstraintProviderTest extends AbstractConstraintProviderTest<NurseRosteringConstraintProvider, NurseRoster> {
+class NurseRosteringConstraintProviderTest
+        extends AbstractConstraintProviderTest<NurseRosteringConstraintProvider, NurseRoster> {
 
     private final ThreadLocal<AtomicLong> idSupplier = ThreadLocal.withInitial(() -> new AtomicLong(0));
     private final ThreadLocal<Map<Pair<Integer, ShiftType>, Shift>> indexShiftTypePairToShiftMap =

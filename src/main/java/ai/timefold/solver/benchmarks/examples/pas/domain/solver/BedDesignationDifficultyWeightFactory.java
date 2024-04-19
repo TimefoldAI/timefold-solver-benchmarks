@@ -10,7 +10,8 @@ import ai.timefold.solver.benchmarks.examples.pas.domain.PatientAdmissionSchedul
 import ai.timefold.solver.benchmarks.examples.pas.domain.Room;
 import ai.timefold.solver.core.impl.heuristic.selector.common.decorator.SelectionSorterWeightFactory;
 
-public class BedDesignationDifficultyWeightFactory implements SelectionSorterWeightFactory<PatientAdmissionSchedule, BedDesignation> {
+public class BedDesignationDifficultyWeightFactory
+        implements SelectionSorterWeightFactory<PatientAdmissionSchedule, BedDesignation> {
 
     @Override
     public BedDesignationDifficultyWeight createSorterWeight(PatientAdmissionSchedule schedule, BedDesignation bedDesignation) {

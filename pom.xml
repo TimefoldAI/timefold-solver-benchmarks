@@ -21,7 +21,8 @@
         <version.org.mockito>5.11.0</version.org.mockito>
         <version.spotless.plugin>2.43.0</version.spotless.plugin>
         <version.tools.profiler>3.0</version.tools.profiler>
-        <formatter.skip>true</formatter.skip>
+        <spotless.skip>false</spotless.skip>
+        <spotless.goal>apply</spotless.goal>
         <java.module.name>ai.timefold.solver.benchmarks</java.module.name>
         <java.release>21</java.release>
         <jmh.version>1.37</jmh.version>
@@ -214,9 +215,10 @@
                         <id>spotless-formatting</id>
                         <phase>compile</phase>
                         <goals>
-                            <goal>check</goal>
+                            <goal>${spotless.goal}</goal>
                         </goals>
                         <configuration>
+                            <skip>${spotless.skip}</skip>
                             <java>
                                 <eclipse>
                                     <file>eclipse-format.xml</file>
@@ -231,7 +233,7 @@
                                     <replacement>$1</replacement>
                                 </replaceRegex>
                             </java>
-                            <pom/>
+                            <pom />
                         </configuration>
                     </execution>
                 </executions>
