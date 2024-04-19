@@ -13,13 +13,11 @@ import ai.timefold.solver.benchmarks.micro.scoredirector.problems.CloudBalancing
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.ConferenceSchedulingProblem;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.CurriculumCourseProblem;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.ExaminationProblem;
-import ai.timefold.solver.benchmarks.micro.scoredirector.problems.FlightCrewSchedulingProblem;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.MachineReassignmentProblem;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.MeetingSchedulingProblem;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.NurseRosteringProblem;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.PatientAdmissionSchedulingProblem;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.Problem;
-import ai.timefold.solver.benchmarks.micro.scoredirector.problems.ProjectJobSchedulingProblem;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.TaskAssigningProblem;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.TravelingTournamentProblem;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.TspProblem;
@@ -34,8 +32,6 @@ public enum Example {
     CURRICULUM_COURSE(CurriculumCourseProblem::new, ScoreDirectorType.CONSTRAINT_STREAMS,
             ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED),
     EXAMINATION(ExaminationProblem::new, ScoreDirectorType.CONSTRAINT_STREAMS, ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED),
-    FLIGHT_CREW_SCHEDULING(FlightCrewSchedulingProblem::new, ScoreDirectorType.CONSTRAINT_STREAMS,
-            ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED),
     MACHINE_REASSIGNMENT(MachineReassignmentProblem::new, ScoreDirectorType.INCREMENTAL, ScoreDirectorType.CONSTRAINT_STREAMS,
             ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED),
     MEETING_SCHEDULING(MeetingSchedulingProblem::new, ScoreDirectorType.CONSTRAINT_STREAMS,
@@ -43,9 +39,6 @@ public enum Example {
     NURSE_ROSTERING(NurseRosteringProblem::new, ScoreDirectorType.CONSTRAINT_STREAMS,
             ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED),
     PATIENT_ADMISSION_SCHEDULING(PatientAdmissionSchedulingProblem::new, ScoreDirectorType.CONSTRAINT_STREAMS,
-            ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED),
-    PROJECT_JOB_SCHEDULING(ProjectJobSchedulingProblem::new, ScoreDirectorType.INCREMENTAL,
-            ScoreDirectorType.CONSTRAINT_STREAMS,
             ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED),
     TASK_ASSIGNING(TaskAssigningProblem::new, ScoreDirectorType.CONSTRAINT_STREAMS,
             ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED),

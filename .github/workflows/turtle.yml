@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        example: [cloudbalancing, conferencescheduling, curriculumcourse, examination, flightcrewscheduling, machinereassignment, meetingscheduling, nurserostering, pas, projectjobscheduling, taskassigning, travelingtournament, tsp, vehiclerouting]
+        example: [cloudbalancing, conferencescheduling, curriculumcourse, examination, machinereassignment, meetingscheduling, nurserostering, pas, taskassigning, travelingtournament, tsp, vehiclerouting]
     steps:
       # Clone timefold-solver
       # Need to check for stale repo, since Github is not aware of the build chain and therefore doesn't automate it.
