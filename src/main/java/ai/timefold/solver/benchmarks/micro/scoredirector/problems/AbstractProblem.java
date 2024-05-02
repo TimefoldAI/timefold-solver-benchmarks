@@ -108,7 +108,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
         var solverScope = new SolverScope<Solution_>();
         solverScope.setScoreDirector(scoreDirector);
         solverScope.setWorkingRandom(new Random(0)); // Fully reproducible random selection.
-        phaseScope = new LocalSearchPhaseScope<>(solverScope);
+        phaseScope = new LocalSearchPhaseScope<>(solverScope, 0);
         moveSelector.solvingStarted(solverScope);
         moveSelector.phaseStarted(phaseScope);
     }
