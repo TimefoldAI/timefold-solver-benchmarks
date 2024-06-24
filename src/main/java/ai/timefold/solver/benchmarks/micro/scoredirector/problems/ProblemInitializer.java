@@ -82,8 +82,8 @@ public final class ProblemInitializer {
             bestSolutionRecaller.setSolverEventSupport(new SolverEventSupport<>(null));
             var termination = TerminationFactory.<Solution_> create(new TerminationConfig())
                     .buildTermination(policy, new BasicPlumbingTermination<>(false));
-            var constructionHeuristicPhase = (DefaultConstructionHeuristicPhase<Solution_>) factory.buildPhase(0, policy,
-                    bestSolutionRecaller, termination);
+            var constructionHeuristicPhase = (DefaultConstructionHeuristicPhase<Solution_>) factory.buildPhase(0, false,
+                    policy, bestSolutionRecaller, termination);
 
             // Create solver; more or less a mock.
             var solverScope = new SolverScope<Solution_>();
