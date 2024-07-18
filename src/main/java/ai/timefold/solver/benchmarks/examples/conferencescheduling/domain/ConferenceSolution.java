@@ -3,19 +3,23 @@ package ai.timefold.solver.benchmarks.examples.conferencescheduling.domain;
 import java.util.List;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
-import ai.timefold.solver.core.api.domain.constraintweight.ConstraintConfigurationProvider;
+import ai.timefold.solver.core.api.domain.solution.ConstraintWeightOverrides;
 import ai.timefold.solver.core.api.domain.solution.PlanningEntityCollectionProperty;
 import ai.timefold.solver.core.api.domain.solution.PlanningScore;
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
 import ai.timefold.solver.core.api.domain.solution.ProblemFactCollectionProperty;
-import ai.timefold.solver.core.api.score.buildin.hardmediumsoft.HardMediumSoftScore;
+import ai.timefold.solver.core.api.domain.solution.ProblemFactProperty;
+import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
 
 @PlanningSolution
 public class ConferenceSolution extends AbstractPersistable {
 
     private String conferenceName;
-    @ConstraintConfigurationProvider
-    private ConferenceConstraintConfiguration constraintConfiguration;
+
+    @ProblemFactProperty
+    private ConferenceConstraintProperties constraintProperties;
+
+    private ConstraintWeightOverrides<HardSoftScore> constraintWeightOverrides;
 
     @ProblemFactCollectionProperty
     private List<TalkType> talkTypeList;
@@ -33,7 +37,7 @@ public class ConferenceSolution extends AbstractPersistable {
     private List<Talk> talkList;
 
     @PlanningScore
-    private HardMediumSoftScore score = null;
+    private HardSoftScore score = null;
 
     public ConferenceSolution() {
     }
@@ -59,12 +63,20 @@ public class ConferenceSolution extends AbstractPersistable {
         this.conferenceName = conferenceName;
     }
 
-    public ConferenceConstraintConfiguration getConstraintConfiguration() {
-        return constraintConfiguration;
+    public ConferenceConstraintProperties getConstraintProperties() {
+        return constraintProperties;
     }
 
-    public void setConstraintConfiguration(ConferenceConstraintConfiguration constraintConfiguration) {
-        this.constraintConfiguration = constraintConfiguration;
+    public void setConstraintProperties(ConferenceConstraintProperties constraintProperties) {
+        this.constraintProperties = constraintProperties;
+    }
+
+    public ConstraintWeightOverrides<HardSoftScore> getConstraintWeightOverrides() {
+        return constraintWeightOverrides;
+    }
+
+    public void setConstraintWeightOverrides(ConstraintWeightOverrides<HardSoftScore> constraintWeightOverrides) {
+        this.constraintWeightOverrides = constraintWeightOverrides;
     }
 
     public List<TalkType> getTalkTypeList() {
@@ -107,46 +119,12 @@ public class ConferenceSolution extends AbstractPersistable {
         this.talkList = talkList;
     }
 
-    public HardMediumSoftScore getScore() {
+    public HardSoftScore getScore() {
         return score;
     }
 
-    public void setScore(HardMediumSoftScore score) {
+    public void setScore(HardSoftScore score) {
         this.score = score;
-    }
-
-    // ************************************************************************
-    // With methods
-    // ************************************************************************
-
-    public ConferenceSolution withConstraintConfiguration(ConferenceConstraintConfiguration constraintConfiguration) {
-        this.constraintConfiguration = constraintConfiguration;
-        return this;
-    }
-
-    public ConferenceSolution withTalkTypeList(List<TalkType> talkTypeList) {
-        this.talkTypeList = talkTypeList;
-        return this;
-    }
-
-    public ConferenceSolution withTimeslotList(List<Timeslot> timeslotList) {
-        this.timeslotList = timeslotList;
-        return this;
-    }
-
-    public ConferenceSolution withRoomList(List<Room> roomList) {
-        this.roomList = roomList;
-        return this;
-    }
-
-    public ConferenceSolution withSpeakerList(List<Speaker> speakerList) {
-        this.speakerList = speakerList;
-        return this;
-    }
-
-    public ConferenceSolution withTalkList(List<Talk> talkList) {
-        this.talkList = talkList;
-        return this;
     }
 
 }

@@ -4,18 +4,21 @@ import java.util.List;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
 import ai.timefold.solver.benchmarks.examples.examination.domain.solver.TopicConflict;
-import ai.timefold.solver.core.api.domain.constraintweight.ConstraintConfigurationProvider;
+import ai.timefold.solver.core.api.domain.solution.ConstraintWeightOverrides;
 import ai.timefold.solver.core.api.domain.solution.PlanningEntityCollectionProperty;
 import ai.timefold.solver.core.api.domain.solution.PlanningScore;
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
 import ai.timefold.solver.core.api.domain.solution.ProblemFactCollectionProperty;
+import ai.timefold.solver.core.api.domain.solution.ProblemFactProperty;
 import ai.timefold.solver.core.api.domain.valuerange.ValueRangeProvider;
 import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
 
 @PlanningSolution
 public class Examination extends AbstractPersistable {
 
-    private ExaminationConstraintConfiguration constraintConfiguration;
+    private ConstraintWeightOverrides<HardSoftScore> constraintWeightOverrides;
+    @ProblemFactProperty
+    private ExaminationConstraintProperties constraintProperties;
 
     private List<Student> studentList;
     private List<Topic> topicList;
@@ -37,14 +40,20 @@ public class Examination extends AbstractPersistable {
         super(id);
     }
 
-    @ConstraintConfigurationProvider
-    public ExaminationConstraintConfiguration
-            getConstraintConfiguration() {
-        return constraintConfiguration;
+    public ConstraintWeightOverrides<HardSoftScore> getConstraintWeightOverrides() {
+        return constraintWeightOverrides;
     }
 
-    public void setConstraintConfiguration(ExaminationConstraintConfiguration constraintConfiguration) {
-        this.constraintConfiguration = constraintConfiguration;
+    public void setConstraintWeightOverrides(ConstraintWeightOverrides<HardSoftScore> constraintWeightOverrides) {
+        this.constraintWeightOverrides = constraintWeightOverrides;
+    }
+
+    public ExaminationConstraintProperties getConstraintProperties() {
+        return constraintProperties;
+    }
+
+    public void setConstraintProperties(ExaminationConstraintProperties constraintProperties) {
+        this.constraintProperties = constraintProperties;
     }
 
     public List<Student> getStudentList() {

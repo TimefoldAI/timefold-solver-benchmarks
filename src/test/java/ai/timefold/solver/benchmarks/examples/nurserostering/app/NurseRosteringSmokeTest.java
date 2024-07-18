@@ -1,13 +1,14 @@
 package ai.timefold.solver.benchmarks.examples.nurserostering.app;
 
+import java.math.BigDecimal;
 import java.util.stream.Stream;
 
 import ai.timefold.solver.benchmarks.examples.common.app.SolverSmokeTest;
 import ai.timefold.solver.benchmarks.examples.nurserostering.domain.NurseRoster;
-import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
+import ai.timefold.solver.core.api.score.buildin.hardsoftbigdecimal.HardSoftBigDecimalScore;
 import ai.timefold.solver.core.api.score.stream.ConstraintStreamImplType;
 
-class NurseRosteringSmokeTest extends SolverSmokeTest<NurseRoster, HardSoftScore> {
+class NurseRosteringSmokeTest extends SolverSmokeTest<NurseRoster, HardSoftBigDecimalScore> {
 
     private static final String UNSOLVED_DATA_FILE = "data/nurserostering/unsolved/medium_late01_initialized.json";
 
@@ -17,10 +18,10 @@ class NurseRosteringSmokeTest extends SolverSmokeTest<NurseRoster, HardSoftScore
     }
 
     @Override
-    protected Stream<TestData<HardSoftScore>> testData() {
+    protected Stream<TestData<HardSoftBigDecimalScore>> testData() {
         return Stream.of(
                 TestData.of(ConstraintStreamImplType.BAVET, UNSOLVED_DATA_FILE,
-                        HardSoftScore.ofSoft(-508),
-                        HardSoftScore.ofSoft(-534)));
+                        HardSoftBigDecimalScore.ofSoft(BigDecimal.valueOf(-567.9833)),
+                        HardSoftBigDecimalScore.ofSoft(BigDecimal.valueOf(-567.9833))));
     }
 }

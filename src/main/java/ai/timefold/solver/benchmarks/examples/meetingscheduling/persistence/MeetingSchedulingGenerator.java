@@ -15,7 +15,6 @@ import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.Attendanc
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.Day;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.Meeting;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.MeetingAssignment;
-import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.MeetingConstraintConfiguration;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.MeetingSchedule;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.Person;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.PreferredAttendance;
@@ -177,9 +176,6 @@ public class MeetingSchedulingGenerator extends LoggingMain {
         random = new Random(37);
         MeetingSchedule meetingSchedule =
                 new MeetingSchedule(0L);
-        MeetingConstraintConfiguration constraintConfiguration =
-                new MeetingConstraintConfiguration(0L);
-        meetingSchedule.setConstraintConfiguration(constraintConfiguration);
 
         createMeetingListAndAttendanceList(meetingSchedule, meetingListSize);
         createTimeGrainList(meetingSchedule, timeGrainListSize);

@@ -15,6 +15,7 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,13 +29,13 @@ import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.Attendanc
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.Day;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.Meeting;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.MeetingAssignment;
-import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.MeetingConstraintConfiguration;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.MeetingSchedule;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.Person;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.PreferredAttendance;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.RequiredAttendance;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.Room;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.TimeGrain;
+import ai.timefold.solver.core.api.domain.solution.ConstraintWeightOverrides;
 import ai.timefold.solver.core.api.score.buildin.hardmediumsoft.HardMediumSoftScore;
 
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -78,59 +79,32 @@ public class MeetingSchedulingXlsxFileIO extends AbstractXlsxSolutionFileIO<Meet
             readHeaderCell("Weight");
             readHeaderCell("Description");
 
-            MeetingConstraintConfiguration constraintConfiguration =
-                    new MeetingConstraintConfiguration(0L);
-
-            // TODO refactor this to allow setting pos/neg, weight and score level
-            readIntConstraintParameterLine(
-                    MeetingConstraintConfiguration.ROOM_CONFLICT,
-                    hardScore -> constraintConfiguration.setRoomConflict(HardMediumSoftScore.ofHard(hardScore)), "");
-            readIntConstraintParameterLine(
-                    MeetingConstraintConfiguration.DONT_GO_IN_OVERTIME,
-                    hardScore -> constraintConfiguration.setDontGoInOvertime(HardMediumSoftScore.ofHard(hardScore)), "");
-            readIntConstraintParameterLine(
-                    MeetingConstraintConfiguration.REQUIRED_ATTENDANCE_CONFLICT,
-                    hardScore -> constraintConfiguration.setRequiredAttendanceConflict(HardMediumSoftScore.ofHard(hardScore)),
-                    "");
-            readIntConstraintParameterLine(
-                    MeetingConstraintConfiguration.REQUIRED_ROOM_CAPACITY,
-                    hardScore -> constraintConfiguration.setRequiredRoomCapacity(HardMediumSoftScore.ofHard(hardScore)), "");
-            readIntConstraintParameterLine(
-                    MeetingConstraintConfiguration.START_AND_END_ON_SAME_DAY,
-                    hardScore -> constraintConfiguration.setStartAndEndOnSameDay(HardMediumSoftScore.ofHard(hardScore)), "");
-
-            readIntConstraintParameterLine(
-                    MeetingConstraintConfiguration.REQUIRED_AND_PREFERRED_ATTENDANCE_CONFLICT,
-                    mediumScore -> constraintConfiguration
-                            .setRequiredAndPreferredAttendanceConflict(HardMediumSoftScore.ofMedium(mediumScore)),
-                    "");
-            readIntConstraintParameterLine(
-                    MeetingConstraintConfiguration.PREFERRED_ATTENDANCE_CONFLICT,
-                    mediumScore -> constraintConfiguration
-                            .setPreferredAttendanceConflict(HardMediumSoftScore.ofMedium(mediumScore)),
-                    "");
-
-            readIntConstraintParameterLine(
-                    MeetingConstraintConfiguration.DO_ALL_MEETINGS_AS_SOON_AS_POSSIBLE,
-                    softScore -> constraintConfiguration
-                            .setDoAllMeetingsAsSoonAsPossible(HardMediumSoftScore.ofSoft(softScore)),
-                    "");
-            readIntConstraintParameterLine(
-                    MeetingConstraintConfiguration.ONE_TIME_GRAIN_BREAK_BETWEEN_TWO_CONSECUTIVE_MEETINGS,
-                    softScore -> constraintConfiguration
-                            .setOneTimeGrainBreakBetweenTwoConsecutiveMeetings(HardMediumSoftScore.ofSoft(softScore)),
-                    "");
-            readIntConstraintParameterLine(
-                    MeetingConstraintConfiguration.OVERLAPPING_MEETINGS,
-                    softScore -> constraintConfiguration.setOverlappingMeetings(HardMediumSoftScore.ofSoft(softScore)), "");
-            readIntConstraintParameterLine(
-                    MeetingConstraintConfiguration.ASSIGN_LARGER_ROOMS_FIRST,
-                    softScore -> constraintConfiguration.setAssignLargerRoomsFirst(HardMediumSoftScore.ofSoft(softScore)), "");
-            readIntConstraintParameterLine(
-                    MeetingConstraintConfiguration.ROOM_STABILITY,
-                    softScore -> constraintConfiguration.setRoomStability(HardMediumSoftScore.ofSoft(softScore)), "");
-
-            solution.setConstraintConfiguration(constraintConfiguration);
+            var overrides = new LinkedHashMap<String, HardMediumSoftScore>();
+            readIntConstraintParameterLine("Room conflict", "",
+                    (name, score) -> overrides.put(name, HardMediumSoftScore.ofHard(score)));
+            readIntConstraintParameterLine("Don't go in overtime", "",
+                    (name, score) -> overrides.put(name, HardMediumSoftScore.ofHard(score)));
+            readIntConstraintParameterLine("Required attendance conflict", "",
+                    (name, score) -> overrides.put(name, HardMediumSoftScore.ofHard(score)));
+            readIntConstraintParameterLine("Required room capacity", "",
+                    (name, score) -> overrides.put(name, HardMediumSoftScore.ofHard(score)));
+            readIntConstraintParameterLine("Start and end on same day", "",
+                    (name, score) -> overrides.put(name, HardMediumSoftScore.ofHard(score)));
+            readIntConstraintParameterLine("Required and preferred attendance conflict", "",
+                    (name, score) -> overrides.put(name, HardMediumSoftScore.ofMedium(score)));
+            readIntConstraintParameterLine("Preferred attendance conflict", "",
+                    (name, score) -> overrides.put(name, HardMediumSoftScore.ofMedium(score)));
+            readIntConstraintParameterLine("Do all meetings as soon as possible", "",
+                    (name, score) -> overrides.put(name, HardMediumSoftScore.ofSoft(score)));
+            readIntConstraintParameterLine("One TimeGrain break between two consecutive meetings", "",
+                    (name, score) -> overrides.put(name, HardMediumSoftScore.ofSoft(score)));
+            readIntConstraintParameterLine("Overlapping meetings", "",
+                    (name, score) -> overrides.put(name, HardMediumSoftScore.ofSoft(score)));
+            readIntConstraintParameterLine("Assign larger rooms first", "",
+                    (name, score) -> overrides.put(name, HardMediumSoftScore.ofSoft(score)));
+            readIntConstraintParameterLine("Room stability", "",
+                    (name, score) -> overrides.put(name, HardMediumSoftScore.ofSoft(score)));
+            solution.setConstraintWeightOverrides(ConstraintWeightOverrides.of(overrides));
         }
 
         private void readPersonList() {

@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
@@ -71,6 +72,11 @@ public abstract class AbstractXlsxSolutionFileIO<Solution_> implements SolutionF
         public abstract Solution_ read();
 
         protected void readIntConstraintParameterLine(String name, Consumer<Integer> consumer, String constraintDescription) {
+            readIntConstraintParameterLine(name, constraintDescription, consumer == null ? null : (s, i) -> consumer.accept(i));
+        }
+
+        protected void readIntConstraintParameterLine(String name, String constraintDescription,
+                BiConsumer<String, Integer> consumer) {
             nextRow();
             readHeaderCell(name);
             XSSFCell weightCell = nextCell();
@@ -85,7 +91,7 @@ public abstract class AbstractXlsxSolutionFileIO<Solution_> implements SolutionF
                     throw new IllegalArgumentException(currentPosition() + ": The value (" + value
                             + ") for constraint (" + name + ") must be an integer.");
                 }
-                consumer.accept((int) value);
+                consumer.accept(name, (int) value);
             } else {
                 if (weightCell.getCellType() == CellType.NUMERIC
                         || !weightCell.getStringCellValue().equals("n/a")) {

@@ -10,7 +10,7 @@ import java.util.HashSet;
 
 import ai.timefold.solver.benchmarks.examples.common.score.AbstractConstraintProviderTest;
 import ai.timefold.solver.benchmarks.examples.common.score.ConstraintProviderTest;
-import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintConfiguration;
+import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceSolution;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Room;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Speaker;
@@ -206,7 +206,7 @@ class ConferenceSchedulingConstraintProviderTest
                 .withRoom(room)
                 .withSpeakerList(singletonList(speaker2))
                 .withTimeslot(MONDAY_9_TO_10);
-        ConferenceConstraintConfiguration configuration = new ConferenceConstraintConfiguration(0);
+        ConferenceConstraintProperties configuration = new ConferenceConstraintProperties(0);
         configuration.setMinimumConsecutiveTalksPauseInMinutes(10);
 
         constraintVerifier.verifyThat(
@@ -426,51 +426,8 @@ class ConferenceSchedulingConstraintProviderTest
     }
 
     // ************************************************************************
-    // Medium constraints
-    // ************************************************************************
-
-    @ConstraintProviderTest
-    void publishedTimeslot(
-            ConstraintVerifier<ConferenceSchedulingConstraintProvider, ConferenceSolution> constraintVerifier) {
-        Room room = new Room(0);
-        Talk talk1 = new Talk(1)
-                .withRoom(room)
-                .withTimeslot(MONDAY_9_TO_10);
-        talk1.setPublishedTimeslot(MONDAY_9_TO_10);
-        Talk talk2 = new Talk(2)
-                .withRoom(room)
-                .withTimeslot(MONDAY_10_TO_11);
-        talk2.setPublishedTimeslot(MONDAY_9_TO_10);
-
-        constraintVerifier.verifyThat(
-                ConferenceSchedulingConstraintProvider::publishedTimeslot)
-                .given(talk1, talk2)
-                .penalizesBy(1);
-    }
-
-    // ************************************************************************
     // Soft constraints
     // ************************************************************************
-
-    @ConstraintProviderTest
-    void publishedRoom(
-            ConstraintVerifier<ConferenceSchedulingConstraintProvider, ConferenceSolution> constraintVerifier) {
-        Room room1 = new Room(0);
-        Room room2 = new Room(1);
-        Talk talk1 = new Talk(1)
-                .withRoom(room1)
-                .withTimeslot(MONDAY_9_TO_10);
-        talk1.setPublishedRoom(room1);
-        Talk talk2 = new Talk(2)
-                .withRoom(room1)
-                .withTimeslot(MONDAY_10_TO_11);
-        talk2.setPublishedRoom(room2);
-
-        constraintVerifier.verifyThat(
-                ConferenceSchedulingConstraintProvider::publishedRoom)
-                .given(talk1, talk2)
-                .penalizesBy(1);
-    }
 
     @ConstraintProviderTest
     void themeTrackConflict(

@@ -21,19 +21,20 @@ import ai.timefold.solver.benchmarks.examples.common.app.LoggingMain;
 import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutionImporter;
 import ai.timefold.solver.benchmarks.examples.common.persistence.generator.StringDataGenerator;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.app.ConferenceSchedulingApp;
-import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintConfiguration;
+import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceSolution;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Room;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Speaker;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Talk;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.TalkType;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Timeslot;
+import ai.timefold.solver.core.api.domain.solution.ConstraintWeightOverrides;
 import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
 
 public class ConferenceSchedulingGenerator extends LoggingMain {
 
     public static void main(String[] args) {
-        ConferenceSchedulingGenerator generator = new ConferenceSchedulingGenerator();
+        var generator = new ConferenceSchedulingGenerator();
         generator.writeConferenceSolution(1, 5);
         generator.writeConferenceSolution(2, 5);
         generator.writeConferenceSolution(2, 10);
@@ -205,35 +206,32 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
     }
 
     private void writeConferenceSolution(int dayListSize, int roomListSize) {
-        int labTimeslotCount = (int) timeslotOptions.stream()
+        var labTimeslotCount = (int) timeslotOptions.stream()
                 .filter(pair -> Duration.between(pair.key(), pair.value()).toMinutes() >= 120).count();
-        int labRoomCount = roomListSize / 5;
+        var labRoomCount = roomListSize / 5;
         labTalkCount = (dayListSize * labTimeslotCount) * labRoomCount;
 
-        int timeslotListSize = dayListSize * timeslotOptions.size();
-        int talkListSize = (dayListSize * (timeslotOptions.size() - labTimeslotCount)) * (roomListSize - labRoomCount)
+        var timeslotListSize = dayListSize * timeslotOptions.size();
+        var talkListSize = (dayListSize * (timeslotOptions.size() - labTimeslotCount)) * (roomListSize - labRoomCount)
                 + labTalkCount;
-        int speakerListSize = talkListSize * 2 / 3;
+        var speakerListSize = talkListSize * 2 / 3;
 
-        String fileName = talkListSize + "talks-" + timeslotListSize + "timeslots-" + roomListSize + "rooms";
-        File outputFile = new File(outputDir, fileName + "." + solutionFileIO.getOutputFileExtension());
-        ConferenceSolution solution =
-                createConferenceSolution(
-                        fileName, timeslotListSize, roomListSize, speakerListSize, talkListSize);
+        var fileName = talkListSize + "talks-" + timeslotListSize + "timeslots-" + roomListSize + "rooms";
+        var outputFile = new File(outputDir, fileName + "." + solutionFileIO.getOutputFileExtension());
+        var solution = createConferenceSolution(fileName, timeslotListSize, roomListSize, speakerListSize, talkListSize);
         solutionFileIO.write(solution, outputFile);
     }
 
-    public ConferenceSolution createConferenceSolution(
-            String fileName, int timeslotListSize, int roomListSize,
+    public ConferenceSolution createConferenceSolution(String fileName, int timeslotListSize, int roomListSize,
             int speakerListSize, int talkListSize) {
         random = new Random(37);
-        ConferenceSolution solution =
-                new ConferenceSolution(0L);
+        var solution = new ConferenceSolution(0L);
         solution.setConferenceName(conferenceNameGenerator.generateNextValue());
-        ConferenceConstraintConfiguration constraintConfiguration =
-                new ConferenceConstraintConfiguration(0L);
-        constraintConfiguration.setMinimumConsecutiveTalksPauseInMinutes(15);
-        solution.setConstraintConfiguration(constraintConfiguration);
+
+        var constraintProperties = new ConferenceConstraintProperties(0L);
+        constraintProperties.setMinimumConsecutiveTalksPauseInMinutes(15);
+        solution.setConstraintProperties(constraintProperties);
+        solution.setConstraintWeightOverrides(ConstraintWeightOverrides.none());
 
         createTalkTypeList(solution);
         createTimeslotList(solution, timeslotListSize);
@@ -241,7 +239,7 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
         createSpeakerList(solution, speakerListSize);
         createTalkList(solution, talkListSize);
 
-        BigInteger possibleSolutionSize = BigInteger.valueOf((long) timeslotListSize * roomListSize)
+        var possibleSolutionSize = BigInteger.valueOf((long) timeslotListSize * roomListSize)
                 .pow(talkListSize);
         logger.info("Conference {} has {} talks, {} timeslots and {} rooms with a search space of {}.",
                 fileName,
@@ -273,19 +271,19 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
             int timeslotListSize) {
         List<Timeslot> timeslotList =
                 new ArrayList<>(timeslotListSize);
-        int timeslotOptionsIndex = 0;
-        LocalDate day = timeslotFirstDay;
-        for (int i = 0; i < timeslotListSize; i++) {
-            Timeslot timeslot =
+        var timeslotOptionsIndex = 0;
+        var day = timeslotFirstDay;
+        for (var i = 0; i < timeslotListSize; i++) {
+            var timeslot =
                     new Timeslot(i);
             if (timeslotOptionsIndex >= timeslotOptions.size()) {
                 timeslotOptionsIndex = 0;
                 day = day.plusDays(1);
             }
-            Pair<LocalTime, LocalTime> pair = timeslotOptions.get(timeslotOptionsIndex);
+            var pair = timeslotOptions.get(timeslotOptionsIndex);
             timeslot.setStartDateTime(LocalDateTime.of(day, pair.key()));
             timeslot.setEndDateTime(LocalDateTime.of(day, pair.value()));
-            TalkType talkType =
+            var talkType =
                     timeslot.getDurationInMinutes() >= 120 ? labTalkType : breakoutTalkType;
             talkType.getCompatibleTimeslotSet().add(timeslot);
             timeslot.setTalkTypeSet(Collections.singleton(talkType));
@@ -304,10 +302,10 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
 
     private void createRoomList(ConferenceSolution solution,
             int roomListSize) {
-        final int roomsPerFloor = 12;
+        final var roomsPerFloor = 12;
         List<Room> roomList = new ArrayList<>(roomListSize);
-        for (int i = 0; i < roomListSize; i++) {
-            Room room = new Room(i);
+        for (var i = 0; i < roomListSize; i++) {
+            var room = new Room(i);
             room.setName("R " + ((i / roomsPerFloor * 100) + (i % roomsPerFloor) + 1));
             room.setCapacity((1 + random.nextInt(100)) * 10);
             TalkType talkType;
@@ -320,7 +318,7 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
             room.setTalkTypeSet(Collections.singleton(talkType));
             room.setUnavailableTimeslotSet(new LinkedHashSet<>());
             Set<String> tagSet = new LinkedHashSet<>(roomTagProbabilityList.size());
-            for (Pair<String, Double> roomTagProbability : roomTagProbabilityList) {
+            for (var roomTagProbability : roomTagProbabilityList) {
                 if ((i == 0 || i == 4 || random.nextDouble() < roomTagProbability.value())
                         && roomTagProbability.key().equals("Recorded")) {
                     tagSet.add(roomTagProbability.key());
@@ -343,16 +341,16 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
         List<Speaker> speakerList =
                 new ArrayList<>(speakerListSize);
         speakerNameGenerator.predictMaximumSizeAndReset(speakerListSize);
-        for (int i = 0; i < speakerListSize; i++) {
-            Speaker speaker =
+        for (var i = 0; i < speakerListSize; i++) {
+            var speaker =
                     new Speaker(i);
             speaker.setName(speakerNameGenerator.generateNextValue());
             Set<Timeslot> unavailableTimeslotSet;
             Set<String> preferredTimeslotTagSet = new LinkedHashSet<>();
             Set<String> undesiredTimeslotTagSet = new LinkedHashSet<>();
-            List<Timeslot> timeslotList = solution.getTimeslotList();
+            var timeslotList = solution.getTimeslotList();
             if (random.nextDouble() < 0.10) {
-                double segmentRandom = random.nextDouble();
+                var segmentRandom = random.nextDouble();
                 if (segmentRandom < 0.10) {
                     // No mornings
                     unavailableTimeslotSet = timeslotList.stream()
@@ -366,7 +364,7 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
                             .collect(Collectors.toCollection(LinkedHashSet::new));
                 } else if (segmentRandom < 0.30) {
                     // Only 1 day available
-                    LocalDate availableDate = timeslotList.get(random.nextInt(timeslotList.size())).getDate();
+                    var availableDate = timeslotList.get(random.nextInt(timeslotList.size())).getDate();
                     unavailableTimeslotSet = timeslotList.stream()
                             .filter(timeslot -> !timeslot.getDate().equals(availableDate))
                             .collect(Collectors.toCollection(LinkedHashSet::new));
@@ -403,18 +401,18 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
     private void createTalkList(ConferenceSolution solution, int talkListSize) {
         List<Talk> talkList = new ArrayList<>(talkListSize);
         talkTitleGenerator.predictMaximumSizeAndReset(talkListSize);
-        int speakerListIndex = 0;
-        for (int i = 0; i < talkListSize; i++) {
-            Talk talk =
+        var speakerListIndex = 0;
+        for (var i = 0; i < talkListSize; i++) {
+            var talk =
                     new Talk(i);
             talk.setCode(String.format("S%0" + ((String.valueOf(talkListSize).length()) + "d"), i));
             talk.setTitle(talkTitleGenerator.generateNextValue());
-            double speakerRandomDouble = random.nextDouble();
+            var speakerRandomDouble = random.nextDouble();
             talk.setTalkType(i < labTalkCount ? labTalkType : breakoutTalkType);
-            int speakerCount = (speakerRandomDouble < 0.01) ? 4
+            var speakerCount = (speakerRandomDouble < 0.01) ? 4
                     : (speakerRandomDouble < 0.03) ? 3 : (speakerRandomDouble < 0.40) ? 2 : 1;
             List<Speaker> speakerList = new ArrayList<>(speakerCount);
-            for (int j = 0; j < speakerCount; j++) {
+            for (var j = 0; j < speakerCount; j++) {
                 speakerList.add(solution.getSpeakerList().get(speakerListIndex));
                 speakerListIndex = (speakerListIndex + 1) % solution.getSpeakerList().size();
             }
@@ -432,7 +430,7 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
             talk.setAudienceTypeSet(Collections.singleton(audienceTypeOptions.get(random.nextInt(audienceTypeOptions.size()))));
             talk.setAudienceLevel(1 + random.nextInt(3));
             Set<String> contentTagSet = new LinkedHashSet<>();
-            for (String contentTagOption : contentTagOptions) {
+            for (var contentTagOption : contentTagOptions) {
                 if (talk.getTitle().contains(contentTagOption)) {
                     contentTagSet.add(contentTagOption);
                     if ((contentTagOption.equalsIgnoreCase("OpenShift") || contentTagOption.equalsIgnoreCase("Docker"))
@@ -477,7 +475,7 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
             if (random.nextDouble() < 0.02) {
                 talk.setCrowdControlRisk(1);
                 // Need an even number of talks with crowd control > 1 for a feasible solution
-                Talk pairedTalk =
+                var pairedTalk =
                         talkList.get(random.nextInt(talkList.size()));
                 while (pairedTalk.getCrowdControlRisk() != 0 || !pairedTalk.getTalkType().equals(talk.getTalkType())) {
                     pairedTalk = talkList.get(random.nextInt(talkList.size()));
@@ -490,7 +488,7 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
             talkList.add(talk);
         }
 
-        Talk pinnedTalk =
+        var pinnedTalk =
                 talkList.get(labTalkCount + random.nextInt(talkListSize - labTalkCount));
         pinnedTalk.setPinnedByUser(true);
         pinnedTalk.setTimeslot(solution.getTimeslotList().stream()
@@ -499,7 +497,7 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
                 .orElseThrow(() -> new IllegalStateException("There is no breakout timeslot.")));
         pinnedTalk.setRoom(solution.getRoomList().get(0));
 
-        Talk publishedTalk = talkList.get(random.nextInt(labTalkCount));
+        var publishedTalk = talkList.get(random.nextInt(labTalkCount));
         publishedTalk.setTimeslot(solution.getTimeslotList().stream()
                 .filter(timeslot -> timeslot.getTalkTypeSet().contains(labTalkType))
                 .findFirst()
@@ -516,8 +514,8 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
 
     private void initializeRoomTagSets(Set<String> requiredRoomTagSet, Set<String> preferredRoomTagSet,
             Set<String> prohibitedRoomTagSet, Set<String> undesiredRoomTagSet) {
-        for (Pair<String, Double> roomTagProbability : roomTagProbabilityList) {
-            double segmentRandom = random.nextDouble();
+        for (var roomTagProbability : roomTagProbabilityList) {
+            var segmentRandom = random.nextDouble();
             if (segmentRandom < roomTagProbability.value() / 25.0) {
                 requiredRoomTagSet.add(roomTagProbability.key());
             } else if (segmentRandom < roomTagProbability.value() / 20.0) {
