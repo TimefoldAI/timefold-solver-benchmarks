@@ -10,7 +10,7 @@ import static ai.timefold.solver.core.api.score.stream.Joiners.lessThanOrEqual;
 import java.util.function.Function;
 
 import ai.timefold.solver.benchmarks.examples.examination.domain.Exam;
-import ai.timefold.solver.benchmarks.examples.examination.domain.ExaminationConstraintConfiguration;
+import ai.timefold.solver.benchmarks.examples.examination.domain.ExaminationConstraintProperties;
 import ai.timefold.solver.benchmarks.examples.examination.domain.Period;
 import ai.timefold.solver.benchmarks.examples.examination.domain.PeriodPenalty;
 import ai.timefold.solver.benchmarks.examples.examination.domain.PeriodPenaltyType;
@@ -18,6 +18,7 @@ import ai.timefold.solver.benchmarks.examples.examination.domain.Room;
 import ai.timefold.solver.benchmarks.examples.examination.domain.RoomPenalty;
 import ai.timefold.solver.benchmarks.examples.examination.domain.RoomPenaltyType;
 import ai.timefold.solver.benchmarks.examples.examination.domain.solver.TopicConflict;
+import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
 import ai.timefold.solver.core.api.score.stream.Constraint;
 import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
@@ -58,14 +59,14 @@ public class ExaminationConstraintProvider implements ConstraintProvider {
                                 Exam::getTopic),
                         equal((topicConflict, leftExam) -> leftExam.getPeriod(),
                                 Exam::getPeriod))
-                .penalizeConfigurable((topicConflict, leftExam) -> topicConflict.getStudentSize())
+                .penalize(HardSoftScore.ONE_HARD, (topicConflict, leftExam) -> topicConflict.getStudentSize())
                 .asConstraint("conflictingExamsInSamePeriod");
     }
 
     protected Constraint periodDurationTooShort(ConstraintFactory constraintFactory) {
         return constraintFactory.forEach(Exam.class)
                 .filter(exam -> exam.getTopicDuration() > exam.getPeriodDuration())
-                .penalizeConfigurable(Exam::getTopicStudentSize)
+                .penalize(HardSoftScore.ONE_HARD, Exam::getTopicStudentSize)
                 .asConstraint("periodDurationTooShort");
     }
 
@@ -77,7 +78,7 @@ public class ExaminationConstraintProvider implements ConstraintProvider {
                         Exam::getPeriod,
                         sum(Exam::getTopicStudentSize))
                 .filter((room, period, totalStudentSize) -> totalStudentSize > room.getCapacity())
-                .penalizeConfigurable((room, period, totalStudentSize) -> totalStudentSize - room.getCapacity())
+                .penalize(HardSoftScore.ONE_HARD, (room, period, totalStudentSize) -> totalStudentSize - room.getCapacity())
                 .asConstraint("roomCapacityTooSmall");
     }
 
@@ -94,7 +95,7 @@ public class ExaminationConstraintProvider implements ConstraintProvider {
                                 Exam::getTopic),
                         filtering((periodPenalty, leftExam, rightExam) -> rightExam.getPeriod() != null),
                         filtering((periodPenalty, leftExam, rightExam) -> leftExam.getPeriod() != rightExam.getPeriod()))
-                .penalizeConfigurable((periodPenalty, leftExam, rightExam) -> leftExam.getTopic().getStudentSize()
+                .penalize(HardSoftScore.ONE_HARD, (periodPenalty, leftExam, rightExam) -> leftExam.getTopic().getStudentSize()
                         + rightExam.getTopic().getStudentSize())
                 .asConstraint("periodPenaltyExamCoincidence");
     }
@@ -112,7 +113,7 @@ public class ExaminationConstraintProvider implements ConstraintProvider {
                                 Exam::getTopic),
                         equal((periodPenalty, leftExam) -> leftExam.getPeriod(),
                                 Exam::getPeriod))
-                .penalizeConfigurable((periodPenalty, leftExam, rightExam) -> leftExam.getTopic().getStudentSize()
+                .penalize(HardSoftScore.ONE_HARD, (periodPenalty, leftExam, rightExam) -> leftExam.getTopic().getStudentSize()
                         + rightExam.getTopic().getStudentSize())
                 .asConstraint("periodPenaltyExclusion");
     }
@@ -129,7 +130,7 @@ public class ExaminationConstraintProvider implements ConstraintProvider {
                                 Exam::getTopic),
                         lessThanOrEqual((periodPenalty, leftExam) -> leftExam.getPeriodIndex(),
                                 Exam::getPeriodIndex))
-                .penalizeConfigurable((periodPenalty, leftExam, rightExam) -> leftExam.getTopic().getStudentSize()
+                .penalize(HardSoftScore.ONE_HARD, (periodPenalty, leftExam, rightExam) -> leftExam.getTopic().getStudentSize()
                         + rightExam.getTopic().getStudentSize())
                 .asConstraint("periodPenaltyAfter");
     }
@@ -146,7 +147,7 @@ public class ExaminationConstraintProvider implements ConstraintProvider {
                         equal((roomPenalty, leftExam) -> leftExam.getPeriod(),
                                 Exam::getPeriod),
                         filtering((roomPenalty, leftExam, rightExam) -> leftExam.getTopic() != rightExam.getTopic()))
-                .penalizeConfigurable((periodPenalty, leftExam, rightExam) -> leftExam.getTopic().getStudentSize()
+                .penalize(HardSoftScore.ONE_HARD, (periodPenalty, leftExam, rightExam) -> leftExam.getTopic().getStudentSize()
                         + rightExam.getTopic().getStudentSize())
                 .asConstraint("roomPenaltyExclusive");
     }
@@ -164,7 +165,7 @@ public class ExaminationConstraintProvider implements ConstraintProvider {
                                 Exam::getDayIndex),
                         filtering((topicConflict, leftExam,
                                 rightExam) -> getPeriodIndexDifferenceBetweenExams(leftExam, rightExam) == 1))
-                .penalizeConfigurable((topicConflict, leftExam, rightExam) -> topicConflict.getStudentSize())
+                .penalize(HardSoftScore.ONE_SOFT, (topicConflict, leftExam, rightExam) -> topicConflict.getStudentSize())
                 .asConstraint("twoExamsInARow");
     }
 
@@ -182,12 +183,12 @@ public class ExaminationConstraintProvider implements ConstraintProvider {
                         // Find exams in a day, but not being held right after each other. That case is handled in the twoExamsInARow constraint.
                         filtering((topicConflict, leftExam,
                                 rightExam) -> getPeriodIndexDifferenceBetweenExams(leftExam, rightExam) > 1))
-                .penalizeConfigurable((topicConflict, leftExam, rightExam) -> topicConflict.getStudentSize())
+                .penalize(HardSoftScore.ONE_SOFT, (topicConflict, leftExam, rightExam) -> topicConflict.getStudentSize())
                 .asConstraint("twoExamsInADay");
     }
 
     protected Constraint periodSpread(ConstraintFactory constraintFactory) {
-        return constraintFactory.forEach(ExaminationConstraintConfiguration.class)
+        return constraintFactory.forEach(ExaminationConstraintProperties.class)
                 .join(TopicConflict.class)
                 .join(Exam.class,
                         equal((config, topicConflict) -> topicConflict.getLeftTopic(),
@@ -200,7 +201,8 @@ public class ExaminationConstraintProvider implements ConstraintProvider {
                         filtering((config, topicConflict, leftExam,
                                 rightExam) -> getPeriodIndexDifferenceBetweenExams(leftExam,
                                         rightExam) < (config.getPeriodSpreadLength() + 1)))
-                .penalizeConfigurable((config, topicConflict, leftExam, rightExam) -> topicConflict.getStudentSize())
+                .penalize(HardSoftScore.ONE_SOFT,
+                        (config, topicConflict, leftExam, rightExam) -> topicConflict.getStudentSize())
                 .asConstraint("periodSpread");
     }
 
@@ -227,14 +229,14 @@ public class ExaminationConstraintProvider implements ConstraintProvider {
                                 Exam::getTopicDuration),
                         greaterThan((leftExam, rightExam) -> rightExam.getId(),
                                 Exam::getId))
-                .penalizeConfigurable()
+                .penalize(HardSoftScore.ONE_SOFT)
                 .asConstraint("mixedDurations");
     }
 
     protected Constraint frontLoad(ConstraintFactory constraintFactory) {
         return constraintFactory.forEach(Exam.class)
                 .filter(exam -> exam.isTopicFrontLoadLarge() && exam.isPeriodFrontLoadLast())
-                .penalizeConfigurable()
+                .penalize(HardSoftScore.ONE_SOFT)
                 .asConstraint("frontLoad");
     }
 
@@ -243,7 +245,7 @@ public class ExaminationConstraintProvider implements ConstraintProvider {
                 .filter(period -> period.getPenalty() != 0)
                 .join(Exam.class,
                         equal(Function.identity(), Exam::getPeriod))
-                .penalizeConfigurable((period, exam) -> period.getPenalty())
+                .penalize(HardSoftScore.ONE_SOFT, (period, exam) -> period.getPenalty())
                 .asConstraint("periodPenalty");
     }
 
@@ -252,7 +254,7 @@ public class ExaminationConstraintProvider implements ConstraintProvider {
                 .filter(room -> room.getPenalty() != 0)
                 .join(Exam.class,
                         equal(Function.identity(), Exam::getRoom))
-                .penalizeConfigurable((room, exam) -> room.getPenalty())
+                .penalize(HardSoftScore.ONE_SOFT, (room, exam) -> room.getPenalty())
                 .asConstraint("roomPenalty");
     }
 

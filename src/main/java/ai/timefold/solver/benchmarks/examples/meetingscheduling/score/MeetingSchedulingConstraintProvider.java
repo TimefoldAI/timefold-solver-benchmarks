@@ -12,6 +12,7 @@ import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.Preferred
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.RequiredAttendance;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.Room;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.TimeGrain;
+import ai.timefold.solver.core.api.score.buildin.hardmediumsoft.HardMediumSoftScore;
 import ai.timefold.solver.core.api.score.stream.Constraint;
 import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
@@ -46,7 +47,8 @@ public class MeetingSchedulingConstraintProvider implements ConstraintProvider {
                 overlapping(assignment -> assignment.getStartingTimeGrain().getGrainIndex(),
                         assignment -> assignment.getStartingTimeGrain().getGrainIndex() +
                                 assignment.getMeeting().getDurationInGrains()))
-                .penalizeConfigurable((leftAssignment, rightAssignment) -> rightAssignment.calculateOverlap(leftAssignment))
+                .penalize(HardMediumSoftScore.ONE_HARD,
+                        (leftAssignment, rightAssignment) -> rightAssignment.calculateOverlap(leftAssignment))
                 .asConstraint("Room conflict");
     }
 
@@ -56,7 +58,7 @@ public class MeetingSchedulingConstraintProvider implements ConstraintProvider {
                 .ifNotExists(TimeGrain.class,
                         equal(MeetingAssignment::getLastTimeGrainIndex,
                                 TimeGrain::getGrainIndex))
-                .penalizeConfigurable(MeetingAssignment::getLastTimeGrainIndex)
+                .penalize(HardMediumSoftScore.ONE_HARD, MeetingAssignment::getLastTimeGrainIndex)
                 .asConstraint("Don't go in overtime");
     }
 
@@ -77,7 +79,7 @@ public class MeetingSchedulingConstraintProvider implements ConstraintProvider {
                                 assignment -> assignment.getStartingTimeGrain().getGrainIndex(),
                                 assignment -> assignment.getStartingTimeGrain().getGrainIndex() +
                                         assignment.getMeeting().getDurationInGrains()))
-                .penalizeConfigurable(
+                .penalize(HardMediumSoftScore.ONE_HARD,
                         (leftRequiredAttendance, rightRequiredAttendance, leftAssignment, rightAssignment) -> rightAssignment
                                 .calculateOverlap(leftAssignment))
                 .asConstraint("Required attendance conflict");
@@ -86,7 +88,7 @@ public class MeetingSchedulingConstraintProvider implements ConstraintProvider {
     protected Constraint requiredRoomCapacity(ConstraintFactory constraintFactory) {
         return constraintFactory.forEachIncludingUnassigned(MeetingAssignment.class)
                 .filter(meetingAssignment -> meetingAssignment.getRequiredCapacity() > meetingAssignment.getRoomCapacity())
-                .penalizeConfigurable(
+                .penalize(HardMediumSoftScore.ONE_HARD,
                         meetingAssignment -> meetingAssignment.getRequiredCapacity() - meetingAssignment.getRoomCapacity())
                 .asConstraint("Required room capacity");
     }
@@ -98,7 +100,7 @@ public class MeetingSchedulingConstraintProvider implements ConstraintProvider {
                         equal(MeetingAssignment::getLastTimeGrainIndex, TimeGrain::getGrainIndex),
                         filtering((meetingAssignment,
                                 timeGrain) -> meetingAssignment.getStartingTimeGrain().getDay() != timeGrain.getDay()))
-                .penalizeConfigurable()
+                .penalize(HardMediumSoftScore.ONE_HARD)
                 .asConstraint("Start and end on same day");
     }
 
@@ -126,7 +128,7 @@ public class MeetingSchedulingConstraintProvider implements ConstraintProvider {
                                 assignment -> assignment.getStartingTimeGrain().getGrainIndex(),
                                 assignment -> assignment.getStartingTimeGrain().getGrainIndex() +
                                         assignment.getMeeting().getDurationInGrains()))
-                .penalizeConfigurable(
+                .penalize(HardMediumSoftScore.ONE_MEDIUM,
                         (requiredAttendance, preferredAttendance, leftAssignment, rightAssignment) -> rightAssignment
                                 .calculateOverlap(leftAssignment))
                 .asConstraint("Required and preferred attendance conflict");
@@ -150,7 +152,7 @@ public class MeetingSchedulingConstraintProvider implements ConstraintProvider {
                                 assignment -> assignment.getStartingTimeGrain().getGrainIndex(),
                                 assignment -> assignment.getStartingTimeGrain().getGrainIndex() +
                                         assignment.getMeeting().getDurationInGrains()))
-                .penalizeConfigurable(
+                .penalize(HardMediumSoftScore.ONE_MEDIUM,
                         (leftPreferredAttendance, rightPreferredAttendance, leftAssignment, rightAssignment) -> rightAssignment
                                 .calculateOverlap(leftAssignment))
                 .asConstraint("Preferred attendance conflict");
@@ -163,7 +165,7 @@ public class MeetingSchedulingConstraintProvider implements ConstraintProvider {
     protected Constraint doMeetingsAsSoonAsPossible(ConstraintFactory constraintFactory) {
         return constraintFactory.forEachIncludingUnassigned(MeetingAssignment.class)
                 .filter(meetingAssignment -> meetingAssignment.getStartingTimeGrain() != null)
-                .penalizeConfigurable(MeetingAssignment::getLastTimeGrainIndex)
+                .penalize(HardMediumSoftScore.ONE_SOFT, MeetingAssignment::getLastTimeGrainIndex)
                 .asConstraint("Do all meetings as soon as possible");
     }
 
@@ -174,7 +176,7 @@ public class MeetingSchedulingConstraintProvider implements ConstraintProvider {
                         .filter(assignment -> assignment.getStartingTimeGrain() != null),
                         equal(MeetingAssignment::getLastTimeGrainIndex,
                                 (rightAssignment) -> rightAssignment.getStartingTimeGrain().getGrainIndex() - 1))
-                .penalizeConfigurable()
+                .penalize(HardMediumSoftScore.ofSoft(100))
                 .asConstraint("One TimeGrain break between two consecutive meetings");
     }
 
@@ -188,7 +190,7 @@ public class MeetingSchedulingConstraintProvider implements ConstraintProvider {
                         overlapping(assignment -> assignment.getStartingTimeGrain().getGrainIndex(),
                                 assignment -> assignment.getStartingTimeGrain().getGrainIndex() +
                                         assignment.getMeeting().getDurationInGrains()))
-                .penalizeConfigurable(MeetingAssignment::calculateOverlap)
+                .penalize(HardMediumSoftScore.ofSoft(10), MeetingAssignment::calculateOverlap)
                 .asConstraint("Overlapping meetings");
     }
 
@@ -197,7 +199,8 @@ public class MeetingSchedulingConstraintProvider implements ConstraintProvider {
                 .filter(meetingAssignment -> meetingAssignment.getRoom() != null)
                 .join(Room.class,
                         lessThan(MeetingAssignment::getRoomCapacity, Room::getCapacity))
-                .penalizeConfigurable((meetingAssignment, room) -> room.getCapacity() - meetingAssignment.getRoomCapacity())
+                .penalize(HardMediumSoftScore.ONE_SOFT,
+                        (meetingAssignment, room) -> room.getCapacity() - meetingAssignment.getRoomCapacity())
                 .asConstraint("Assign larger rooms first");
     }
 
@@ -221,7 +224,7 @@ public class MeetingSchedulingConstraintProvider implements ConstraintProvider {
                                 rightAssignment) -> rightAssignment.getStartingTimeGrain().getGrainIndex() -
                                         leftAttendance.getMeeting().getDurationInGrains() -
                                         leftAssignment.getStartingTimeGrain().getGrainIndex() <= 2))
-                .penalizeConfigurable()
+                .penalize(HardMediumSoftScore.ONE_SOFT)
                 .asConstraint("Room stability");
     }
 }

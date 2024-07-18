@@ -5,10 +5,10 @@ import java.util.stream.Stream;
 
 import ai.timefold.solver.benchmarks.examples.common.app.SolverSmokeTest;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceSolution;
-import ai.timefold.solver.core.api.score.buildin.hardmediumsoft.HardMediumSoftScore;
+import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
 import ai.timefold.solver.core.api.score.stream.ConstraintStreamImplType;
 
-class ConferenceSchedulingSmokeTest extends SolverSmokeTest<ConferenceSolution, HardMediumSoftScore> {
+class ConferenceSchedulingSmokeTest extends SolverSmokeTest<ConferenceSolution, HardSoftScore> {
 
     private static final String UNSOLVED_DATA_FILE = "data/conferencescheduling/unsolved/72talks-12timeslots-10rooms.xlsx";
 
@@ -18,10 +18,10 @@ class ConferenceSchedulingSmokeTest extends SolverSmokeTest<ConferenceSolution, 
     }
 
     @Override
-    protected Stream<TestData<HardMediumSoftScore>> testData() {
+    protected Stream<TestData<HardSoftScore>> testData() {
         return Stream.of(
                 TestData.of(ConstraintStreamImplType.BAVET, UNSOLVED_DATA_FILE,
-                        HardMediumSoftScore.ofSoft(-1025250),
-                        HardMediumSoftScore.ofSoft(-1100400)));
+                        HardSoftScore.ofSoft(-1025250),
+                        HardSoftScore.ofSoft(-1100400)));
     }
 }

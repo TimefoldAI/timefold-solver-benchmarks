@@ -3,7 +3,7 @@ package ai.timefold.solver.benchmarks.examples.meetingscheduling.domain;
 import java.util.List;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
-import ai.timefold.solver.core.api.domain.constraintweight.ConstraintConfigurationProvider;
+import ai.timefold.solver.core.api.domain.solution.ConstraintWeightOverrides;
 import ai.timefold.solver.core.api.domain.solution.PlanningEntityCollectionProperty;
 import ai.timefold.solver.core.api.domain.solution.PlanningScore;
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
@@ -14,8 +14,7 @@ import ai.timefold.solver.core.api.score.buildin.hardmediumsoft.HardMediumSoftSc
 @PlanningSolution
 public class MeetingSchedule extends AbstractPersistable {
 
-    @ConstraintConfigurationProvider
-    private MeetingConstraintConfiguration constraintConfiguration;
+    private ConstraintWeightOverrides<HardMediumSoftScore> constraintWeightOverrides;
 
     @ProblemFactCollectionProperty
     private List<Meeting> meetingList;
@@ -45,12 +44,12 @@ public class MeetingSchedule extends AbstractPersistable {
         super(id);
     }
 
-    public MeetingConstraintConfiguration getConstraintConfiguration() {
-        return constraintConfiguration;
+    public ConstraintWeightOverrides<HardMediumSoftScore> getConstraintWeightOverrides() {
+        return constraintWeightOverrides;
     }
 
-    public void setConstraintConfiguration(MeetingConstraintConfiguration constraintConfiguration) {
-        this.constraintConfiguration = constraintConfiguration;
+    public void setConstraintWeightOverrides(ConstraintWeightOverrides<HardMediumSoftScore> constraintWeightOverrides) {
+        this.constraintWeightOverrides = constraintWeightOverrides;
     }
 
     public List<Meeting> getMeetingList() {

@@ -4,7 +4,7 @@ import ai.timefold.solver.benchmarks.examples.common.score.AbstractConstraintPro
 import ai.timefold.solver.benchmarks.examples.common.score.ConstraintProviderTest;
 import ai.timefold.solver.benchmarks.examples.examination.domain.Exam;
 import ai.timefold.solver.benchmarks.examples.examination.domain.Examination;
-import ai.timefold.solver.benchmarks.examples.examination.domain.ExaminationConstraintConfiguration;
+import ai.timefold.solver.benchmarks.examples.examination.domain.ExaminationConstraintProperties;
 import ai.timefold.solver.benchmarks.examples.examination.domain.LeadingExam;
 import ai.timefold.solver.benchmarks.examples.examination.domain.Period;
 import ai.timefold.solver.benchmarks.examples.examination.domain.PeriodPenalty;
@@ -265,9 +265,8 @@ class ExaminationConstraintProviderTest
     @ConstraintProviderTest
     void periodSpreadTest(
             ConstraintVerifier<ExaminationConstraintProvider, Examination> constraintVerifier) {
-        ExaminationConstraintConfiguration config = new ExaminationConstraintConfiguration()
-                // At least 1 period apart.
-                .withPeriodSpreadLength(1);
+        ExaminationConstraintProperties config = new ExaminationConstraintProperties();
+        config.setPeriodSpreadLength(1);
 
         Topic topic1 = new Topic();
         Topic topic2 = new Topic();

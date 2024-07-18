@@ -17,7 +17,7 @@ import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
 import ai.timefold.solver.core.api.domain.solution.ProblemFactCollectionProperty;
 import ai.timefold.solver.core.api.domain.solution.ProblemFactProperty;
 import ai.timefold.solver.core.api.domain.valuerange.ValueRangeProvider;
-import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
+import ai.timefold.solver.core.api.score.buildin.hardsoftbigdecimal.HardSoftBigDecimalScore;
 
 @PlanningSolution
 public class NurseRoster extends AbstractPersistable {
@@ -69,7 +69,7 @@ public class NurseRoster extends AbstractPersistable {
     private List<ShiftAssignment> shiftAssignmentList;
 
     @PlanningScore
-    private HardSoftScore score;
+    private HardSoftBigDecimalScore score;
 
     public String getCode() {
         return code;
@@ -216,11 +216,11 @@ public class NurseRoster extends AbstractPersistable {
         this.shiftAssignmentList = shiftAssignmentList;
     }
 
-    public HardSoftScore getScore() {
+    public HardSoftBigDecimalScore getScore() {
         return score;
     }
 
-    public void setScore(HardSoftScore score) {
+    public void setScore(HardSoftBigDecimalScore score) {
         this.score = score;
     }
 

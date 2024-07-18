@@ -1,24 +1,15 @@
 {
   "id" : 0,
-  "constraintConfiguration" : {
-    "id" : 0,
-    "conflictingExamsInSamePeriodPenalty" : 1,
-    "periodDurationTooShortPenalty" : 1,
-    "roomCapacityTooSmallPenalty" : 1,
-    "periodPenaltyExamCoincidencePenalty" : 1,
-    "periodPenaltyExclusionPenalty" : 1,
-    "periodPenaltyAfterPenalty" : 1,
-    "roomPenaltyExclusivePenalty" : 1,
-    "twoInARowPenalty" : 15,
-    "twoInADayPenalty" : 10,
+  "constraintProperties" : {
     "periodSpreadLength" : 4,
-    "periodSpreadPenalty" : 1,
-    "mixedDurationPenalty" : 20,
     "frontLoadLargeTopicSize" : 200,
-    "frontLoadLastPeriodSize" : 20,
-    "frontLoadPenalty" : 10,
-    "periodPenaltyPenalty" : 1,
-    "roomPenaltyPenalty" : 1
+    "frontLoadLastPeriodSize" : 20
+  },
+  "constraintWeightOverrides" : {
+    "twoExamsInARow" : "0hard/15soft",
+    "twoExamsInADay" : "0hard/10soft",
+    "mixedDurations" : "0hard/20soft",
+    "frontLoad" : "0hard/10soft"
   },
   "studentList" : [ {
     "@id" : "Student#0",
