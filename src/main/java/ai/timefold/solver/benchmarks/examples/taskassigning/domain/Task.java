@@ -2,10 +2,10 @@ package ai.timefold.solver.benchmarks.examples.taskassigning.domain;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
 import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.JacksonUniqueIdGenerator;
-import ai.timefold.solver.benchmarks.examples.taskassigning.domain.solver.StartTimeUpdatingVariableListener;
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
+import ai.timefold.solver.core.api.domain.variable.CascadingUpdateShadowVariable;
 import ai.timefold.solver.core.api.domain.variable.InverseRelationShadowVariable;
-import ai.timefold.solver.core.api.domain.variable.ShadowVariable;
+import ai.timefold.solver.core.api.domain.variable.PreviousElementShadowVariable;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -23,8 +23,10 @@ public class Task extends AbstractPersistable {
     // Shadow variables
     @InverseRelationShadowVariable(sourceVariableName = "tasks")
     private Employee employee;
-    @ShadowVariable(variableListenerClass = StartTimeUpdatingVariableListener.class,
-            sourceEntityClass = Employee.class, sourceVariableName = "tasks")
+    @PreviousElementShadowVariable(sourceVariableName = "tasks")
+    private Task previousTask;
+    @CascadingUpdateShadowVariable(targetMethodName = "updateStartTime", sourceVariableName = "employee")
+    @CascadingUpdateShadowVariable(targetMethodName = "updateStartTime", sourceVariableName = "previousTask")
     private Integer startTime; // In minutes
 
     public Task() {
@@ -88,6 +90,14 @@ public class Task extends AbstractPersistable {
         this.employee = employee;
     }
 
+    public Task getPreviousTask() {
+        return previousTask;
+    }
+
+    public void setPreviousTask(Task previousTask) {
+        this.previousTask = previousTask;
+    }
+
     public Integer getStartTime() {
         return startTime;
     }
@@ -146,6 +156,23 @@ public class Task extends AbstractPersistable {
     @JsonIgnore
     public String getTitle() {
         return taskType.getTitle();
+    }
+
+    @SuppressWarnings("unused")
+    protected void updateStartTime() {
+        if (previousTask == null && employee == null) {
+            setStartTime(null);
+            return;
+        }
+        var previousEndTime = previousTask == null ? 0 : previousTask.getEndTime();
+        startTime = calculateStartTime(this, previousEndTime);
+    }
+
+    private Integer calculateStartTime(Task task, Integer previousEndTime) {
+        if (previousEndTime == null) {
+            return null;
+        }
+        return Math.max(task.getMinStartTime(), previousEndTime);
     }
 
     @Override
