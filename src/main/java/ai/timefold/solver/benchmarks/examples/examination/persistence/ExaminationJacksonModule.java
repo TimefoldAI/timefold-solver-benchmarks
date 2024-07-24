@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 public final class ExaminationJacksonModule extends SimpleModule {
 
     public ExaminationJacksonModule() {
+        super("ExaminationJacksonModule");
         addDeserializer(ConstraintWeightOverrides.class, new ExaminationConstraintWeightOverrideDeserializer());
     }
 
