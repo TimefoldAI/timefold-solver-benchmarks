@@ -132,9 +132,10 @@ public abstract class CommonApp<Solution_> extends LoggingMain {
         var solutionFileIo = createSolutionFileIO();
         var solution = solutionFileIo.read(Path.of("data", dataDirName, "unsolved", datasetName).toFile().getAbsoluteFile());
         var solverFactory = SolverFactory.<Solution_> createFromXmlResource(solverConfigResource);
-        var solver = solverFactory.buildSolver(new SolverConfigOverride<Solution_>()
-                .withTerminationConfig(new TerminationConfig()
-                        .withMinutesSpentLimit(minutesSpentLimit)));
+        var solver = minutesSpentLimit > 0
+                ? solverFactory.buildSolver(new SolverConfigOverride<Solution_>()
+                        .withTerminationConfig(new TerminationConfig().withMinutesSpentLimit(minutesSpentLimit)))
+                : solverFactory.buildSolver();
         return solver.solve(solution);
     }
 

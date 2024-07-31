@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plannerBenchmark xmlns="https://timefold.ai/xsd/benchmark" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="https://timefold.ai/xsd/benchmark https://timefold.ai/xsd/benchmark/benchmark.xsd">
+    <benchmarkDirectory>local/</benchmarkDirectory>
+    <parallelBenchmarkCount>4</parallelBenchmarkCount>
+    <warmUpSecondsSpentLimit>30</warmUpSecondsSpentLimit>
+
+    <inheritedSolverBenchmark>
+        <solver>
+            <solutionClass>ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution</solutionClass>
+            <entityClass>ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Vehicle</entityClass>
+            <entityClass>ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Customer</entityClass>
+            <entityClass>ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedCustomer
+            </entityClass>
+
+            <scoreDirectorFactory>
+                <constraintProviderClass>ai.timefold.solver.benchmarks.examples.vehiclerouting.score.VehicleRoutingConstraintProvider</constraintProviderClass>
+                <initializingScoreTrend>ONLY_DOWN</initializingScoreTrend>
+            </scoreDirectorFactory>
+        </solver>
+        <problemBenchmarks>
+            <solutionFileIOClass>ai.timefold.solver.benchmarks.examples.vehiclerouting.persistence.VehicleRoutingSolutionFileIO</solutionFileIOClass>
+            <inputSolutionFile>data/vehiclerouting/unsolved/cvrptw-100customers-A.json</inputSolutionFile>
+            <problemStatisticType>BEST_SCORE</problemStatisticType>
+            <problemStatisticType>SCORE_CALCULATION_SPEED</problemStatisticType>
+        </problemBenchmarks>
+        <subSingleCount>4</subSingleCount>
+    </inheritedSolverBenchmark>
+
+    <solverBenchmark>
+        <name>Base</name>
+        <solver>
+            <nearbyDistanceMeterClass>
+                ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.solver.nearby.CustomerNearbyDistanceMeter
+            </nearbyDistanceMeterClass>
+
+            <constructionHeuristic>
+            </constructionHeuristic>
+            <localSearch>
+                <termination>
+                    <minutesSpentLimit>1</minutesSpentLimit>
+                </termination>
+                <unionMoveSelector>
+                    <listChangeMoveSelector/>
+                    <listSwapMoveSelector/>
+                    <subListChangeMoveSelector>
+                        <selectReversingMoveToo>true</selectReversingMoveToo>
+                    </subListChangeMoveSelector>
+                    <subListSwapMoveSelector>
+                        <selectReversingMoveToo>true</selectReversingMoveToo>
+                    </subListSwapMoveSelector>
+                    <kOptListMoveSelector/>
+                </unionMoveSelector>
+                <acceptor>
+                    <lateAcceptanceSize>200</lateAcceptanceSize>
+                </acceptor>
+                <forager>
+                    <acceptedCountLimit>1</acceptedCountLimit>
+                </forager>
+            </localSearch>
+        </solver>
+    </solverBenchmark>
+    <#list [5, 10, 20, 40] as min>
+      <#list [10, 20, 40, 80] as max>
+        <#if max gt min>
+          <#list [1, 10, 20, 100, 200, 1000] as prob>
+            <solverBenchmark>
+                <name>RR-min${min}-max${max}-prob${prob}</name>
+                <solver>
+                    <nearbyDistanceMeterClass>
+                        ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.solver.nearby.CustomerNearbyDistanceMeter
+                    </nearbyDistanceMeterClass>
+
+                    <constructionHeuristic></constructionHeuristic>
+                    <localSearch>
+                        <termination>
+                            <minutesSpentLimit>1</minutesSpentLimit>
+                        </termination>
+                        <unionMoveSelector>
+                            <unionMoveSelector>
+                                <fixedProbabilityWeight>${prob}</fixedProbabilityWeight>
+                                <listChangeMoveSelector/>
+                                <listSwapMoveSelector/>
+                                <subListChangeMoveSelector>
+                                    <selectReversingMoveToo>true</selectReversingMoveToo>
+                                </subListChangeMoveSelector>
+                                <subListSwapMoveSelector>
+                                    <selectReversingMoveToo>true</selectReversingMoveToo>
+                                </subListSwapMoveSelector>
+                                <kOptListMoveSelector/>
+                            </unionMoveSelector>
+                            <listRuinMoveSelector>
+                                <fixedProbabilityWeight>1</fixedProbabilityWeight>
+                                <minimumRuinedCount>${min}</minimumRuinedCount>
+                                <maximumRuinedCount>${max}</maximumRuinedCount>
+                            </listRuinMoveSelector>
+                        </unionMoveSelector>
+                        <acceptor>
+                            <lateAcceptanceSize>200</lateAcceptanceSize>
+                        </acceptor>
+                        <forager>
+                            <acceptedCountLimit>1</acceptedCountLimit>
+                        </forager>
+                    </localSearch>
+                </solver>
+            </solverBenchmark>
+          </#list>
+        </#if>
+      </#list>
+    </#list>
+    <solverBenchmark>
+        <name>Filler</name>
+        <solver>
+            <nearbyDistanceMeterClass>
+                ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.solver.nearby.CustomerNearbyDistanceMeter
+            </nearbyDistanceMeterClass>
+
+            <constructionHeuristic>
+            </constructionHeuristic>
+            <localSearch>
+                <termination>
+                    <minutesSpentLimit>1</minutesSpentLimit>
+                </termination>
+                <unionMoveSelector>
+                    <listChangeMoveSelector/>
+                    <listSwapMoveSelector/>
+                    <subListChangeMoveSelector>
+                        <selectReversingMoveToo>true</selectReversingMoveToo>
+                    </subListChangeMoveSelector>
+                    <subListSwapMoveSelector>
+                        <selectReversingMoveToo>true</selectReversingMoveToo>
+                    </subListSwapMoveSelector>
+                    <kOptListMoveSelector/>
+                </unionMoveSelector>
+                <acceptor>
+                    <lateAcceptanceSize>200</lateAcceptanceSize>
+                </acceptor>
+                <forager>
+                    <acceptedCountLimit>1</acceptedCountLimit>
+                </forager>
+            </localSearch>
+        </solver>
+    </solverBenchmark>
+</plannerBenchmark>

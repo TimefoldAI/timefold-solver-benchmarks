@@ -3,6 +3,7 @@ package ai.timefold.solver.benchmarks.examples.nurserostering.app;
 import java.util.Collections;
 import java.util.Set;
 
+import ai.timefold.solver.benchmark.api.PlannerBenchmarkFactory;
 import ai.timefold.solver.benchmarks.examples.common.app.CommonApp;
 import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutionImporter;
 import ai.timefold.solver.benchmarks.examples.nurserostering.domain.NurseRoster;
@@ -13,13 +14,18 @@ import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
 public class NurseRosteringApp extends CommonApp<NurseRoster> {
 
     public static final String SOLVER_CONFIG =
-            "ai/timefold/solver/benchmarks/examples/nurserostering/nurseRosteringSolverConfig.xml";
+            "ai/timefold/solver/benchmarks/examples/nurserostering/nurseRosteringBenchmarkConfigLong.xml.ftl";
 
     public static final String DATA_DIR_NAME = "nurserostering";
 
     public static void main(String[] args) {
-        var solution = new NurseRosteringApp().solve("medium_late01.json");
-        System.out.println("Done: " + solution);
+        var bench = PlannerBenchmarkFactory.createFromFreemarkerXmlResource("ai/timefold/solver/benchmarks/examples/nurserostering/nurseRosteringBenchmarkConfigSprint.xml.ftl")
+                .buildPlannerBenchmark();
+        bench.benchmark();
+
+        bench = PlannerBenchmarkFactory.createFromFreemarkerXmlResource("ai/timefold/solver/benchmarks/examples/nurserostering/nurseRosteringBenchmarkConfigLong.xml.ftl")
+                .buildPlannerBenchmark();
+        bench.benchmark();
     }
 
     public NurseRosteringApp() {

@@ -3,6 +3,7 @@ package ai.timefold.solver.benchmarks.examples.vehiclerouting.app;
 import java.util.Collections;
 import java.util.Set;
 
+import ai.timefold.solver.benchmark.api.PlannerBenchmarkFactory;
 import ai.timefold.solver.benchmarks.examples.common.app.CommonApp;
 import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutionImporter;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
@@ -18,8 +19,17 @@ public class VehicleRoutingApp extends CommonApp<VehicleRoutingSolution> {
     public static final String DATA_DIR_NAME = "vehiclerouting";
 
     public static void main(String[] args) {
-        var solution = new VehicleRoutingApp().solve("cvrptw-400customers.json");
-        System.out.println("Done: " + solution);
+        var bench = PlannerBenchmarkFactory.createFromFreemarkerXmlResource("ai/timefold/solver/benchmarks/examples/vehiclerouting/vehicleRoutingBenchmarkConfigC-72-4.xml.ftl")
+                .buildPlannerBenchmark();
+        bench.benchmark();
+
+        bench = PlannerBenchmarkFactory.createFromFreemarkerXmlResource("ai/timefold/solver/benchmarks/examples/vehiclerouting/vehicleRoutingBenchmarkConfigTW-100-24.xml.ftl")
+                .buildPlannerBenchmark();
+        bench.benchmark();
+
+        bench = PlannerBenchmarkFactory.createFromFreemarkerXmlResource("ai/timefold/solver/benchmarks/examples/vehiclerouting/vehicleRoutingBenchmarkConfigTW-2750-55.xml.ftl")
+                .buildPlannerBenchmark();
+        bench.benchmark();
     }
 
     public VehicleRoutingApp() {
