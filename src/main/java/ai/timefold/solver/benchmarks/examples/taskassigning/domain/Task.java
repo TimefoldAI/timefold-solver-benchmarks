@@ -25,8 +25,7 @@ public class Task extends AbstractPersistable {
     private Employee employee;
     @PreviousElementShadowVariable(sourceVariableName = "tasks")
     private Task previousTask;
-    @CascadingUpdateShadowVariable(targetMethodName = "updateStartTime", sourceVariableName = "employee")
-    @CascadingUpdateShadowVariable(targetMethodName = "updateStartTime", sourceVariableName = "previousTask")
+    @CascadingUpdateShadowVariable(targetMethodName = "updateStartTime")
     private Integer startTime; // In minutes
 
     public Task() {
@@ -160,19 +159,14 @@ public class Task extends AbstractPersistable {
 
     @SuppressWarnings("unused")
     protected void updateStartTime() {
-        if (previousTask == null && employee == null) {
-            setStartTime(null);
-            return;
+        if (employee == null) {
+            startTime = null;
+        } else if (previousTask == null) {
+            startTime = minStartTime;
+        } else {
+            var previousEndTime = previousTask.getEndTime();
+            startTime = Math.max(previousEndTime, minStartTime);
         }
-        var previousEndTime = previousTask == null ? 0 : previousTask.getEndTime();
-        startTime = calculateStartTime(this, previousEndTime);
-    }
-
-    private Integer calculateStartTime(Task task, Integer previousEndTime) {
-        if (previousEndTime == null) {
-            return null;
-        }
-        return Math.max(task.getMinStartTime(), previousEndTime);
     }
 
     @Override
