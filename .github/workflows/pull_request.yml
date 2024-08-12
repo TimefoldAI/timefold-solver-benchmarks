@@ -1,4 +1,4 @@
-name: Test coverage
+name: Pull Request
 
 on:
   # Enables the workflow to run on PRs from forks;
