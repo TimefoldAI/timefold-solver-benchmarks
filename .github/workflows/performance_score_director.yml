@@ -27,9 +27,6 @@ on:
 jobs:
 
   test:
-    concurrency:
-      group: perf-score-director-${{ matrix.example }}
-      cancel-in-progress: true
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -53,8 +50,10 @@ jobs:
       - name: Setup Async Profiler
         working-directory: ./timefold-solver-benchmarks
         run: |
-          wget https://github.com/async-profiler/async-profiler/releases/download/v${{ github.event.inputs.async_profiler_version }}/async-profiler-${{ github.event.inputs.async_profiler_version }}-linux-x64.tar.gz
-          tar -xzf async-profiler-3.0-linux-x64.tar.gz
+          export FILENAME=async-profiler-${{ github.event.inputs.async_profiler_version }}-linux-x64.tar.gz
+          wget https://github.com/async-profiler/async-profiler/releases/download/v${{ github.event.inputs.async_profiler_version }}/$FILENAME
+          tar -xzf $FILENAME 
+          ls -l
 
       - name: Compile the benchmarks
         working-directory: ./timefold-solver-benchmarks
