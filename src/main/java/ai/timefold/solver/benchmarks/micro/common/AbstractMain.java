@@ -179,8 +179,8 @@ public abstract class AbstractMain<C extends AbstractConfiguration> {
                 .warmupIterations(configuration.getWarmupIterations())
                 .measurementIterations(configuration.getMeasurementIterations())
                 .jvmArgs("-XX:+UseParallelGC", "-Xms1g", "-Xmx1g") // Minimize GC overhead.
-                .result(resultsDirectory.resolve("benchmarkResults.csv").toAbsolutePath().toString())
-                .resultFormat(ResultFormatType.CSV)
+                .result(resultsDirectory.resolve("results.json").toAbsolutePath().toString())
+                .resultFormat(ResultFormatType.JSON)
                 .shouldDoGC(true);
     }
 

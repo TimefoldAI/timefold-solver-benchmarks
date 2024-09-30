@@ -34,6 +34,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false # Jobs fail if the benchmark error is over predefined thresholds; other benchmarks continue.
       matrix:
         example: [cloud_balancing, conference_scheduling, curriculum_course, examination, machine_reassignment, meeting_scheduling, nurse_rostering, patient_admission_scheduling, task_assigning, traveling_tournament, tsp, vehicle_routing]
     env:
@@ -68,7 +69,7 @@ jobs:
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
-          echo "warmup_iterations=10" > scoredirector-benchmark.properties
+          echo "forks=15" > scoredirector-benchmark.properties
           echo "score_director_type=cs" >> scoredirector-benchmark.properties
           echo "example=${{ matrix.example }}" >> scoredirector-benchmark.properties
           cat scoredirector-benchmark.properties
@@ -123,7 +124,20 @@ jobs:
           export RUN_ID="${{github.workflow.inputs.branch}}"
           ./run-scoredirector.sh
 
-      - name: Phase 3 - Archive production artifacts
+      - name: Phase 3 - Publish benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: scoredirector-${{ matrix.example }}
+          tool: 'jmh'
+          output-file-path: ./timefold-solver-benchmarks/results/results.json
+          github-token: ${{ secrets.JRELEASER_GITHUB_TOKEN }}
+          auto-push: true
+          alert-threshold: '105%'
+          comment-on-alert: true
+          fail-on-alert: true
+          alert-comment-cc-users: '@triceo'
+
+      - name: Phase 3 - Archive benchmark data
         uses: actions/upload-artifact@v4
         with:
           name: results-${{ matrix.example }}-${{ github.event.inputs.baseline }}_vs_${{ github.event.inputs.branch }}
