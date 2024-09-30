@@ -40,13 +40,16 @@ jobs:
 
       - name: Setup JDK and Maven
         uses: actions/setup-java@v4
+        env:
+          MVN_USERNAME: ${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_USERNAME }}
+          MVN_PASSWORD: ${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_TOKEN }}
         with:
           java-version: ${{ github.event.inputs.jdk }}
           distribution: 'temurin'
           cache: 'maven'
           server-id: 'timefold-solver-enterprise'
-          server-username: ${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_USERNAME }}
-          server-password: ${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_TOKEN }}
+          server-username: 'MVN_USERNAME'
+          server-password: 'MVN_PASSWORD'
 
       - name: Setup Async Profiler
         working-directory: ./timefold-solver-benchmarks
