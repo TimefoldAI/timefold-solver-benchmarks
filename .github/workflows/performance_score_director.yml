@@ -5,7 +5,7 @@ on:
     inputs:
       jdk:
         description: 'JDK version'
-        default: '23-tem'
+        default: '23'
         required: true
       baseline:
         description: 'Timefold Solver release'
@@ -32,14 +32,15 @@ jobs:
       matrix:
         example: [cloudbalancing, conferencescheduling, curriculumcourse, examination, machinereassignment, meetingscheduling, nurserostering, pas, taskassigning, travelingtournament, tsp, vehiclerouting]
     steps:
-      - name: Setup SDKMAN
-        run: |
-          curl -s "https://get.sdkman.io" | bash
-          source "$HOME/.sdkman/bin/sdkman-init.sh"
-          sdk install java ${{ github.event.inputs.jdk }}
-          java -version
-          sdk install maven
-          mvn -version
+      - name: Setup JDK and Maven
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ github.event.inputs.jdk }}
+          distribution: 'temurin'
+          cache: 'maven'
+          server-id: 'timefold-solver-enterprise'
+          server-username: ${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_USERNAME }}
+          server-password: ${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_TOKEN }}
 
       - name: Checkout timefold-solver-benchmarks
         uses: actions/checkout@v4
