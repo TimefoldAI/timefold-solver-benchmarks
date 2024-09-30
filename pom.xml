@@ -205,7 +205,7 @@
                     <dependency>
                         <groupId>ai.timefold.solver</groupId>
                         <artifactId>timefold-solver-ide-config</artifactId>
-                        <version>${project.version}</version>
+                        <version>${version.ai.timefold.solver}</version>
                     </dependency>
                 </dependencies>
                 <executions>
