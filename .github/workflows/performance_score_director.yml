@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       jdk:
-        description: 'JDK version (17, 21, 23, ...)'
-        default: '23'
+        description: 'JDK version'
+        default: '23-tem'
         required: true
       baseline:
         description: 'Timefold Solver release'
@@ -31,15 +31,14 @@ jobs:
       matrix:
         example: [cloudbalancing, conferencescheduling, curriculumcourse, examination, machinereassignment, meetingscheduling, nurserostering, pas, taskassigning, travelingtournament, tsp, vehiclerouting]
     steps:
-      - uses: sdkman/sdkman-action@v1
-        with:
-          candidate: java
-          version: ${{ github.event.inputs.jdk }}-tem
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'jdkfile'
-          java-version: ${{ github.event.inputs.jdk }}
-          jdkFile: ${{ steps.sdkman.outputs.file }}
+      - name: Setup SDKMAN
+        run: |
+          curl -s "https://get.sdkman.io" | bash
+          source "$HOME/.sdkman/bin/sdkman-init.sh"
+          sdkman install java ${{ github.event.inputs.jdk }}
+          java -version
+          sdkman install maven
+          mvn -version
       - name: Checkout timefold-solver-benchmarks
         uses: actions/checkout@v4
         with:
