@@ -147,9 +147,7 @@ public class PatientAdmissionScheduleImporter
             List<Department> departmentList =
                     new ArrayList<>(departmentListSize);
             idToDepartmentMap = new HashMap<>(departmentListSize);
-            List<DepartmentSpecialism> departmentSpecialismList =
-                    new ArrayList<>(
-                            departmentListSize * 5);
+            List<DepartmentSpecialism> departmentSpecialismList = new ArrayList<>(departmentListSize * 5);
             long departmentSpecialismId = 0L;
             for (int i = 0; i < departmentListSize; i++) {
                 String line = bufferedReader.readLine();
@@ -229,8 +227,7 @@ public class PatientAdmissionScheduleImporter
                 String line = bufferedReader.readLine();
                 String[] lineTokens = splitByPipelineAndTrim(line, 6);
                 String[] roomTokens = splitBySpace(lineTokens[0], 2);
-                Department department = idToDepartmentMap.get(
-                        Long.parseLong(lineTokens[2]));
+                Department department = idToDepartmentMap.get(Long.parseLong(lineTokens[2]));
                 Room room =
                         new Room(Long.parseLong(roomTokens[0]), roomTokens[1],
                                 department, Integer.parseInt(lineTokens[1]),

@@ -69,7 +69,7 @@ jobs:
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
-          echo "forks=15" > scoredirector-benchmark.properties
+          echo "forks=20" > scoredirector-benchmark.properties
           echo "score_director_type=cs" >> scoredirector-benchmark.properties
           echo "example=${{ matrix.example }}" >> scoredirector-benchmark.properties
           cat scoredirector-benchmark.properties
@@ -82,9 +82,10 @@ jobs:
 
       - name: Phase 1 - Run the baseline configuration
         working-directory: ./timefold-solver-benchmarks
+        env:
+          RUN_ID: ${{ github.event.inputs.baseline }}
         shell: bash
         run: |
-          export RUN_ID="${{github.workflow.inputs.baseline}}"
           ./run-scoredirector.sh
           
       - name: Phase 2 - Checkout timefold-solver
@@ -119,9 +120,10 @@ jobs:
 
       - name: Phase 2 - Run the new configuration
         working-directory: ./timefold-solver-benchmarks
+        env:
+          RUN_ID: ${{ github.event.inputs.baseline }}
         shell: bash
         run: |
-          export RUN_ID="${{github.workflow.inputs.branch}}"
           ./run-scoredirector.sh
 
       - name: Phase 3 - Archive benchmark data
