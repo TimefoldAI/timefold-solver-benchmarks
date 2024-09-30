@@ -51,7 +51,7 @@ jobs:
           path: ./timefold-solver-benchmarks
 
       - name: Setup Async Profiler
-        path: ./timefold-solver-benchmarks
+        working-directory: ./timefold-solver-benchmarks
         run: |
           wget https://github.com/async-profiler/async-profiler/releases/download/v${{ github.event.inputs.async_profiler_version }}/async-profiler-${{ github.event.inputs.async_profiler_version }}-linux-x64.tar.gz
           tar -xzf async-profiler-3.0-linux-x64.tar.gz
