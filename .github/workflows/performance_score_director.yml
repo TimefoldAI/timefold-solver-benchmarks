@@ -5,7 +5,7 @@ on:
     inputs:
       jdk:
         description: 'JDK version'
-        default: '23'
+        default: '21'
         required: true
       baseline:
         description: 'Timefold Solver release'
@@ -38,13 +38,13 @@ jobs:
       MVN_USERNAME: '${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_USERNAME }}'
       MVN_PASSWORD: '${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_TOKEN }}'
     steps:
-      - name: Checkout timefold-solver-benchmarks
+      - name: Phase 0 - Checkout timefold-solver-benchmarks
         uses: actions/checkout@v4
         with:
           repository: TimefoldAI/timefold-solver-benchmarks
           path: ./timefold-solver-benchmarks
 
-      - name: Setup JDK and Maven
+      - name: Phase 0 - Setup JDK and Maven
         uses: actions/setup-java@v4
         with:
           java-version: ${{ github.event.inputs.jdk }}
@@ -54,7 +54,7 @@ jobs:
           server-username: 'MVN_USERNAME'
           server-password: 'MVN_PASSWORD'
 
-      - name: Setup Async Profiler
+      - name: Phase 0 - Setup Async Profiler
         working-directory: ./timefold-solver-benchmarks
         run: |
           export FILENAME=async-profiler-${{ github.event.inputs.async_profiler_version }}-linux-x64.tar.gz
@@ -62,12 +62,7 @@ jobs:
           tar -xzf $FILENAME 
           ls -l
 
-      - name: Compile the benchmarks
-        working-directory: ./timefold-solver-benchmarks
-        shell: bash
-        run: mvn clean install -B -Dquickly -Dversion.ai.timefold.solver=${{ github.event.inputs.baseline }} -Dversion.tools.provider="${{ github.event.inputs.async_profiler_version }}"
-
-      - name: Run the baseline configuration
+      - name: Phase 0 - Prepare the benchmarks
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
@@ -75,5 +70,57 @@ jobs:
           echo "example=${{ matrix.example }}" >> scoredirector-benchmark.properties
           cat scoredirector-benchmark.properties
           chmod +x run-scoredirector.sh
-          ./run-scoredirector.sh
+
+      - name: Phase 1 - Compile the benchmarks
+        working-directory: ./timefold-solver-benchmarks
+        shell: bash
+        run: mvn clean install -B -Dquickly -Dversion.ai.timefold.solver=${{ github.event.inputs.baseline }} -Dversion.tools.provider="${{ github.event.inputs.async_profiler_version }}"
+
+     # - name: Phase 1 - Run the baseline configuration
+     #   working-directory: ./timefold-solver-benchmarks
+     #   shell: bash
+     #   run: |
+     #     ./run-scoredirector.sh
           
+      - name: Phase 2 - Checkout timefold-solver
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.inputs.branch_owner }}/timefold-solver
+          ref: ${{ github.event.inputs.branch }}
+          path: ./timefold-solver
+
+      - name: Phase 2 - Quickly build timefold-solver
+        working-directory: ./timefold-solver
+        shell: bash
+        run: mvn -B -Dquickly clean install
+
+      - name: Phase 2 - Checkout timefold-solver-enterprise
+        uses: actions/checkout@v4
+        with:
+          repository: TimefoldAI/timefold-solver-enterprise
+          ref: ${{ github.event.inputs.branch }}
+          token: ${{ secrets.JRELEASER_GITHUB_TOKEN }} # Safe; only used to clone the repo and not stored in the fork.
+          path: ./timefold-solver-enterprise
+
+      - name: Phase 2 - Quickly build timefold-solver-enterprise
+        working-directory: ./timefold-solver-enterprise
+        shell: bash
+        run: mvn -B -Dquickly clean install
+
+      - name: Phase 2 - Compile the benchmarks
+        working-directory: ./timefold-solver-benchmarks
+        shell: bash
+        run: mvn clean install -B -Dquickly -Dversion.tools.provider="${{ github.event.inputs.async_profiler_version }}"
+
+      - name: Phase 2 - Run the baseline configuration
+        working-directory: ./timefold-solver-benchmarks
+        shell: bash
+        run: |
+          ./run-scoredirector.sh
+
+      - name: Phase 3 - Archive production artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: results-${{ matrix.example }}
+          path: |
+            ./timefold-solver-benchmarks/results

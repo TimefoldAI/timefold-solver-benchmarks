@@ -85,8 +85,9 @@ public final class Main extends AbstractMain<Configuration> {
             var benchmarkName = benchParams.getBenchmark() + " " + benchParams.getParam("example");
             var relativeScoreErrorForPrint = ((int) Math.round(relativeScoreError * 10_000)) / 100.0D;
             if (relativeScoreError > relativeScoreErrorThreshold) {
-                LOGGER.warn("Score error for '{}' is too high: ± {} % (threshold: ± {} %).", benchmarkName,
-                        relativeScoreErrorForPrint, thresholdForPrint);
+                throw new IllegalStateException("Score error for '%s' is too high: ± %s pct (threshold: ± %s pct)."
+                        .formatted(benchmarkName, relativeScoreErrorForPrint, thresholdForPrint));
+
             } else if (relativeScoreError > (relativeScoreErrorThreshold * 0.9)) {
                 LOGGER.info("Score error for '{}' approaching threshold: ± {} % (threshold: ± {} %).", benchmarkName,
                         relativeScoreErrorForPrint, thresholdForPrint);
