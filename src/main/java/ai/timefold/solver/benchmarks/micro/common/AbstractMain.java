@@ -54,10 +54,13 @@ public abstract class AbstractMain<C extends AbstractConfiguration> {
 
     protected final Logger LOGGER = LoggerFactory.getLogger(getClass());
     private final String subpackage;
+    private final String runId;
     private final Path resultsDirectory;
 
     protected AbstractMain(String subpackage) {
         this.subpackage = subpackage;
+        var runId = System.getenv("RUN_ID");
+        this.runId = runId == null || runId.isBlank() ? getTimestamp() : runId.strip();
         this.resultsDirectory = Path.of("results", subpackage, getTimestamp());
         resultsDirectory.toFile().mkdirs();
     }
