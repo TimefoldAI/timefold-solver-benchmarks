@@ -19,6 +19,10 @@ on:
         description: 'User owning the branch'
         default: 'TimefoldAI'
         required: true
+      async_profiler_version:
+        description: 'async-profiler version'
+        default: '3.0'
+        required: true
 
 jobs:
 
@@ -39,12 +43,20 @@ jobs:
           java -version
           sdk install maven
           mvn -version
+
       - name: Checkout timefold-solver-benchmarks
         uses: actions/checkout@v4
         with:
           repository: TimefoldAI/timefold-solver-benchmarks
           path: ./timefold-solver-benchmarks
+
+      - name: Setup Async Profiler
+        path: ./timefold-solver-benchmarks
+        run: |
+          wget https://github.com/async-profiler/async-profiler/releases/download/v${{ github.event.inputs.async_profiler_version }}/async-profiler-${{ github.event.inputs.async_profiler_version }}-linux-x64.tar.gz
+          tar -xzf async-profiler-3.0-linux-x64.tar.gz
+
       - name: Compile the benchmarks
         working-directory: ./timefold-solver-benchmarks
         shell: bash
-        run: mvn clean install -Dai.timefold.solver.version=${{ github.event.inputs.baseline }}
+        run: mvn clean install -Dai.timefold.solver.version=${{ github.event.inputs.baseline }} -Dversion.tools.provider="${{ github.event.inputs.async_profiler_version }}"
