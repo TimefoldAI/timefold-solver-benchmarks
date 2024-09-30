@@ -31,6 +31,9 @@ jobs:
     strategy:
       matrix:
         example: [cloudbalancing, conferencescheduling, curriculumcourse, examination, machinereassignment, meetingscheduling, nurserostering, pas, taskassigning, travelingtournament, tsp, vehiclerouting]
+    env:
+      MVN_USERNAME: '${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_USERNAME }}'
+      MVN_PASSWORD: '${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_TOKEN }}'
     steps:
       - name: Checkout timefold-solver-benchmarks
         uses: actions/checkout@v4
@@ -40,9 +43,6 @@ jobs:
 
       - name: Setup JDK and Maven
         uses: actions/setup-java@v4
-        env:
-          MVN_USERNAME: ${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_USERNAME }}
-          MVN_PASSWORD: ${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_TOKEN }}
         with:
           java-version: ${{ github.event.inputs.jdk }}
           distribution: 'temurin'
