@@ -30,7 +30,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        example: [cloud_balancing, conference_scheduling, curriculum_course, examination, machine_reassignment, meeting_scheduling, nurse_rostering, pas, task_assigning, traveling_tournament, tsp, vehicle_routing]
+        example: [cloud_balancing, conference_scheduling, curriculum_course, examination, machine_reassignment, meeting_scheduling, nurse_rostering, patient_admission_scheduling, task_assigning, traveling_tournament, tsp, vehicle_routing]
+    concurrency:
+      group: turtle-${{ matrix.example }}
+      cancel-in-progress: true
     env:
       MVN_USERNAME: '${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_USERNAME }}'
       MVN_PASSWORD: '${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_TOKEN }}'
