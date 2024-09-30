@@ -34,8 +34,8 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>ai.timefold.solver</groupId>
-                <artifactId>timefold-solver-build-parent</artifactId>
+                <groupId>ai.timefold.solver.enterprise</groupId>
+                <artifactId>timefold-solver-enterprise-build-parent</artifactId>
                 <version>${version.ai.timefold.solver}</version>
                 <type>pom</type>
                 <scope>import</scope>
@@ -58,7 +58,6 @@
         <dependency>
             <groupId>ai.timefold.solver.enterprise</groupId>
             <artifactId>timefold-solver-enterprise-core</artifactId>
-            <version>${version.ai.timefold.solver}</version>
         </dependency>
         <dependency>
             <groupId>ai.timefold.solver</groupId>
@@ -124,7 +123,6 @@
         <dependency>
             <groupId>ai.timefold.solver</groupId>
             <artifactId>timefold-solver-core</artifactId>
-            <version>${version.ai.timefold.solver}</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
