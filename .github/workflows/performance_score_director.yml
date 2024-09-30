@@ -68,7 +68,8 @@ jobs:
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
-          echo "score_director_type=cs" > scoredirector-benchmark.properties
+          echo "warmup_iterations=10" > scoredirector-benchmark.properties
+          echo "score_director_type=cs" >> scoredirector-benchmark.properties
           echo "example=${{ matrix.example }}" >> scoredirector-benchmark.properties
           cat scoredirector-benchmark.properties
           chmod +x run-scoredirector.sh
