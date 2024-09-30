@@ -249,7 +249,7 @@
             </activation>
             <properties>
                 <spotless.skip>true</spotless.skip>
-                <surefire.skipTests>true</surefire.skipTests>
+                <skipTests>true</skipTests>
             </properties>
         </profile>
         <profile>

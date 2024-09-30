@@ -63,3 +63,14 @@ jobs:
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: mvn clean install -B -Dquickly -Dversion.ai.timefold.solver=${{ github.event.inputs.baseline }} -Dversion.tools.provider="${{ github.event.inputs.async_profiler_version }}"
+
+      - name: Run the baseline configuration
+        working-directory: ./timefold-solver-benchmarks
+        shell: bash
+        run: |
+          echo "score_director_type=cs" > scoredirector-benchmark.properties
+          echo "example=${{ matrix.example }}" >> scoredirector-benchmark.properties
+          cat scoredirector-benchmark.properties
+          chmod +x run-scoredirector.sh
+          ./run-scoredirector.sh
+          
