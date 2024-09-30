@@ -241,6 +241,18 @@
 
     <profiles>
         <profile>
+            <id>quickly</id>
+            <activation>
+                <property>
+                    <name>quickly</name>
+                </property>
+            </activation>
+            <properties>
+                <spotless.skip>true</spotless.skip>
+                <surefire.skipTests>true</surefire.skipTests>
+            </properties>
+        </profile>
+        <profile>
             <id>jmh</id>
             <activation>
                 <property>
