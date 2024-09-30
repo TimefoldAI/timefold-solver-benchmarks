@@ -59,4 +59,4 @@ jobs:
       - name: Compile the benchmarks
         working-directory: ./timefold-solver-benchmarks
         shell: bash
-        run: mvn clean install -Dai.timefold.solver.version=${{ github.event.inputs.baseline }} -Dversion.tools.provider="${{ github.event.inputs.async_profiler_version }}"
+        run: mvn clean install -Dversion.ai.timefold.solver=${{ github.event.inputs.baseline }} -Dversion.tools.provider="${{ github.event.inputs.async_profiler_version }}"
