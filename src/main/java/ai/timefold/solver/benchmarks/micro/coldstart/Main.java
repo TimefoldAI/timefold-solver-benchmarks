@@ -33,6 +33,7 @@ package ai.timefold.solver.benchmarks.micro.coldstart;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import ai.timefold.solver.benchmarks.micro.coldstart.jmh.TimeToFirstScoreBenchmark;
 import ai.timefold.solver.benchmarks.micro.coldstart.jmh.TimeToSolverFactoryBenchmark;
@@ -75,6 +76,7 @@ public final class Main extends AbstractMain<Configuration> {
 
         var relativeScoreErrorThreshold = configuration.getRelativeScoreErrorThreshold();
         var thresholdForPrint = ((int) Math.round(relativeScoreErrorThreshold * 10_000)) / 100.0D;
+        var wasSuccess = new AtomicBoolean(true);
         runResults.forEach(result -> {
             Result<?> primaryResult = result.getPrimaryResult();
             var score = primaryResult.getScore();
@@ -85,14 +87,18 @@ public final class Main extends AbstractMain<Configuration> {
             var benchmarkName = benchParams.getBenchmark() + " " + benchParams.getParam("example");
             var relativeScoreErrorForPrint = ((int) Math.round(relativeScoreError * 10_000)) / 100.0D;
             if (relativeScoreError > relativeScoreErrorThreshold) {
-                throw new IllegalStateException("Score error for '%s' is too high: ± %s pct (threshold: ± %s pct)."
-                        .formatted(benchmarkName, relativeScoreErrorForPrint, thresholdForPrint));
+                LOGGER.error("Score error for '{}' is too high: ± {} % (threshold: ± {} %).", benchmarkName,
+                        relativeScoreErrorForPrint, thresholdForPrint);
+                wasSuccess.set(false);
 
             } else if (relativeScoreError > (relativeScoreErrorThreshold * 0.9)) {
-                LOGGER.info("Score error for '{}' approaching threshold: ± {} % (threshold: ± {} %).", benchmarkName,
+                LOGGER.warn("Score error for '{}' approaching threshold: ± {} % (threshold: ± {} %).", benchmarkName,
                         relativeScoreErrorForPrint, thresholdForPrint);
             }
         });
+        if (wasSuccess.get()) {
+            System.exit(1);
+        }
     }
 
     private static ChainedOptionsBuilder processBenchmark(ChainedOptionsBuilder options, Configuration configuration) {

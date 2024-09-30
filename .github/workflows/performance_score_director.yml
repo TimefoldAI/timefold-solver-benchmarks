@@ -12,7 +12,7 @@ on:
         default: '1.14.0'
         required: true
       branch:
-        description: 'Development branch to test against'
+        description: 'Branch to benchmark (needs to use 999-SNAPSHOT)'
         default: 'main'
         required: true
       branch_owner:

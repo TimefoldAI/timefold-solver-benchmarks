@@ -33,6 +33,7 @@ package ai.timefold.solver.benchmarks.micro.scoredirector;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import ai.timefold.solver.benchmarks.micro.common.AbstractMain;
 
@@ -85,12 +86,17 @@ public final class Main extends AbstractMain<Configuration> {
             var benchParams = result.getParams();
             var benchmarkName = benchParams.getBenchmark() + " " + benchParams.getParam("csExample");
             var relativeScoreErrorForPrint = ((int) Math.round(relativeScoreError * 10_000)) / 100.0D;
+            var wasSuccess = new AtomicBoolean(true);
             if (relativeScoreError > relativeScoreErrorThreshold) {
-                LOGGER.warn("Score error for '{}' is too high: ± {} % (threshold: ± {} %).", benchmarkName,
+                LOGGER.error("Score error for '{}' is too high: ± {} % (threshold: ± {} %).", benchmarkName,
                         relativeScoreErrorForPrint, thresholdForPrint);
+                wasSuccess.set(false);
             } else if (relativeScoreError > (relativeScoreErrorThreshold * 0.9)) {
-                LOGGER.info("Score error for '{}' approaching threshold: ± {} % (threshold: ± {} %).", benchmarkName,
+                LOGGER.warn("Score error for '{}' approaching threshold: ± {} % (threshold: ± {} %).", benchmarkName,
                         relativeScoreErrorForPrint, thresholdForPrint);
+            }
+            if (!wasSuccess.get()) {
+                System.exit(1);
             }
         });
     }
