@@ -35,9 +35,9 @@ jobs:
         run: |
           curl -s "https://get.sdkman.io" | bash
           source "$HOME/.sdkman/bin/sdkman-init.sh"
-          sdkman install java ${{ github.event.inputs.jdk }}
+          sdk install java ${{ github.event.inputs.jdk }}
           java -version
-          sdkman install maven
+          sdk install maven
           mvn -version
       - name: Checkout timefold-solver-benchmarks
         uses: actions/checkout@v4
