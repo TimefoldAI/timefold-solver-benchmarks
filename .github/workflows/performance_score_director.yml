@@ -80,7 +80,7 @@ jobs:
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
-          EXPORT RUN_ID="${{github.workflow.inputs.baseline}}"
+          export RUN_ID="${{github.workflow.inputs.baseline}}"
           ./run-scoredirector.sh
           
       - name: Phase 2 - Checkout timefold-solver
@@ -117,7 +117,7 @@ jobs:
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
-          EXPORT RUN_ID="${{github.workflow.inputs.branch}}"
+          export RUN_ID="${{github.workflow.inputs.branch}}"
           ./run-scoredirector.sh
 
       - name: Phase 3 - Archive production artifacts
