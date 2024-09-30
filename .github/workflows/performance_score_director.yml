@@ -124,22 +124,22 @@ jobs:
           export RUN_ID="${{github.workflow.inputs.branch}}"
           ./run-scoredirector.sh
 
-      - name: Phase 3 - Publish benchmark result
-        uses: benchmark-action/github-action-benchmark@v1
-        with:
-          name: scoredirector-${{ matrix.example }}
-          tool: 'jmh'
-          output-file-path: ./timefold-solver-benchmarks/results/results.json
-          github-token: ${{ secrets.JRELEASER_GITHUB_TOKEN }}
-          auto-push: true
-          alert-threshold: '105%'
-          comment-on-alert: true
-          fail-on-alert: true
-          alert-comment-cc-users: '@triceo'
-
       - name: Phase 3 - Archive benchmark data
         uses: actions/upload-artifact@v4
         with:
           name: results-${{ matrix.example }}-${{ github.event.inputs.baseline }}_vs_${{ github.event.inputs.branch }}
           path: |
             ./timefold-solver-benchmarks/results
+
+      - name: Phase 3 - Publish benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: scoredirector-${{ matrix.example }}
+          tool: 'jmh'
+          output-file-path: ./timefold-solver-benchmarks/results/${{ github.event.inputs.branch }}/results.json
+          github-token: ${{ secrets.BENCHMARK_PUBLISH_TOKEN }}
+          auto-push: true
+          alert-threshold: '105%'
+          comment-on-alert: true
+          fail-on-alert: true
+          alert-comment-cc-users: '@triceo'
