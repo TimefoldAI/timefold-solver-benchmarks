@@ -1,0 +1,51 @@
+name: Performance - Score Director
+
+on:
+  workflow_dispatch:
+    inputs:
+      jdk:
+        description: 'JDK version (17, 21, 23, ...)'
+        default: '23'
+        required: true
+      baseline:
+        description: 'Timefold Solver release'
+        default: '1.14.0'
+        required: true
+      branch:
+        description: 'Development branch to test against'
+        default: 'main'
+        required: true
+      branch_owner:
+        description: 'User owning the branch'
+        default: 'TimefoldAI'
+        required: true
+
+jobs:
+
+  test:
+    concurrency:
+      group: perf-score-director-${{ matrix.example }}
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        example: [cloudbalancing, conferencescheduling, curriculumcourse, examination, machinereassignment, meetingscheduling, nurserostering, pas, taskassigning, travelingtournament, tsp, vehiclerouting]
+    steps:
+      - uses: sdkman/sdkman-action@v1
+        with:
+          candidate: java
+          version: ${{ github.event.inputs.jdk }}-tem
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'jdkfile'
+          java-version: ${{ github.event.inputs.jdk }}
+          jdkFile: ${{ steps.sdkman.outputs.file }}
+      - name: Checkout timefold-solver-benchmarks
+        uses: actions/checkout@v4
+        with:
+          repository: TimefoldAI/timefold-solver-benchmarks
+          path: ./timefold-solver-benchmarks
+      - name: Compile the benchmarks
+        working-directory: ./timefold-solver-benchmarks
+        shell: bash
+        run: mvn clean install -Dai.timefold.solver.version=${{ github.event.inputs.baseline }}
