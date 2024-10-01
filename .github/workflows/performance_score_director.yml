@@ -145,13 +145,4 @@ jobs:
         with:
           name: results-${{ matrix.example }}-${{ github.event.inputs.baseline }}_vs_${{ github.event.inputs.branch }}
           path: |
-            ./timefold-solver-benchmarks/results/scoredirector*
-
-      - name: Phase 3 - Publish benchmark result
-        uses: benchmark-action/github-action-benchmark@v1
-        with:
-          name: scoredirector-${{ matrix.example }}
-          tool: 'jmh'
-          output-file-path: ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.branch }}/results.json
-          github-token: ${{ secrets.BENCHMARK_PUBLISH_TOKEN }}
-          auto-push: true
+            ./timefold-solver-benchmarks/results/scoredirector
