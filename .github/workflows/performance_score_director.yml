@@ -121,7 +121,7 @@ jobs:
       - name: Phase 2 - Run the new configuration
         working-directory: ./timefold-solver-benchmarks
         env:
-          RUN_ID: ${{ github.event.inputs.baseline }}
+          RUN_ID: ${{ github.event.inputs.branch }}
         shell: bash
         run: |
           ./run-scoredirector.sh
