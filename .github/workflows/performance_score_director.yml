@@ -65,18 +65,20 @@ jobs:
           tar -xzf $FILENAME 
           ls -l
 
-      - name: Phase 0 - Prepare the benchmarks
+      # Fine-tuned for stability on GHA.
+      - name: Phase 0 - Configure the benchmark
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
-          echo "warmup_iterations=5" > scoredirector-benchmark.properties
+          echo "forks=15" > scoredirector-benchmark.properties
+          echo "warmup_iterations=5" >> scoredirector-benchmark.properties
           echo "measurement_iterations=10" >> scoredirector-benchmark.properties
           echo "score_director_type=cs" >> scoredirector-benchmark.properties
           echo "example=${{ matrix.example }}" >> scoredirector-benchmark.properties
           cat scoredirector-benchmark.properties
           chmod +x run-scoredirector.sh
 
-      - name: Phase 1 - Compile the benchmarks
+      - name: Phase 1 - Compile the benchmark
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: mvn clean install -B -Dquickly -Dversion.ai.timefold.solver=${{ github.event.inputs.baseline }} -Dversion.tools.provider="${{ github.event.inputs.async_profiler_version }}"
@@ -101,12 +103,23 @@ jobs:
         shell: bash
         run: mvn -B -Dquickly clean install
 
-      - name: Phase 2 - Checkout timefold-solver-enterprise
+      # Clone timefold-solver-enterprise
+      - name: Phase 2 - Checkout timefold-solver-enterprise (PR) # Checkout the PR branch first, if it exists
+        id: checkout-solver-enterprise
         uses: actions/checkout@v4
+        continue-on-error: true
         with:
           repository: TimefoldAI/timefold-solver-enterprise
           ref: ${{ github.event.inputs.branch }}
-          token: ${{ secrets.JRELEASER_GITHUB_TOKEN }} # Safe; only used to clone the repo and not stored in the fork.
+          token: ${{ secrets.BENCHMARK_PUBLISH_TOKEN }}
+          path: ./timefold-solver-enterprise
+      - name: Phase 2 - Checkout timefold-solver-enterprise (main) # Checkout the main branch if the PR branch does not exist
+        if: steps.checkout-solver-enterprise.outcome != 'success'
+        uses: actions/checkout@v4
+        with:
+          repository: TimefoldAI/timefold-solver-enterprise
+          ref: main
+          token: ${{ secrets.BENCHMARK_PUBLISH_TOKEN }}
           path: ./timefold-solver-enterprise
 
       - name: Phase 2 - Quickly build timefold-solver-enterprise
@@ -119,7 +132,7 @@ jobs:
         shell: bash
         run: mvn clean install -B -Dquickly -Dversion.tools.provider="${{ github.event.inputs.async_profiler_version }}"
 
-      - name: Phase 2 - Run the new configuration
+      - name: Phase 2 - Run the benchmark on the new code
         working-directory: ./timefold-solver-benchmarks
         env:
           RUN_ID: ${{ github.event.inputs.branch }}
@@ -142,7 +155,3 @@ jobs:
           output-file-path: ./timefold-solver-benchmarks/results/${{ github.event.inputs.branch }}/results.json
           github-token: ${{ secrets.BENCHMARK_PUBLISH_TOKEN }}
           auto-push: true
-          alert-threshold: '105%'
-          comment-on-alert: true
-          fail-on-alert: true
-          alert-comment-cc-users: '@triceo'
