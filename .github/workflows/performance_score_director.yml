@@ -171,16 +171,16 @@ jobs:
             export OLD_MEAN=$(((OLD_RANGE_END - OLD_RANGE_START)/2)+OLD_RANGE_START)
             export NEW_MEAN=$(((NEW_RANGE_END - NEW_RANGE_START)/2)+NEW_RANGE_START)
             if [ "$NEW_RANGE_START" -ge "$OLD_MEAN" ]; then
-              echo "### Possible improvement ⁉️" >> $GITHUB_STEP_SUMMARY
+              echo "### 🍀Possible improvement 🍀" >> $GITHUB_STEP_SUMMARY
             elif [ "$OLD_RANGE_END" -le "$NEW_MEAN" ]; then
-              echo "### Possible regression ⁉️" >> $GITHUB_STEP_SUMMARY
+              echo "### ⚠️Possible regression ⚠️" >> $GITHUB_STEP_SUMMARY
             else
-              echo "### Statistically insignificant result ⁉️" >> $GITHUB_STEP_SUMMARY
+              echo "### Performance unchanged" >> $GITHUB_STEP_SUMMARY
             fi          
           elif [ "$NEW_RANGE_START" -gt "$OLD_RANGE_END" ]; then
-            echo "### Statistically significant improvement 🚀" >> $GITHUB_STEP_SUMMARY
+            echo "### 🚀🚀🚀 Statistically significant improvement 🚀🚀🚀" >> $GITHUB_STEP_SUMMARY
           else
-            echo "### Statistically significant regression 🛑" >> $GITHUB_STEP_SUMMARY
+            echo "### ‼️‼️‼️ Statistically significant regression ‼️‼️‼️" >> $GITHUB_STEP_SUMMARY
             export FAIL=true
           fi
           
