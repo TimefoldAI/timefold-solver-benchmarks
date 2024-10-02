@@ -75,7 +75,7 @@ jobs:
         run: |
           echo "forks=2" > scoredirector-benchmark.properties
           echo "warmup_iterations=1" >> scoredirector-benchmark.properties
-          echo "measurement_iterations=1" >> scoredirector-benchmark.properties
+          echo "measurement_iterations=2" >> scoredirector-benchmark.properties
           echo "relative_score_error_threshold=0.025" >> scoredirector-benchmark.properties
           echo "score_director_type=cs" >> scoredirector-benchmark.properties
           echo "example=${{ matrix.example }}" >> scoredirector-benchmark.properties
@@ -155,7 +155,6 @@ jobs:
         with:
           name: results-${{ matrix.example }}-${{ github.event.inputs.baseline }}_vs_${{ github.event.inputs.branch }}
           path: |
-            ./timefold-solver-benchmarks/scoredirector-benchmark.properties
             ./timefold-solver-benchmarks/results/scoredirector
 
       - name: Phase 3 - Report results
@@ -187,8 +186,8 @@ jobs:
           
           echo "|       |   **Ref**   |   **Min**   |   **Max**   |" >> $GITHUB_STEP_SUMMARY
           echo "|:-----:|:-----------:|:-----------:|:-----------:|" >> $GITHUB_STEP_SUMMARY
-          echo "| _Old_ | `${{ github.event.inputs.baseline }}` | ${OLD_RANGE_START%.*} | ${OLD_RANGE_END%.*} |" >> $GITHUB_STEP_SUMMARY
-          echo "| _New_ |  `${{ github.event.inputs.branch }}`  | ${NEW_RANGE_START%.*} | ${NEW_RANGE_END%.*} |" >> $GITHUB_STEP_SUMMARY
+          echo "| _Old_ | ${{ github.event.inputs.baseline }} | ${OLD_RANGE_START%.*} | ${OLD_RANGE_END%.*} |" >> $GITHUB_STEP_SUMMARY
+          echo "| _New_ |  ${{ github.event.inputs.branch }}  | ${NEW_RANGE_START%.*} | ${NEW_RANGE_END%.*} |" >> $GITHUB_STEP_SUMMARY
           
           if [ "$FAIL" = true ]; then
               exit 1
