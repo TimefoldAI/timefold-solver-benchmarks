@@ -73,7 +73,7 @@ jobs:
           echo "forks=15" > scoredirector-benchmark.properties
           echo "warmup_iterations=5" >> scoredirector-benchmark.properties
           echo "measurement_iterations=15" >> scoredirector-benchmark.properties
-          echo "relative_score_error_threshold=0.025C" >> scoredirector-benchmark.properties
+          echo "relative_score_error_threshold=0.025" >> scoredirector-benchmark.properties
           echo "score_director_type=cs" >> scoredirector-benchmark.properties
           echo "example=${{ matrix.example }}" >> scoredirector-benchmark.properties
           cat scoredirector-benchmark.properties
@@ -92,6 +92,7 @@ jobs:
         shell: bash
         run: |
           ./run-scoredirector.sh
+          # The benchmark gives the 99.9 % confidence interval.
           echo "RANGE_START=$(jq '.[0].primaryMetric.scoreConfidence[0]' ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.baseline }}/results.json)" >> "$GITHUB_OUTPUT"
           echo "RANGE_END=$(jq '.[0].primaryMetric.scoreConfidence[1]' ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.baseline }}/results.json)" >> "$GITHUB_OUTPUT"
 
@@ -144,6 +145,7 @@ jobs:
         shell: bash
         run: |
           ./run-scoredirector.sh
+          # The benchmark gives the 99.9 % confidence interval.
           echo "RANGE_START=$(jq '.[0].primaryMetric.scoreConfidence[0]' ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.branch }}/results.json)" >> "$GITHUB_OUTPUT"
           echo "RANGE_END=$(jq '.[0].primaryMetric.scoreConfidence[1]' ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.branch }}/results.json)" >> "$GITHUB_OUTPUT"
 
@@ -163,7 +165,16 @@ jobs:
           NEW_RANGE_END:   ${{ steps.benchmark_new.outputs.RANGE_END }}
         shell: bash
         run: |
-          echo "OLD_RANGE_START=$OLD_RANGE_START"
-          echo "OLD_RANGE_END=$OLD_RANGE_END"
-          echo "NEW_RANGE_START=$NEW_RANGE_START"
-          echo "NEW_RANGE_END=$NEW_RANGE_END"
+          echo "Baseline result with 99.9 % confidence: "
+          echo "     [$OLD_RANGE_START, $OLD_RANGE_END]"
+          echo "     New result with 99.9 % confidence: "
+          echo "     [$NEW_RANGE_START, $NEW_RANGE_END]"
+          echo ""
+          if [ "$NEW_RANGE_START" -le "$OLD_RANGE_END" ] && [ "$NEW_RANGE_END" -ge "$OLD_RANGE_START" ]; then
+            echo "Result is not statistically significant."
+          elif [ "$NEW_RANGE_START" -gt "$OLD_RANGE_END" ]; then
+            echo "Statistically significant improvement."
+          else
+            echo "Statistically significant regression."
+            exit 1
+          fi
