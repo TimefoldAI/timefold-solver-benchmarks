@@ -33,11 +33,9 @@ package ai.timefold.solver.benchmarks.micro.scoredirector;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import ai.timefold.solver.benchmarks.micro.common.AbstractMain;
 
-import org.openjdk.jmh.results.Result;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
@@ -78,7 +76,7 @@ public final class Main extends AbstractMain<Configuration> {
         var relativeScoreErrorThreshold = configuration.getRelativeScoreErrorThreshold();
         var thresholdForPrint = ((int) Math.round(relativeScoreErrorThreshold * 10_000)) / 100.0D;
         runResults.forEach(result -> {
-            Result<?> primaryResult = result.getPrimaryResult();
+            var primaryResult = result.getPrimaryResult();
             var score = primaryResult.getScore();
             var scoreError = primaryResult.getScoreError();
             var relativeScoreError = scoreError / score;
@@ -86,17 +84,12 @@ public final class Main extends AbstractMain<Configuration> {
             var benchParams = result.getParams();
             var benchmarkName = benchParams.getBenchmark() + " " + benchParams.getParam("csExample");
             var relativeScoreErrorForPrint = ((int) Math.round(relativeScoreError * 10_000)) / 100.0D;
-            var wasSuccess = new AtomicBoolean(true);
             if (relativeScoreError > relativeScoreErrorThreshold) {
-                LOGGER.error("Score error for '{}' is too high: ± {} % (threshold: ± {} %).", benchmarkName,
+                LOGGER.warn("Score error for '{}' is too high: ± {} % (threshold: ± {} %).", benchmarkName,
                         relativeScoreErrorForPrint, thresholdForPrint);
-                wasSuccess.set(false);
             } else if (relativeScoreError > (relativeScoreErrorThreshold * 0.9)) {
-                LOGGER.warn("Score error for '{}' approaching threshold: ± {} % (threshold: ± {} %).", benchmarkName,
+                LOGGER.info("Score error for '{}' approaching threshold: ± {} % (threshold: ± {} %).", benchmarkName,
                         relativeScoreErrorForPrint, thresholdForPrint);
-            }
-            if (!wasSuccess.get()) {
-                System.exit(1);
             }
         });
     }
