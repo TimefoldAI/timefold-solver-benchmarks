@@ -4,11 +4,15 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Set;
+import java.util.function.BiConsumer;
 
 import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutionImporter;
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
+import ai.timefold.solver.core.api.function.TriConsumer;
+import ai.timefold.solver.core.api.solver.Solver;
 import ai.timefold.solver.core.api.solver.SolverConfigOverride;
 import ai.timefold.solver.core.api.solver.SolverFactory;
+import ai.timefold.solver.core.config.solver.SolverConfig;
 import ai.timefold.solver.core.config.solver.termination.TerminationConfig;
 import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
 
@@ -122,6 +126,18 @@ public abstract class CommonApp<Solution_> extends LoggingMain {
 
     protected Set<AbstractSolutionImporter<Solution_>> createSolutionImporters() {
         return Collections.emptySet();
+    }
+
+    public final <T> void solve(String datasetName, T experiment, BiConsumer<T, SolverConfig> prepareConsumer,
+            TriConsumer<T, Solution_, Solver<Solution_>> processResultConsumer) {
+        var solutionFileIo = createSolutionFileIO();
+        var problem = solutionFileIo.read(Path.of("data", dataDirName, "unsolved", datasetName).toFile().getAbsoluteFile());
+        SolverConfig solverConfig = SolverConfig.createFromXmlResource(solverConfigResource);
+        prepareConsumer.accept(experiment, solverConfig);
+        var solverFactory = SolverFactory.<Solution_> create(solverConfig);
+        var solver = solverFactory.buildSolver();
+        var solution = solver.solve(problem);
+        processResultConsumer.accept(experiment, solution, solver);
     }
 
     public final Solution_ solve(String datasetName) {
