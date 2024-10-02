@@ -111,7 +111,7 @@ jobs:
         run: mvn -B -Dquickly clean install
 
       # Clone timefold-solver-enterprise
-      - name: Phase 2 - Checkout timefold-solver-enterprise (PR) # Checkout the PR branch first, if it exists
+      - name: Phase 2 - Checkout timefold-solver-enterprise (Specified)
         id: checkout-solver-enterprise
         uses: actions/checkout@v4
         continue-on-error: true
@@ -120,7 +120,7 @@ jobs:
           ref: ${{ github.event.inputs.branch }}
           token: ${{ secrets.BENCHMARK_PUBLISH_TOKEN }}
           path: ./timefold-solver-enterprise
-      - name: Phase 2 - Checkout timefold-solver-enterprise (main) # Checkout the main branch if the PR branch does not exist
+      - name: Phase 2 - Checkout timefold-solver-enterprise (Fallback)
         if: steps.checkout-solver-enterprise.outcome != 'success'
         uses: actions/checkout@v4
         with:
@@ -184,10 +184,18 @@ jobs:
             export FAIL=true
           fi
           
-          echo "|       |   **Ref**   |   **Min**   |   **Max**   |" >> $GITHUB_STEP_SUMMARY
-          echo "|:-----:|:-----------:|:-----------:|:-----------:|" >> $GITHUB_STEP_SUMMARY
-          echo "| _Old_ | ${{ github.event.inputs.baseline }} | ${OLD_RANGE_START} | ${OLD_RANGE_END} |" >> $GITHUB_STEP_SUMMARY
-          echo "| _New_ |  ${{ github.event.inputs.branch }}  | ${NEW_RANGE_START} | ${NEW_RANGE_END} |" >> $GITHUB_STEP_SUMMARY
+          export DIFF_START=$(echo "scale=2; ($OLD_RANGE_START / $NEW_RANGE_START) * 100" | bc)
+          export DIFF_END=$(echo "scale=2; ($OLD_RANGE_END / $NEW_RANGE_END) * 100" | bc)
+          
+          echo "|        |   **Ref**   |      **Min**      |      **Max**      |" >> $GITHUB_STEP_SUMMARY
+          echo "|:------:|:-----------:|:-----------------:|:-----------------:|" >> $GITHUB_STEP_SUMMARY
+          echo "|  _Old_ | ${{ github.event.inputs.baseline }} | ${OLD_RANGE_START} | ${OLD_RANGE_END} |" >> $GITHUB_STEP_SUMMARY
+          echo "|  _New_ |  ${{ github.event.inputs.branch }}  | ${NEW_RANGE_START} | ${NEW_RANGE_END} |" >> $GITHUB_STEP_SUMMARY
+          echo "| _Diff_ |             |  ${DIFF_START} %  |   ${DIFF_END} %   |" >> $GITHUB_STEP_SUMMARY
+          
+          echo "Min and max define a 99.9 % confidence interval." >> $GITHUB_STEP_SUMMARY
+          echo "Min and max are in operations per second. Higher is better." >> $GITHUB_STEP_SUMMARY
+          echo "Diff over 100 % represents an improvement, under 100 % a regression." >> $GITHUB_STEP_SUMMARY
           
           if [ "$FAIL" = true ]; then
               exit 1
