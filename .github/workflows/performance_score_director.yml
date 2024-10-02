@@ -95,8 +95,8 @@ jobs:
         shell: bash
         run: |
           ./run-scoredirector.sh
-          echo "RANGE_START=$(jq '.[0].primaryMetric.scoreConfidence[0]' results/scoredirector/${{ github.event.inputs.baseline }}/results.json)" >> "$GITHUB_OUTPUT"
-          echo "RANGE_END=$(jq '.[0].primaryMetric.scoreConfidence[1]' results/scoredirector/${{ github.event.inputs.baseline }}/results.json)" >> "$GITHUB_OUTPUT"
+          echo "RANGE_START=$(jq '.[0].primaryMetric.scoreConfidence[0]|round' results/scoredirector/${{ github.event.inputs.baseline }}/results.json)" >> "$GITHUB_OUTPUT"
+          echo "RANGE_END=$(jq '.[0].primaryMetric.scoreConfidence[1]|round' results/scoredirector/${{ github.event.inputs.baseline }}/results.json)" >> "$GITHUB_OUTPUT"
 
       - name: Phase 2 - Checkout timefold-solver
         uses: actions/checkout@v4
@@ -147,8 +147,8 @@ jobs:
         shell: bash
         run: |
           ./run-scoredirector.sh
-          echo "RANGE_START=$(jq '.[0].primaryMetric.scoreConfidence[0]' results/scoredirector/${{ github.event.inputs.branch }}/results.json)" >> "$GITHUB_OUTPUT"
-          echo "RANGE_END=$(jq '.[0].primaryMetric.scoreConfidence[1]' results/scoredirector/${{ github.event.inputs.branch }}/results.json)" >> "$GITHUB_OUTPUT"
+          echo "RANGE_START=$(jq '.[0].primaryMetric.scoreConfidence[0]|round' results/scoredirector/${{ github.event.inputs.branch }}/results.json)" >> "$GITHUB_OUTPUT"
+          echo "RANGE_END=$(jq '.[0].primaryMetric.scoreConfidence[1]|round' results/scoredirector/${{ github.event.inputs.branch }}/results.json)" >> "$GITHUB_OUTPUT"
 
       - name: Phase 3 - Archive benchmark data
         uses: actions/upload-artifact@v4
@@ -186,8 +186,8 @@ jobs:
           
           echo "|       |   **Ref**   |   **Min**   |   **Max**   |" >> $GITHUB_STEP_SUMMARY
           echo "|:-----:|:-----------:|:-----------:|:-----------:|" >> $GITHUB_STEP_SUMMARY
-          echo "| _Old_ | ${{ github.event.inputs.baseline }} | ${OLD_RANGE_START%.*} | ${OLD_RANGE_END%.*} |" >> $GITHUB_STEP_SUMMARY
-          echo "| _New_ |  ${{ github.event.inputs.branch }}  | ${NEW_RANGE_START%.*} | ${NEW_RANGE_END%.*} |" >> $GITHUB_STEP_SUMMARY
+          echo "| _Old_ | ${{ github.event.inputs.baseline }} | ${OLD_RANGE_START} | ${OLD_RANGE_END} |" >> $GITHUB_STEP_SUMMARY
+          echo "| _New_ |  ${{ github.event.inputs.branch }}  | ${NEW_RANGE_START} | ${NEW_RANGE_END} |" >> $GITHUB_STEP_SUMMARY
           
           if [ "$FAIL" = true ]; then
               exit 1
