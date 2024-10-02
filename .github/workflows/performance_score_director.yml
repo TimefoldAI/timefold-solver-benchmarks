@@ -167,7 +167,7 @@ jobs:
           NEW_RANGE_END:   ${{ steps.benchmark_new.outputs.RANGE_END }}
         shell: bash
         run: |
-          export FAIL = false
+          export FAIL=false
           if [ "$NEW_RANGE_START" -le "$OLD_RANGE_END" ] && [ "$NEW_RANGE_END" -ge "$OLD_RANGE_START" ]; then
             export OLD_MEAN=$(((OLD_RANGE_END - OLD_RANGE_START)/2)+OLD_RANGE_START)
             export NEW_MEAN=$(((NEW_RANGE_END - NEW_RANGE_START)/2)+NEW_RANGE_START)
@@ -182,7 +182,7 @@ jobs:
             echo "### Statistically significant improvement 🚀" >> $GITHUB_STEP_SUMMARY
           else
             echo "### Statistically significant regression 🛑" >> $GITHUB_STEP_SUMMARY
-            export FAIL = true
+            export FAIL=true
           fi
           
           echo "|       |   **Ref**   |   **Min**   |   **Max**   |" >> $GITHUB_STEP_SUMMARY
