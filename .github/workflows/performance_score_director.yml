@@ -1,8 +1,11 @@
 # - Runs entirely on a single machine.
 # - The baseline is established first, then the branch under test is measured.
-# - Both runs fail if the benchmark error is over predefined thresholds.
-# - Then, if both are below thresholds and neither failed, those results must be directly comparable.
-# - Therefore, if the difference between the two is over the threshold, then the branch is considered to have regressed.
+# - Each benchmark gives a 99.9 % confidence interval.
+# - The confidence intervals are compared to determine if the branch under test is a regression or an improvement.
+# - The error threshold is expected to be below +/- 2.5 %,
+#   but sometimes it gets higher due to the nature of public GitHub runners.
+#   We have yet to see an error of over +/- 4 %.
+#   With the error so high, the impact is that small regressions are not considered statistically significant.
 name: Performance Regression Test - Score Director
 
 on:
@@ -31,7 +34,7 @@ on:
 
 jobs:
 
-  test:
+  benchmark:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false # Jobs fail if the benchmark error is over predefined thresholds; other benchmarks continue.
@@ -70,9 +73,9 @@ jobs:
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
-          echo "forks=15" > scoredirector-benchmark.properties
-          echo "warmup_iterations=5" >> scoredirector-benchmark.properties
-          echo "measurement_iterations=15" >> scoredirector-benchmark.properties
+          echo "forks=1" > scoredirector-benchmark.properties
+          echo "warmup_iterations=1" >> scoredirector-benchmark.properties
+          echo "measurement_iterations=1" >> scoredirector-benchmark.properties
           echo "relative_score_error_threshold=0.025" >> scoredirector-benchmark.properties
           echo "score_director_type=cs" >> scoredirector-benchmark.properties
           echo "example=${{ matrix.example }}" >> scoredirector-benchmark.properties
@@ -92,9 +95,8 @@ jobs:
         shell: bash
         run: |
           ./run-scoredirector.sh
-          # The benchmark gives the 99.9 % confidence interval.
-          echo "RANGE_START=$(jq '.[0].primaryMetric.scoreConfidence[0]' ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.baseline }}/results.json)" >> "$GITHUB_OUTPUT"
-          echo "RANGE_END=$(jq '.[0].primaryMetric.scoreConfidence[1]' ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.baseline }}/results.json)" >> "$GITHUB_OUTPUT"
+          echo "RANGE_START=$(jq '.[0].primaryMetric.scoreConfidence[0]' results/scoredirector/${{ github.event.inputs.baseline }}/results.json)" >> "$GITHUB_OUTPUT"
+          echo "RANGE_END=$(jq '.[0].primaryMetric.scoreConfidence[1]' results/scoredirector/${{ github.event.inputs.baseline }}/results.json)" >> "$GITHUB_OUTPUT"
 
       - name: Phase 2 - Checkout timefold-solver
         uses: actions/checkout@v4
@@ -145,18 +147,18 @@ jobs:
         shell: bash
         run: |
           ./run-scoredirector.sh
-          # The benchmark gives the 99.9 % confidence interval.
-          echo "RANGE_START=$(jq '.[0].primaryMetric.scoreConfidence[0]' ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.branch }}/results.json)" >> "$GITHUB_OUTPUT"
-          echo "RANGE_END=$(jq '.[0].primaryMetric.scoreConfidence[1]' ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.branch }}/results.json)" >> "$GITHUB_OUTPUT"
+          echo "RANGE_START=$(jq '.[0].primaryMetric.scoreConfidence[0]' results/scoredirector/${{ github.event.inputs.branch }}/results.json)" >> "$GITHUB_OUTPUT"
+          echo "RANGE_END=$(jq '.[0].primaryMetric.scoreConfidence[1]' results/scoredirector/${{ github.event.inputs.branch }}/results.json)" >> "$GITHUB_OUTPUT"
 
       - name: Phase 3 - Archive benchmark data
         uses: actions/upload-artifact@v4
         with:
           name: results-${{ matrix.example }}-${{ github.event.inputs.baseline }}_vs_${{ github.event.inputs.branch }}
           path: |
+            ./timefold-solver-benchmarks/scoredirector-benchmark.properties
             ./timefold-solver-benchmarks/results/scoredirector
 
-      - name: Compare baseline with the branch
+      - name: Phase 3 - Report results
         working-directory: ./timefold-solver-benchmarks
         env:
           OLD_RANGE_START: ${{ steps.benchmark_baseline.outputs.RANGE_START }}
@@ -165,16 +167,29 @@ jobs:
           NEW_RANGE_END:   ${{ steps.benchmark_new.outputs.RANGE_END }}
         shell: bash
         run: |
-          echo "Baseline result with 99.9 % confidence: "
-          echo "     [$OLD_RANGE_START, $OLD_RANGE_END]"
-          echo "     New result with 99.9 % confidence: "
-          echo "     [$NEW_RANGE_START, $NEW_RANGE_END]"
-          echo ""
+          export FAIL = false
           if [ "$NEW_RANGE_START" -le "$OLD_RANGE_END" ] && [ "$NEW_RANGE_END" -ge "$OLD_RANGE_START" ]; then
-            echo "Result is not statistically significant."
+            export OLD_MEAN=$(((OLD_RANGE_END - OLD_RANGE_START)/2)+OLD_RANGE_START)
+            export NEW_MEAN=$(((NEW_RANGE_END - NEW_RANGE_START)/2)+NEW_RANGE_START)
+            if [ "$NEW_RANGE_START" -ge "$OLD_MEAN" ]; then
+              echo "### Possible improvement ⁉️" >> $GITHUB_STEP_SUMMARY
+            elif [ "$OLD_RANGE_END" -le "$NEW_MEAN" ]; then
+              echo "### Possible regression ⁉️" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "### Statistically insignificant result ⁉️" >> $GITHUB_STEP_SUMMARY
+            fi          
           elif [ "$NEW_RANGE_START" -gt "$OLD_RANGE_END" ]; then
-            echo "Statistically significant improvement."
+            echo "### Statistically significant improvement 🚀" >> $GITHUB_STEP_SUMMARY
           else
-            echo "Statistically significant regression."
-            exit 1
+            echo "### Statistically significant regression 🛑" >> $GITHUB_STEP_SUMMARY
+            export FAIL = true
+          fi
+          
+          echo "|       |   **Ref**   |   **Min**   |   **Max**   |" >> $GITHUB_STEP_SUMMARY
+          echo "|:-----:|:-----------:|:-----------:|:-----------:|" >> $GITHUB_STEP_SUMMARY
+          echo "| _Old_ | `${{ github.event.inputs.baseline }}` | ${OLD_RANGE_START%.*} | ${OLD_RANGE_END%.*} |" >> $GITHUB_STEP_SUMMARY
+          echo "| _New_ |  `${{ github.event.inputs.branch }}`  | ${NEW_RANGE_START%.*} | ${NEW_RANGE_END%.*} |" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "$FAIL" = true ]; then
+              exit 1
           fi
