@@ -1,0 +1,14 @@
+name: Schedule a nightly run of the Score Director performance benchmark
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Every day at the start of the day
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Schedule the other workflow
+        shell: bash
+        run: |
+          echo '{}' | gh workflow run performance_score_director.yml --json
