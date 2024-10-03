@@ -170,36 +170,42 @@ jobs:
           NEW_RANGE_END:   ${{ steps.benchmark_new.outputs.RANGE_END }}
         shell: bash
         run: |
-          export FAIL=false
-          if [ "$NEW_RANGE_START" -le "$OLD_RANGE_END" ] && [ "$NEW_RANGE_END" -ge "$OLD_RANGE_START" ]; then
-            if [ "$NEW_RANGE_START" -ge "$OLD_RANGE_MID" ]; then
-              echo "### 🍀Possible improvement 🍀" >> $GITHUB_STEP_SUMMARY
-            elif [ "$OLD_RANGE_END" -le "$NEW_RANGE_MID" ]; then
-              echo "### ⚠️Possible regression ⚠️" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "### Performance unchanged " >> $GITHUB_STEP_SUMMARY
-            fi          
-          elif [ "$NEW_RANGE_START" -gt "$OLD_RANGE_END" ]; then
-            echo "### 🚀🚀🚀 Statistically significant improvement 🚀🚀🚀" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "### ‼️‼️‼️ Statistically significant regression ‼️‼️‼️" >> $GITHUB_STEP_SUMMARY
-            export FAIL=true
-          fi
-          
           export DIFF_START=$(echo "scale=2; ($OLD_RANGE_START / $NEW_RANGE_START) * 100" | bc)
           export DIFF_MID=$(echo "scale=2; ($OLD_RANGE_MID / $NEW_RANGE_MID) * 100" | bc)
           export DIFF_END=$(echo "scale=2; ($OLD_RANGE_END / $NEW_RANGE_END) * 100" | bc)
+          export FAIL=false
+          
+          if [ "$DIFF_MID" -gt "98" ] && [ "$DIFF_MID" -lt "102" ]; then
+            # Ignore differences of up to 2 %.
+            echo "### Performance unchanged" >> $GITHUB_STEP_SUMMARY
+            echo "(Decided to ignore a very small difference of under 2 %.)" >> $GITHUB_STEP_SUMMARY
+          else
+            if [ "$NEW_RANGE_START" -le "$OLD_RANGE_END" ] && [ "$NEW_RANGE_END" -ge "$OLD_RANGE_START" ]; then
+              if [ "$NEW_RANGE_START" -ge "$OLD_RANGE_MID" ]; then
+                echo "### 🍀 Possible improvement 🍀" >> $GITHUB_STEP_SUMMARY
+              elif [ "$OLD_RANGE_END" -le "$NEW_RANGE_MID" ]; then
+                echo "### ⚠️ Possible regression ⚠️" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "### Performance unchanged " >> $GITHUB_STEP_SUMMARY
+              fi          
+            elif [ "$NEW_RANGE_START" -gt "$OLD_RANGE_END" ]; then
+              echo "### 🚀🚀🚀 Statistically significant improvement 🚀🚀🚀" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "### ‼️‼️‼️ Statistically significant regression ‼️‼️‼️" >> $GITHUB_STEP_SUMMARY
+              export FAIL=true
+            fi
+          fi          
           
           echo "|        |   **Ref**   |      **Min**      |      **Mean**     |      **Max**      |" >> $GITHUB_STEP_SUMMARY
           echo "|:------:|:-----------:|:-----------------:|:-----------------:|:-----------------:|" >> $GITHUB_STEP_SUMMARY
-          echo "|  _Old_ | ${{ github.event.inputs.baseline }} | ${OLD_RANGE_START} | ${OLD_RANGE_MID} | ${OLD_RANGE_END} |" >> $GITHUB_STEP_SUMMARY
-          echo "|  _New_ |  ${{ github.event.inputs.branch }}  | ${NEW_RANGE_START} | ${NEW_RANGE_MID} | ${NEW_RANGE_END} |" >> $GITHUB_STEP_SUMMARY
+          echo "|  _Old_ | [v${{ github.event.inputs.baseline }}](https://github.com/TimefoldAI/timefold-solver/releases/tag/v${{ github.event.inputs.baseline }}) | ${OLD_RANGE_START} | ${OLD_RANGE_MID} | ${OLD_RANGE_END} |" >> $GITHUB_STEP_SUMMARY
+          echo "|  _New_ | [${{ github.event.inputs.branch_owner }}'s ${{ github.event.inputs.branch }}](https://github.com/${{ github.event.inputs.branch_owner }}/timefold-solver/tree/${{ github.event.inputs.branch }}) | ${NEW_RANGE_START} | ${NEW_RANGE_MID} | ${NEW_RANGE_END} |" >> $GITHUB_STEP_SUMMARY
           echo "| _Diff_ |             |  ${DIFF_START} %  |   ${DIFF_MID} %   |   ${DIFF_END} %   |" >> $GITHUB_STEP_SUMMARY
           
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Min and max define a 99.9 % confidence interval." >> $GITHUB_STEP_SUMMARY
           echo "Min and max are in operations per second. Higher is better." >> $GITHUB_STEP_SUMMARY
-          echo "Diff over 100 % represents an improvement, under 100 % a regression." >> $GITHUB_STEP_SUMMARY
+          echo "Diff under 100 % represents an improvement, over 100 % a regression." >> $GITHUB_STEP_SUMMARY
           
           if [ "$FAIL" = true ]; then
               exit 1
