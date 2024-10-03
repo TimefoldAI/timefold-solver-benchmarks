@@ -1,4 +1,4 @@
-package ai.timefold.solver.benchmarks.micro.factorial.configuration;
+package ai.timefold.solver.benchmarks.micro.factorial.planning;
 
 import java.util.List;
 import java.util.Map;
@@ -8,22 +8,26 @@ import ai.timefold.solver.benchmarks.examples.cloudbalancing.app.CloudBalancingA
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.app.ConferenceSchedulingApp;
 import ai.timefold.solver.benchmarks.examples.tsp.app.TspApp;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.app.VehicleRoutingApp;
+import ai.timefold.solver.benchmarks.micro.factorial.configuration.AbstractConfiguration;
 import ai.timefold.solver.core.api.score.Score;
 import ai.timefold.solver.core.api.solver.Solver;
 import ai.timefold.solver.core.config.solver.SolverConfig;
 import ai.timefold.solver.core.impl.solver.DefaultSolver;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class Observation {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(Observation.class);
     private int id;
     private final ExperimentWriter writer;
     private final Map<String, AbstractConfiguration> configurationMap;
     private final List<String> outputColumns;
 
-
     public Observation(ExperimentWriter writer, List<AbstractConfiguration> configurationList, List<String> outputColumns) {
         this.writer = writer;
-        this.configurationMap = configurationList.stream().collect(Collectors.toMap(AbstractConfiguration::getKey, c -> c));
+        this.configurationMap = configurationList.stream().collect(Collectors.toMap(c -> c.getLevel().getFactorName(), c -> c));
         this.outputColumns = outputColumns;
     }
 
@@ -32,15 +36,15 @@ public class Observation {
     }
 
     public void set(AbstractConfiguration configuration) {
-        configurationMap.put(configuration.getKey(), configuration);
+        configurationMap.put(configuration.getLevel().getFactorName(), configuration);
     }
 
-    public Object getValue(String key) {
-        return configurationMap.get(key).getValue();
+    public Object getValue(String factorName) {
+        return configurationMap.get(factorName).getLevel().getValue();
     }
 
     public void prepare(SolverConfig solverConfig) {
-        configurationMap.forEach((key, c) -> c.apply(solverConfig));
+        configurationMap.forEach((key, c) -> c.apply(this, solverConfig));
     }
 
     public void save(Object solution, Solver<?> solver) {
@@ -166,15 +170,15 @@ public class Observation {
     }
 
     public void run() {
-        writer.log("Running observation %d: %s".formatted(id, this));
+        LOGGER.info("Running observation {}: {}", id, this);
         try {
             var type = getValue("type").toString();
             var datasetName = getValue("datasetName").toString();
             switch (type) {
                 case "cloudbalancing" ->
-                        new CloudBalancingApp().solve(datasetName, this, Observation::prepare, Observation::save);
+                    new CloudBalancingApp().solve(datasetName, this, Observation::prepare, Observation::save);
                 case "conferencescheduling" ->
-                        new ConferenceSchedulingApp().solve(datasetName, this, Observation::prepare, Observation::save);
+                    new ConferenceSchedulingApp().solve(datasetName, this, Observation::prepare, Observation::save);
                 case "tsp" -> new TspApp().solve(datasetName, this, Observation::prepare, Observation::save);
                 case "vehiclerouting" -> new VehicleRoutingApp().solve(datasetName, this, Observation::prepare,
                         Observation::save);
@@ -186,13 +190,12 @@ public class Observation {
         }
     }
 
-
     @Override
     public String toString() {
         return "Observation{" +
-               "id=" + id +
-               ", configurationMap=" + configurationMap +
-               ", outputColumns=" + outputColumns +
-               '}';
+                "id=" + id +
+                ", configurationMap=" + configurationMap +
+                ", outputColumns=" + outputColumns +
+                '}';
     }
 }

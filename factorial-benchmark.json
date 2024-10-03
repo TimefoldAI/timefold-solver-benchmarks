@@ -1,0 +1,47 @@
+{
+  "outputColumns": [
+    "type",
+    "datasetName",
+    "runTimeInSeconds",
+    "experimentSeed",
+    "observationSeed",
+    "selectedCountLimitRatio",
+    "score",
+    "scoreSpeed",
+    "scoreCount",
+    "scoreConverted",
+    "scoreLogarithmic",
+    "moveSpeed",
+    "moveCount",
+    "timeSpent"
+  ],
+  "factors": [
+    {
+      "name": "selectedCountLimitRatio",
+      "levels": [
+        "0.0",
+        "1.0",
+        "5.0",
+        "10.0",
+        "50.0",
+        "100.0"
+      ]
+    }
+  ],
+  "globalConfigurations": [
+    {
+      "type": "Experiment",
+      "key": "type",
+      "value": "vehiclerouting"
+    },
+    {
+      "type": "Experiment",
+      "key": "datasetName",
+      "value": "cvrp-54customers.json"
+    }
+  ],
+  "completeReplications": 2,
+  "warmupTimeInSeconds": 30,
+  "warmupRatio": 0.3,
+  "observationTimeInSeconds": 1800
+}

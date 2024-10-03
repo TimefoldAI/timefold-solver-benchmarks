@@ -1,9 +1,10 @@
-package ai.timefold.solver.benchmarks.micro.factorial.configuration;
+package ai.timefold.solver.benchmarks.micro.factorial.planning;
 
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -11,25 +12,30 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-import ai.timefold.solver.benchmarks.micro.factorial.Factor;
+import ai.timefold.solver.benchmarks.micro.factorial.configuration.AbstractConfiguration;
+import ai.timefold.solver.benchmarks.micro.factorial.configuration.ExperimentConfiguration;
+import ai.timefold.solver.benchmarks.micro.factorial.configuration.ObservationConfiguration;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Experiment implements ExperimentWriter, Closeable {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(Experiment.class);
     private final List<String> outputColumns;
     private final File outputFile;
     private final PrintWriter outputWriter;
-    private final PrintWriter outputLogWriter;
     private final List<Observation> observationList = new ArrayList<>();
     private Long seed;
     private boolean persist = true;
 
     public Experiment(List<String> outputColumns) {
         this.outputColumns = outputColumns;
-        var fileName = "result_%s".formatted(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy-HH-mm-ss")));
+        Path resultsDirectory = Path.of("results", "factorial",
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy_HH-mm-ss")));
+        resultsDirectory.toFile().mkdirs();
         try {
-            File outputLogFile = new File("/tmp/%s.log".formatted(fileName));
-            this.outputLogWriter = new PrintWriter(outputLogFile);
-            this.outputFile = new File("/tmp/%s.csv".formatted(fileName));
+            this.outputFile = new File(resultsDirectory.toFile(), "result.csv");
             this.outputWriter = new PrintWriter(this.outputFile);
             // Write the header
             this.outputWriter.write(String.join(";", outputColumns) + "\n");
@@ -41,11 +47,11 @@ public class Experiment implements ExperimentWriter, Closeable {
 
     public void warmup(long timeInSeconds, double samplePercentage) {
         var size = (int) (observationList.size() * samplePercentage);
-        log("Warm-up started, (%d) observations (%d) seconds.".formatted(size, timeInSeconds));
+        LOGGER.info("Warm-up started, observations ({}), seconds ({}).", size, timeInSeconds);
         persist = false;
         runObservationList(timeInSeconds, observationList.subList(0, size));
         persist = true;
-        log("Warm-up finished");
+        LOGGER.info("Warm-up finished");
     }
 
     public void run(long observationTimeInSeconds) {
@@ -53,44 +59,43 @@ public class Experiment implements ExperimentWriter, Closeable {
     }
 
     private void runObservationList(long observationTimeInSeconds, List<Observation> observations) {
-        if (seed == null) {
-            this.seed = System.nanoTime();
-            setExperimentSeed(seed);
-        }
         for (Observation observation : observations) {
-            observation.set(new DummyConfiguration("experimentSeed", seed));
-            observation.set(new SingleConfiguration("runTimeInSeconds", observationTimeInSeconds));
-            observation.set(new SingleConfiguration("seed", System.nanoTime()));
+            observation.set(new ExperimentConfiguration("experimentSeed", String.valueOf(seed)));
+            observation.set(new ObservationConfiguration("runTimeInSeconds", String.valueOf(observationTimeInSeconds)));
+            observation.set(new ObservationConfiguration("observationSeed", String.valueOf(System.nanoTime())));
             observation.run();
         }
-        log("Result wrote to file %s".formatted(outputFile.getPath()));
+        if (persist) {
+            LOGGER.info("Result wrote to file {}", outputFile.getPath());
+        }
     }
 
-    public void generateObservations(List<Factor<?>> factorList) {
-        generateObservations(new ArrayList<>(), factorList);
-    }
-
-    public void setExperimentSeed(long seed) {
-        this.seed = seed;
-        Collections.shuffle(observationList, new Random(seed));
+    public void generateObservations(List<Factor> factorList, int completeReplications, Long seed) {
+        if (seed == null) {
+            this.seed = System.nanoTime();
+        }
+        this.observationList.clear();
+        for (int i = 0; i < completeReplications; i++) {
+            generateObservations(new ArrayList<>(), factorList);
+        }
+        Collections.shuffle(observationList, new Random(this.seed));
         for (int i = 0; i < observationList.size(); i++) {
             observationList.get(i).setId(i + 1);
         }
+
     }
 
-    private void generateObservations(List<AbstractConfiguration> currentConfiguration, List<Factor<?>> factorList) {
+    private void generateObservations(List<AbstractConfiguration> currentConfiguration, List<Factor> factorList) {
         if (factorList.size() > 1) {
-            var factor = factorList.getFirst();
-            factor.getLevelList().forEach(level -> {
-                var newConfiguration = new ArrayList<AbstractConfiguration>(currentConfiguration);
-                newConfiguration.add(new SingleConfiguration(factor.getName(), level.getValue()));
+            factorList.getFirst().getLevelList().forEach(level -> {
+                var newConfiguration = new ArrayList<>(currentConfiguration);
+                newConfiguration.add(new ObservationConfiguration(level));
                 generateObservations(newConfiguration, factorList.subList(1, factorList.size()));
             });
         } else {
-            var factor = factorList.getFirst();
-            factor.getLevelList().forEach(level -> {
-                var newConfiguration = new ArrayList<AbstractConfiguration>(currentConfiguration);
-                newConfiguration.add(new SingleConfiguration(factor.getName(), level.getValue()));
+            factorList.getFirst().getLevelList().forEach(level -> {
+                var newConfiguration = new ArrayList<>(currentConfiguration);
+                newConfiguration.add(new ObservationConfiguration(level));
                 addObservation(newConfiguration);
             });
         }
@@ -100,16 +105,8 @@ public class Experiment implements ExperimentWriter, Closeable {
         observationList.add(new Observation(this, configurationList, outputColumns));
     }
 
-    public void setConfiguration(AbstractConfiguration configuration) {
+    public void addGlobalConfiguration(AbstractConfiguration configuration) {
         observationList.forEach(o -> o.set(configuration));
-    }
-
-    @Override
-    public void log(String message) {
-        if (persist) {
-            outputLogWriter.write("%s - %s%n".formatted(LocalDateTime.now().toString(), message));
-            outputLogWriter.flush();
-        }
     }
 
     @Override
@@ -122,7 +119,6 @@ public class Experiment implements ExperimentWriter, Closeable {
 
     @Override
     public void close() {
-        outputLogWriter.close();
         outputWriter.close();
     }
 }

@@ -1,4 +1,4 @@
-package ai.timefold.solver.benchmarks.micro.factorial.configuration;
+package ai.timefold.solver.benchmarks.micro.factorial.planning;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,50 +13,39 @@ import ai.timefold.solver.core.config.localsearch.decider.forager.LocalSearchFor
 import ai.timefold.solver.core.config.solver.SolverConfig;
 import ai.timefold.solver.core.config.solver.termination.TerminationConfig;
 
-public class SingleConfiguration extends AbstractConfiguration {
-    private final String key;
-    private final Object value;
+public class Level {
 
-    public SingleConfiguration(String key, Object value) {
-        this.key = key;
-        this.value = value;
+    private final String value;
+    protected final Factor factor;
+
+    public Level(Factor factor, String value) {
+        this.factor = Objects.requireNonNull(factor);
+        this.value = Objects.requireNonNull(value);
     }
 
-    @Override
-    public String getKey() {
-        return key;
+    public String getFactorName() {
+        return factor.getName();
     }
 
-    @Override
-    public Object getValue() {
+    public String getValue() {
         return value;
     }
 
-    @Override
-    public String toCSV() {
-        return value != null ? value.toString() : "-";
-    }
-
-    @Override
-    public void apply(SolverConfig solverConfig) {
-        switch (key) {
+    public void apply(Observation observation, SolverConfig solverConfig) {
+        switch (factor.getName()) {
             case "runTimeInSeconds": {
-                solverConfig.withTerminationConfig(new TerminationConfig().withSecondsSpentLimit((Long) value));
+                solverConfig.withTerminationConfig(new TerminationConfig().withSecondsSpentLimit(Long.parseLong(value)));
                 break;
             }
-            case "runTimeInMinutes": {
-                solverConfig.withTerminationConfig(new TerminationConfig().withMinutesSpentLimit((Long) value));
-                break;
-            }
-            case "seed": {
-                solverConfig.withRandomSeed((Long) value);
+            case "observationSeed": {
+                solverConfig.withRandomSeed(Long.parseLong(value));
                 break;
             }
             case "moveCountLimitPercentage": {
                 var acceptorConfig = getAcceptorConfig(solverConfig);
                 var reconfigurationConfig = Objects.requireNonNullElse(acceptorConfig.getReconfigurationConfig(),
                         new ReconfigurationConfig());
-                reconfigurationConfig.withMoveCountLimitPercentage((Double) value);
+                reconfigurationConfig.withMoveCountLimitPercentage(Double.parseDouble(value));
                 acceptorConfig.withReconfiguration(reconfigurationConfig);
                 break;
             }
@@ -64,18 +53,17 @@ public class SingleConfiguration extends AbstractConfiguration {
                 var acceptorConfig = getAcceptorConfig(solverConfig);
                 var reconfigurationConfig = Objects.requireNonNullElse(acceptorConfig.getReconfigurationConfig(),
                         new ReconfigurationConfig());
-                reconfigurationConfig.withReconfigurationRatio((Long) value);
+                reconfigurationConfig.withReconfigurationRatio(Long.parseLong(value));
                 acceptorConfig.withReconfiguration(reconfigurationConfig);
                 break;
             }
             case "selectedCountLimitRatio": {
                 var foragerConfig = getForagerConfig(solverConfig);
-                foragerConfig.withSelectedCountLimitRatio((Double) value);
+                foragerConfig.withSelectedCountLimitRatio(Double.parseDouble(value));
                 break;
             }
             default:
-                // ignore unknown properties
-                break;
+                throw new IllegalArgumentException("Unknown level property:" + factor.getName());
         }
     }
 
@@ -116,9 +104,9 @@ public class SingleConfiguration extends AbstractConfiguration {
 
     @Override
     public String toString() {
-        return "SingleConfiguration{" +
-                "key='" + key + '\'' +
-                ", value=" + value +
+        return "Level{" +
+                "factor=" + factor.getName() +
+                ", level=" + value +
                 '}';
     }
 }
