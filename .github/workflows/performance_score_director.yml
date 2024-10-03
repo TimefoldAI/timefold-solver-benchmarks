@@ -174,7 +174,7 @@ jobs:
           export DIFF_END=$(echo "scale=2; ($OLD_RANGE_END / $NEW_RANGE_END) * 100" | bc)
           export FAIL=false
           
-          if (( $(echo "$DIFF_MID > 98.00" | bc -l) && $(echo "$DIFF_MID < 102.00"|bc -l) )); then
+          if (( $(echo "$DIFF_MID >= 98.00" | bc -l) && $(echo "$DIFF_MID <= 102.00"|bc -l) )); then
             # Ignore differences of up to 2 %.
             echo "### Performance unchanged" >> $GITHUB_STEP_SUMMARY
             echo "(Decided to ignore a very small difference of under 2 %.)" >> $GITHUB_STEP_SUMMARY
