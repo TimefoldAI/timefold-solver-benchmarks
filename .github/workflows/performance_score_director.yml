@@ -169,12 +169,12 @@ jobs:
           NEW_RANGE_END:   ${{ steps.benchmark_new.outputs.RANGE_END }}
         shell: bash
         run: |
-          export DIFF_START=$(echo "scale=0; ($OLD_RANGE_START / $NEW_RANGE_START) * 100" | bc)
-          export DIFF_MID=$(echo "scale=0; ($OLD_RANGE_MID / $NEW_RANGE_MID) * 100" | bc)
-          export DIFF_END=$(echo "scale=0; ($OLD_RANGE_END / $NEW_RANGE_END) * 100" | bc)
+          export DIFF_START=$(echo "scale=2; ($OLD_RANGE_START / $NEW_RANGE_START) * 100" | bc)
+          export DIFF_MID=$(echo "scale=2; ($OLD_RANGE_MID / $NEW_RANGE_MID) * 100" | bc)
+          export DIFF_END=$(echo "scale=2; ($OLD_RANGE_END / $NEW_RANGE_END) * 100" | bc)
           export FAIL=false
           
-          if [ "$DIFF_MID" -gt "98" ] && [ "$DIFF_MID" -lt "102" ]; then
+          if (( $(echo "$DIFF_MID > 98.00" | bc -l) && $(echo "$DIFF_MID < 102.00"|bc -l) )); then
             # Ignore differences of up to 2 %.
             echo "### Performance unchanged" >> $GITHUB_STEP_SUMMARY
             echo "(Decided to ignore a very small difference of under 2 %.)" >> $GITHUB_STEP_SUMMARY
