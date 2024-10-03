@@ -35,7 +35,7 @@ on:
 jobs:
 
   benchmark:
-    runs-on: ubuntu-latest
+    runs-on: perf-linux-x64-2cores
     strategy:
       fail-fast: false # Jobs fail if the benchmark error is over predefined thresholds; other benchmarks continue.
       matrix:
