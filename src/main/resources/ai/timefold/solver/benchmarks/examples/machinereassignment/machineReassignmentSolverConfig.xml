@@ -31,13 +31,5 @@
             <changeMoveSelector/>
             <swapMoveSelector/>
         </unionMoveSelector>
-        <acceptor>
-            <entityTabuSize>7</entityTabuSize>
-            <!--<lateAcceptanceSize>2000</lateAcceptanceSize>-->
-        </acceptor>
-        <forager>
-            <acceptedCountLimit>2000</acceptedCountLimit>
-            <!--<acceptedCountLimit>500</acceptedCountLimit>-->
-        </forager>
     </localSearch>
 </solver>

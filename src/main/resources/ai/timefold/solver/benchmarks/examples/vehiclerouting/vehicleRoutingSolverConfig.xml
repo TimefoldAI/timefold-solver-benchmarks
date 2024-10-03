@@ -42,11 +42,5 @@
             </subListSwapMoveSelector>
             <kOptListMoveSelector/>
         </unionMoveSelector>
-        <acceptor>
-            <lateAcceptanceSize>200</lateAcceptanceSize>
-        </acceptor>
-        <forager>
-            <acceptedCountLimit>1</acceptedCountLimit>
-        </forager>
     </localSearch>
 </solver>

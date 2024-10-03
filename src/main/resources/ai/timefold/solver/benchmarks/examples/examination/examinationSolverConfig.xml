@@ -74,11 +74,5 @@
                 </entitySelector>
             </swapMoveSelector>
         </unionMoveSelector>
-        <acceptor>
-            <entityTabuSize>10</entityTabuSize>
-        </acceptor>
-        <forager>
-            <acceptedCountLimit>2000</acceptedCountLimit>
-        </forager>
     </localSearch>
 </solver>

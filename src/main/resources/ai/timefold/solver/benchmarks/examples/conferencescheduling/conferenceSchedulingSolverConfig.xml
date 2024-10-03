@@ -16,6 +16,5 @@
   <!-- Tabu Search performs much better than Late Acceptance (default algo) on this use case -->
   <constructionHeuristic/>
   <localSearch>
-    <localSearchType>TABU_SEARCH</localSearchType>
   </localSearch>
 </solver>

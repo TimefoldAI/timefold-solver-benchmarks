@@ -40,11 +40,5 @@
                 <selectReversingMoveToo>true</selectReversingMoveToo>
             </subChainSwapMoveSelector>
         </unionMoveSelector>
-        <acceptor>
-            <lateAcceptanceSize>400</lateAcceptanceSize>
-        </acceptor>
-        <forager>
-            <acceptedCountLimit>1</acceptedCountLimit>
-        </forager>
     </localSearch>
 </solver>

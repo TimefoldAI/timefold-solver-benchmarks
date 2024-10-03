@@ -28,12 +28,5 @@
         <valueSelector variableName="delay"/>
       </changeMoveSelector>
     </unionMoveSelector>
-    <acceptor>
-      <entityTabuRatio>0.2</entityTabuRatio>
-      <lateAcceptanceSize>500</lateAcceptanceSize>
-    </acceptor>
-    <forager>
-      <acceptedCountLimit>4</acceptedCountLimit>
-    </forager>
   </localSearch>
 </solver>

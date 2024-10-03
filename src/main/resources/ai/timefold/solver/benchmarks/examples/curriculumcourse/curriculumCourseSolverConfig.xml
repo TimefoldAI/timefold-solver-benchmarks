@@ -29,11 +29,5 @@
                 </filterClass>
             </swapMoveSelector>
         </unionMoveSelector>
-        <acceptor>
-            <lateAcceptanceSize>600</lateAcceptanceSize>
-        </acceptor>
-        <forager>
-            <acceptedCountLimit>4</acceptedCountLimit>
-        </forager>
     </localSearch>
 </solver>

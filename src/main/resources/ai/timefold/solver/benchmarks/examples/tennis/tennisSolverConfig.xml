@@ -25,11 +25,5 @@
         <constructionHeuristicType>FIRST_FIT</constructionHeuristicType>
     </constructionHeuristic>
     <localSearch>
-        <acceptor>
-            <lateAcceptanceSize>500</lateAcceptanceSize>
-        </acceptor>
-        <forager>
-            <acceptedCountLimit>1</acceptedCountLimit>
-        </forager>
     </localSearch>
 </solver>
