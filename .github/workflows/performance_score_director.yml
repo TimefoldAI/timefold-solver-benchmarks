@@ -2,8 +2,7 @@
 # - The baseline is established first, then the branch under test is measured.
 # - Each benchmark gives a 99.9 % confidence interval.
 # - The confidence intervals are compared to determine if the branch under test is a regression or an improvement.
-# - The error threshold is expected to be below +/- 2.5 %,
-#   but sometimes it gets higher due to the nature of public GitHub runners.
+# - The error threshold is expected to be below +/- 2.5 %.
 #   We have yet to see an error of over +/- 4 %.
 #   With the error so high, the impact is that small regressions are not considered statistically significant.
 name: Performance Regression Test - Score Director

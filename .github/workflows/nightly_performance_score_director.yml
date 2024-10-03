@@ -2,13 +2,23 @@ name: Schedule a nightly run of the Score Director performance benchmark
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Every day at the start of the day
+    - cron: '59 23 * * 1-5' # Every workday at the end of the day.
 
 jobs:
   trigger:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout timefold-solver
+        uses: actions/checkout@v4
+        with:
+          repository: TimefoldAI/timefold-solver
       - name: Schedule the other workflow
         shell: bash
         run: |
-          echo '{}' | gh workflow run performance_score_director.yml --json
+          if git log --since="24 hours ago" --oneline | grep -q .; then
+            echo '{}' | gh workflow run performance_score_director.yml --json
+            echo "Launched nightly perf tests." >> $GITHUB_STEP_SUMMARY
+          else
+            # Don't waste money.
+            echo "No commits in the past 24 hours." >> $GITHUB_STEP_SUMMARY
+          fi
