@@ -14,6 +14,8 @@ jobs:
           repository: TimefoldAI/timefold-solver
       - name: Schedule the other workflow
         shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.BENCHMARK_PUBLISH_TOKEN }}
         run: |
           if git log --since="24 hours ago" --oneline | grep -q .; then
             echo '{}' | gh workflow run performance_score_director.yml --json
