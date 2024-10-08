@@ -8,16 +8,24 @@ jobs:
   trigger:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout timefold-solver-benchmarks
+        uses: actions/checkout@v4
+        with:
+          path: ./timefold-solver-benchmarks
+          repository: TimefoldAI/timefold-solver-benchmarks
       - name: Checkout timefold-solver
         uses: actions/checkout@v4
         with:
+          path: ./timefold-solver
           repository: TimefoldAI/timefold-solver
       - name: Schedule the other workflow
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.BENCHMARK_PUBLISH_TOKEN }}
         run: |
+          cd timefold-solver
           if git log --since="24 hours ago" --oneline | grep -q .; then
+            cd ../timefold-solver-benchmarks
             echo '{}' | gh workflow run performance_score_director.yml --json
             echo "Launched nightly perf tests." >> $GITHUB_STEP_SUMMARY
           else
