@@ -17,7 +17,7 @@ public class FactorialExperimentMain {
     private FactorialExperimentMain() {
     }
 
-    private static FactorialConfiguration readConfiguration(String configurationFileName) {
+    protected static FactorialConfiguration readConfiguration(String configurationFileName) {
         var configPath = configurationFileName != null ? Path.of(configurationFileName).toAbsolutePath()
                 : Path.of("factorial-benchmark.json").toAbsolutePath();
         if (configPath.toFile().exists()) {

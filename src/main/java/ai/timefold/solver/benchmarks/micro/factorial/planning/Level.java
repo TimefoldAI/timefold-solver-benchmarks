@@ -62,8 +62,7 @@ public class Level {
                 foragerConfig.withSelectedCountLimitRatio(Double.parseDouble(value));
                 break;
             }
-            default:
-                throw new IllegalArgumentException("Unknown level property:" + factor.getName());
+            default: //ignore
         }
     }
 

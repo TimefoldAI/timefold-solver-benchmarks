@@ -1,8 +1,13 @@
 package ai.timefold.solver.benchmarks.micro.factorial.planning;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -13,8 +18,8 @@ import java.util.List;
 import java.util.Random;
 
 import ai.timefold.solver.benchmarks.micro.factorial.configuration.AbstractConfiguration;
-import ai.timefold.solver.benchmarks.micro.factorial.configuration.ExperimentConfiguration;
 import ai.timefold.solver.benchmarks.micro.factorial.configuration.ObservationConfiguration;
+import ai.timefold.solver.benchmarks.micro.factorial.configuration.ReadOnlyConfiguration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,13 +30,14 @@ public class Experiment implements ExperimentWriter, Closeable {
     private final List<String> outputColumns;
     private final File outputFile;
     private final PrintWriter outputWriter;
+    private final Path resultsDirectory;
     private final List<Observation> observationList = new ArrayList<>();
     private Long seed;
     private boolean persist = true;
 
     public Experiment(List<String> outputColumns) {
         this.outputColumns = outputColumns;
-        Path resultsDirectory = Path.of("results", "factorial",
+        resultsDirectory = Path.of("results", "factorial",
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy_HH-mm-ss")));
         resultsDirectory.toFile().mkdirs();
         try {
@@ -43,6 +49,10 @@ public class Experiment implements ExperimentWriter, Closeable {
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public List<Observation> getObservationList() {
+        return observationList;
     }
 
     public void warmup(long timeInSeconds, double samplePercentage) {
@@ -60,7 +70,7 @@ public class Experiment implements ExperimentWriter, Closeable {
 
     private void runObservationList(long observationTimeInSeconds, List<Observation> observations) {
         for (Observation observation : observations) {
-            observation.set(new ExperimentConfiguration("experimentSeed", String.valueOf(seed)));
+            observation.set(new ReadOnlyConfiguration("experimentSeed", String.valueOf(seed)));
             observation.set(new ObservationConfiguration("runTimeInSeconds", String.valueOf(observationTimeInSeconds)));
             observation.set(new ObservationConfiguration("observationSeed", String.valueOf(System.nanoTime())));
             observation.run();
@@ -73,6 +83,8 @@ public class Experiment implements ExperimentWriter, Closeable {
     public void generateObservations(List<Factor> factorList, int completeReplications, Long seed) {
         if (seed == null) {
             this.seed = System.nanoTime();
+        } else {
+            this.seed = seed;
         }
         this.observationList.clear();
         for (int i = 0; i < completeReplications; i++) {
@@ -106,7 +118,7 @@ public class Experiment implements ExperimentWriter, Closeable {
     }
 
     public void addGlobalConfiguration(AbstractConfiguration configuration) {
-        observationList.forEach(o -> o.set(configuration));
+        observationList.forEach(o -> o.set(configuration.copy()));
     }
 
     @Override
@@ -120,5 +132,21 @@ public class Experiment implements ExperimentWriter, Closeable {
     @Override
     public void close() {
         outputWriter.close();
+        // Copy log file if it exists
+        var lastLogFile = Path.of("results", "factorial", "last.log");
+        var newLogFile = new File(resultsDirectory.toFile(), "last.log");
+        if (lastLogFile.toFile().exists()) {
+            try (var in = new BufferedInputStream(new FileInputStream(lastLogFile.toFile()));
+                    var out = new BufferedOutputStream(new FileOutputStream(newLogFile))) {
+                byte[] buffer = new byte[1024];
+                int lengthRead;
+                while ((lengthRead = in.read(buffer)) > 0) {
+                    out.write(buffer, 0, lengthRead);
+                    out.flush();
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }

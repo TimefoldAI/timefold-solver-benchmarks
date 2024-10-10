@@ -128,11 +128,13 @@ public abstract class CommonApp<Solution_> extends LoggingMain {
         return Collections.emptySet();
     }
 
-    public final <T> void solve(String datasetName, T experiment, BiConsumer<T, SolverConfig> prepareConsumer,
+    public final <T> void solve(String datasetName, String customSolverConfigResource, T experiment,
+            BiConsumer<T, SolverConfig> prepareConsumer,
             TriConsumer<T, Solution_, Solver<Solution_>> processResultConsumer) {
         var solutionFileIo = createSolutionFileIO();
         var problem = solutionFileIo.read(Path.of("data", dataDirName, "unsolved", datasetName).toFile().getAbsoluteFile());
-        SolverConfig solverConfig = SolverConfig.createFromXmlResource(solverConfigResource);
+        var solverConfigFile = customSolverConfigResource != null ? customSolverConfigResource : solverConfigResource;
+        SolverConfig solverConfig = SolverConfig.createFromXmlResource(solverConfigFile);
         prepareConsumer.accept(experiment, solverConfig);
         var solverFactory = SolverFactory.<Solution_> create(solverConfig);
         var solver = solverFactory.buildSolver();

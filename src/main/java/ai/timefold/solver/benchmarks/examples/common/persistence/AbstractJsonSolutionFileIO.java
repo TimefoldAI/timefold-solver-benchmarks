@@ -60,7 +60,7 @@ public class AbstractJsonSolutionFileIO<Solution_> extends JacksonSolutionFileIO
 
     @Override
     public final void write(Solution_ solution, File outputSolutionFile) {
-        throw new UnsupportedOperationException();
+        super.write(solution, outputSolutionFile);
     }
 
 }

@@ -1,0 +1,1309 @@
+{
+  "id" : 0,
+  "name" : "belgium-n100",
+  "distanceType" : "AIR_DISTANCE",
+  "distanceUnitOfMeasurement" : "distance",
+  "locationList" : [ {
+    "@type" : "air",
+    "@id" : "AirLocation#0",
+    "id" : 0,
+    "name" : "BRUSSEL",
+    "latitude" : 50.8427501,
+    "longitude" : 4.3515499
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#27",
+    "id" : 27,
+    "name" : "ALLE",
+    "latitude" : 49.8417377,
+    "longitude" : 4.9710511
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#55",
+    "id" : 55,
+    "name" : "ANTHISNES",
+    "latitude" : 50.4812987,
+    "longitude" : 5.5198048
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#82",
+    "id" : 82,
+    "name" : "ASPELARE",
+    "latitude" : 50.8441986,
+    "longitude" : 3.9438609
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#110",
+    "id" : 110,
+    "name" : "AVE-ET-AUFFE",
+    "latitude" : 50.1085676,
+    "longitude" : 5.1429583
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#137",
+    "id" : 137,
+    "name" : "BAISY-THY",
+    "latitude" : 50.5937472,
+    "longitude" : 4.4653574
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#165",
+    "id" : 165,
+    "name" : "BAVIKHOVE",
+    "latitude" : 50.8753581,
+    "longitude" : 3.3113744
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#192",
+    "id" : 192,
+    "name" : "BELGRADE",
+    "latitude" : 50.4681427,
+    "longitude" : 4.8239381
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#220",
+    "id" : 220,
+    "name" : "BERSILLIES-L'ABBAYE",
+    "latitude" : 50.2624949,
+    "longitude" : 4.1523037
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#247",
+    "id" : 247,
+    "name" : "BIERWART",
+    "latitude" : 50.5559583,
+    "longitude" : 5.0363692
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#275",
+    "id" : 275,
+    "name" : "BLERET",
+    "latitude" : 50.688785,
+    "longitude" : 5.2859129
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#302",
+    "id" : 302,
+    "name" : "BONNERT",
+    "latitude" : 49.7109446,
+    "longitude" : 5.8184409
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#330",
+    "id" : 330,
+    "name" : "BOURLERS",
+    "latitude" : 50.025208,
+    "longitude" : 4.3409814
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#357",
+    "id" : 357,
+    "name" : "BRASMENIL",
+    "latitude" : 50.541642,
+    "longitude" : 3.5464212
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#385",
+    "id" : 385,
+    "name" : "BULSKAMP",
+    "latitude" : 51.0432467,
+    "longitude" : 2.6501345
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#412",
+    "id" : 412,
+    "name" : "CHAINEUX",
+    "latitude" : 50.631883,
+    "longitude" : 5.8340999
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#440",
+    "id" : 440,
+    "name" : "CHIEVRES",
+    "latitude" : 50.5661351,
+    "longitude" : 3.7853169
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#467",
+    "id" : 467,
+    "name" : "CORROY-LE-GRAND",
+    "latitude" : 50.6615767,
+    "longitude" : 4.6752523
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#495",
+    "id" : 495,
+    "name" : "DAMME",
+    "latitude" : 51.2365829,
+    "longitude" : 3.3400765
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#522",
+    "id" : 522,
+    "name" : "DESTELDONK",
+    "latitude" : 51.1220781,
+    "longitude" : 3.7811183
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#550",
+    "id" : 550,
+    "name" : "DONSTIENNES",
+    "latitude" : 50.2849958,
+    "longitude" : 4.3106966
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#577",
+    "id" : 577,
+    "name" : "EERNEGEM",
+    "latitude" : 51.1259989,
+    "longitude" : 3.0302782
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#605",
+    "id" : 605,
+    "name" : "ELVERDINGE",
+    "latitude" : 50.8848669,
+    "longitude" : 2.8162074
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#632",
+    "id" : 632,
+    "name" : "ERPENT",
+    "latitude" : 50.4510107,
+    "longitude" : 4.9071522
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#660",
+    "id" : 660,
+    "name" : "EVELETTE",
+    "latitude" : 50.411922,
+    "longitude" : 5.173705
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#687",
+    "id" : 687,
+    "name" : "FENEUR",
+    "latitude" : 50.7041182,
+    "longitude" : 5.7139672
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#715",
+    "id" : 715,
+    "name" : "FONTAINE-L'EVEQUE",
+    "latitude" : 50.4100558,
+    "longitude" : 4.3249526
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#742",
+    "id" : 742,
+    "name" : "FRANC-WARET",
+    "latitude" : 50.5201148,
+    "longitude" : 4.9777148
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#770",
+    "id" : 770,
+    "name" : "GELINDEN",
+    "latitude" : 50.7670559,
+    "longitude" : 5.2628934
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#797",
+    "id" : 797,
+    "name" : "GIBECQ",
+    "latitude" : 50.6302806,
+    "longitude" : 3.8861843
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#825",
+    "id" : 825,
+    "name" : "GONDREGNIES",
+    "latitude" : 50.6271045,
+    "longitude" : 3.9115699
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#852",
+    "id" : 852,
+    "name" : "GRANDMENIL",
+    "latitude" : 50.2918148,
+    "longitude" : 5.6583148
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#880",
+    "id" : 880,
+    "name" : "GUIGNIES",
+    "latitude" : 50.5499808,
+    "longitude" : 3.3727285
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#907",
+    "id" : 907,
+    "name" : "HALLEUX",
+    "latitude" : 50.1719117,
+    "longitude" : 5.496803
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#935",
+    "id" : 935,
+    "name" : "HAREN_BRUSSEL",
+    "latitude" : 50.8919578,
+    "longitude" : 4.4182942
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#962",
+    "id" : 962,
+    "name" : "HEES",
+    "latitude" : 50.8454948,
+    "longitude" : 5.6093575
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#990",
+    "id" : 990,
+    "name" : "HEPPIGNIES",
+    "latitude" : 50.4814121,
+    "longitude" : 4.4932598
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1017",
+    "id" : 1017,
+    "name" : "HERZELE",
+    "latitude" : 50.8535314,
+    "longitude" : 3.8986569
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1045",
+    "id" : 1045,
+    "name" : "HOFSTADE_BT.",
+    "latitude" : 50.9912912,
+    "longitude" : 4.492735
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1072",
+    "id" : 1072,
+    "name" : "HOUDENG-GOEGNIES_LA_LOUVIERE",
+    "latitude" : 50.4842706,
+    "longitude" : 4.1568564
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1100",
+    "id" : 1100,
+    "name" : "HUMBEEK",
+    "latitude" : 50.9667658,
+    "longitude" : 4.3834362
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1127",
+    "id" : 1127,
+    "name" : "JAMAGNE",
+    "latitude" : 50.2182086,
+    "longitude" : 4.5314057
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1155",
+    "id" : 1155,
+    "name" : "JURBISE",
+    "latitude" : 50.5208191,
+    "longitude" : 3.9017078
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1182",
+    "id" : 1182,
+    "name" : "KERKSKEN",
+    "latitude" : 50.8846472,
+    "longitude" : 3.9806314
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1210",
+    "id" : 1210,
+    "name" : "KOMEN",
+    "latitude" : 50.77614,
+    "longitude" : 3.007366
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1237",
+    "id" : 1237,
+    "name" : "LA_BOUVERIE",
+    "latitude" : 50.405513,
+    "longitude" : 3.8747703
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1265",
+    "id" : 1265,
+    "name" : "LANDEGEM",
+    "latitude" : 51.0566021,
+    "longitude" : 3.573045
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1292",
+    "id" : 1292,
+    "name" : "LEBBEKE",
+    "latitude" : 50.9920922,
+    "longitude" : 4.1177625
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1320",
+    "id" : 1320,
+    "name" : "LES_BONS_VILLERS",
+    "latitude" : 50.5427462,
+    "longitude" : 4.4476802
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1347",
+    "id" : 1347,
+    "name" : "LIEGE",
+    "latitude" : 50.6423532,
+    "longitude" : 5.6279411
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1375",
+    "id" : 1375,
+    "name" : "LISSEWEGE",
+    "latitude" : 51.2948381,
+    "longitude" : 3.1994146
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1402",
+    "id" : 1402,
+    "name" : "LORCE",
+    "latitude" : 50.4170229,
+    "longitude" : 5.7346061
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1430",
+    "id" : 1430,
+    "name" : "MAFFLE",
+    "latitude" : 50.6200815,
+    "longitude" : 3.8018102
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1457",
+    "id" : 1457,
+    "name" : "MARCHIENNE-AU-PONT",
+    "latitude" : 50.4073452,
+    "longitude" : 4.3957984
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1485",
+    "id" : 1485,
+    "name" : "MAULDE",
+    "latitude" : 50.6165736,
+    "longitude" : 3.5470846
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1512",
+    "id" : 1512,
+    "name" : "MELDERT_BT.",
+    "latitude" : 50.7880084,
+    "longitude" : 4.8378587
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1540",
+    "id" : 1540,
+    "name" : "MERKSPLAS",
+    "latitude" : 51.361787,
+    "longitude" : 4.861625
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1567",
+    "id" : 1567,
+    "name" : "MODAVE",
+    "latitude" : 50.486894,
+    "longitude" : 5.2875845
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1595",
+    "id" : 1595,
+    "name" : "MONT_NAM.",
+    "latitude" : 50.3534706,
+    "longitude" : 4.9014191
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1622",
+    "id" : 1622,
+    "name" : "MORESNET",
+    "latitude" : 50.7212015,
+    "longitude" : 5.9891108
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1650",
+    "id" : 1650,
+    "name" : "NAAST",
+    "latitude" : 50.5504316,
+    "longitude" : 4.0964803
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1677",
+    "id" : 1677,
+    "name" : "NEEROETEREN",
+    "latitude" : 51.0886511,
+    "longitude" : 5.7048356
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1705",
+    "id" : 1705,
+    "name" : "NIEUWKERKEN-WAAS",
+    "latitude" : 51.1936164,
+    "longitude" : 4.1787815
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1732",
+    "id" : 1732,
+    "name" : "NOVILLE-LES-BOIS",
+    "latitude" : 50.5570566,
+    "longitude" : 4.9856092
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1760",
+    "id" : 1760,
+    "name" : "OLLIGNIES",
+    "latitude" : 50.6876172,
+    "longitude" : 3.8574228
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1787",
+    "id" : 1787,
+    "name" : "OOSTKERKE_DAMME",
+    "latitude" : 51.2779569,
+    "longitude" : 3.2958858
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1815",
+    "id" : 1815,
+    "name" : "ORET",
+    "latitude" : 50.2998711,
+    "longitude" : 4.6155651
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1842",
+    "id" : 1842,
+    "name" : "OUTER",
+    "latitude" : 50.8452183,
+    "longitude" : 3.9905509
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1870",
+    "id" : 1870,
+    "name" : "PEPINGEN",
+    "latitude" : 50.7360287,
+    "longitude" : 4.1360863
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1897",
+    "id" : 1897,
+    "name" : "PIPAIX",
+    "latitude" : 50.5829466,
+    "longitude" : 3.5748999
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1925",
+    "id" : 1925,
+    "name" : "POUPEHAN",
+    "latitude" : 49.8122243,
+    "longitude" : 5.0029
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1952",
+    "id" : 1952,
+    "name" : "RAHIER",
+    "latitude" : 50.3859041,
+    "longitude" : 5.7785439
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#1980",
+    "id" : 1980,
+    "name" : "RENINGE",
+    "latitude" : 50.9477884,
+    "longitude" : 2.7891722
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2007",
+    "id" : 2007,
+    "name" : "ROBORST",
+    "latitude" : 50.8658812,
+    "longitude" : 3.7527929
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2035",
+    "id" : 2035,
+    "name" : "ROSMEER",
+    "latitude" : 50.8460854,
+    "longitude" : 5.5750235
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2062",
+    "id" : 2062,
+    "name" : "RUNKELEN",
+    "latitude" : 50.846454,
+    "longitude" : 5.1542576
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2090",
+    "id" : 2090,
+    "name" : "SAINT-MARTIN",
+    "latitude" : 50.5009515,
+    "longitude" : 4.6473657
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2117",
+    "id" : 2117,
+    "name" : "SART-LEZ-SPA",
+    "latitude" : 50.517027,
+    "longitude" : 5.933688
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2145",
+    "id" : 2145,
+    "name" : "SELANGE",
+    "latitude" : 49.6096472,
+    "longitude" : 5.8560275
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2172",
+    "id" : 2172,
+    "name" : "SINT-BLASIUS-BOEKEL",
+    "latitude" : 50.8516381,
+    "longitude" : 3.719354
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2200",
+    "id" : 2200,
+    "name" : "SINT-KWINTENS-LENNIK",
+    "latitude" : 50.8068661,
+    "longitude" : 4.1538281
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2227",
+    "id" : 2227,
+    "name" : "SINT-PIETERS-VOEREN",
+    "latitude" : 50.7264257,
+    "longitude" : 5.823919
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2255",
+    "id" : 2255,
+    "name" : "SOMZEE",
+    "latitude" : 50.2950667,
+    "longitude" : 4.4831638
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2282",
+    "id" : 2282,
+    "name" : "STAVE",
+    "latitude" : 50.2823372,
+    "longitude" : 4.6595389
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2310",
+    "id" : 2310,
+    "name" : "TAILLES",
+    "latitude" : 50.2273877,
+    "longitude" : 5.7437507
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2337",
+    "id" : 2337,
+    "name" : "THIMEON",
+    "latitude" : 50.4902443,
+    "longitude" : 4.4280163
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2365",
+    "id" : 2365,
+    "name" : "TILFF",
+    "latitude" : 50.5695196,
+    "longitude" : 5.5844061
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2392",
+    "id" : 2392,
+    "name" : "TRAZEGNIES",
+    "latitude" : 50.4595342,
+    "longitude" : 4.3171534
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2420",
+    "id" : 2420,
+    "name" : "VAUX-LEZ-ROSIERES",
+    "latitude" : 49.9102794,
+    "longitude" : 5.5659053
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2447",
+    "id" : 2447,
+    "name" : "VEZON",
+    "latitude" : 50.5695367,
+    "longitude" : 3.5107552
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2475",
+    "id" : 2475,
+    "name" : "VILLERS-L'EVEQUE",
+    "latitude" : 50.7044254,
+    "longitude" : 5.4399729
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2502",
+    "id" : 2502,
+    "name" : "VLAMERTINGE",
+    "latitude" : 50.8479624,
+    "longitude" : 2.8245127
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2530",
+    "id" : 2530,
+    "name" : "VOSSEM",
+    "latitude" : 50.8346073,
+    "longitude" : 4.557627
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2557",
+    "id" : 2557,
+    "name" : "WALHAIN",
+    "latitude" : 50.637198,
+    "longitude" : 4.6872076
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2585",
+    "id" : 2585,
+    "name" : "WARNANT-DREYE",
+    "latitude" : 50.5951652,
+    "longitude" : 5.2276287
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2612",
+    "id" : 2612,
+    "name" : "WEGNEZ",
+    "latitude" : 50.5788609,
+    "longitude" : 5.8166465
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2640",
+    "id" : 2640,
+    "name" : "WETTEREN",
+    "latitude" : 51.0005742,
+    "longitude" : 3.8693544
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2667",
+    "id" : 2667,
+    "name" : "WILLEMEAU",
+    "latitude" : 50.5741752,
+    "longitude" : 3.3530858
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2695",
+    "id" : 2695,
+    "name" : "XHENDELESSE",
+    "latitude" : 50.6061517,
+    "longitude" : 5.7830075
+  }, {
+    "@type" : "air",
+    "@id" : "AirLocation#2722",
+    "id" : 2722,
+    "name" : "ZEVEKOTE",
+    "latitude" : 51.137544,
+    "longitude" : 2.9199852
+  } ],
+  "domicile" : {
+    "@type" : "domicile",
+    "@id" : "Domicile#0",
+    "id" : 0,
+    "location" : "AirLocation#0"
+  },
+  "visitList" : [ {
+    "@type" : "visit",
+    "@id" : "Visit#27",
+    "id" : 27,
+    "location" : "AirLocation#27",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#55",
+    "id" : 55,
+    "location" : "AirLocation#55",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#82",
+    "id" : 82,
+    "location" : "AirLocation#82",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#110",
+    "id" : 110,
+    "location" : "AirLocation#110",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#137",
+    "id" : 137,
+    "location" : "AirLocation#137",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#165",
+    "id" : 165,
+    "location" : "AirLocation#165",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#192",
+    "id" : 192,
+    "location" : "AirLocation#192",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#220",
+    "id" : 220,
+    "location" : "AirLocation#220",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#247",
+    "id" : 247,
+    "location" : "AirLocation#247",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#275",
+    "id" : 275,
+    "location" : "AirLocation#275",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#302",
+    "id" : 302,
+    "location" : "AirLocation#302",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#330",
+    "id" : 330,
+    "location" : "AirLocation#330",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#357",
+    "id" : 357,
+    "location" : "AirLocation#357",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#385",
+    "id" : 385,
+    "location" : "AirLocation#385",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#412",
+    "id" : 412,
+    "location" : "AirLocation#412",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#440",
+    "id" : 440,
+    "location" : "AirLocation#440",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#467",
+    "id" : 467,
+    "location" : "AirLocation#467",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#495",
+    "id" : 495,
+    "location" : "AirLocation#495",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#522",
+    "id" : 522,
+    "location" : "AirLocation#522",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#550",
+    "id" : 550,
+    "location" : "AirLocation#550",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#577",
+    "id" : 577,
+    "location" : "AirLocation#577",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#605",
+    "id" : 605,
+    "location" : "AirLocation#605",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#632",
+    "id" : 632,
+    "location" : "AirLocation#632",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#660",
+    "id" : 660,
+    "location" : "AirLocation#660",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#687",
+    "id" : 687,
+    "location" : "AirLocation#687",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#715",
+    "id" : 715,
+    "location" : "AirLocation#715",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#742",
+    "id" : 742,
+    "location" : "AirLocation#742",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#770",
+    "id" : 770,
+    "location" : "AirLocation#770",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#797",
+    "id" : 797,
+    "location" : "AirLocation#797",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#825",
+    "id" : 825,
+    "location" : "AirLocation#825",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#852",
+    "id" : 852,
+    "location" : "AirLocation#852",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#880",
+    "id" : 880,
+    "location" : "AirLocation#880",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#907",
+    "id" : 907,
+    "location" : "AirLocation#907",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#935",
+    "id" : 935,
+    "location" : "AirLocation#935",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#962",
+    "id" : 962,
+    "location" : "AirLocation#962",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#990",
+    "id" : 990,
+    "location" : "AirLocation#990",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1017",
+    "id" : 1017,
+    "location" : "AirLocation#1017",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1045",
+    "id" : 1045,
+    "location" : "AirLocation#1045",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1072",
+    "id" : 1072,
+    "location" : "AirLocation#1072",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1100",
+    "id" : 1100,
+    "location" : "AirLocation#1100",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1127",
+    "id" : 1127,
+    "location" : "AirLocation#1127",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1155",
+    "id" : 1155,
+    "location" : "AirLocation#1155",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1182",
+    "id" : 1182,
+    "location" : "AirLocation#1182",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1210",
+    "id" : 1210,
+    "location" : "AirLocation#1210",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1237",
+    "id" : 1237,
+    "location" : "AirLocation#1237",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1265",
+    "id" : 1265,
+    "location" : "AirLocation#1265",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1292",
+    "id" : 1292,
+    "location" : "AirLocation#1292",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1320",
+    "id" : 1320,
+    "location" : "AirLocation#1320",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1347",
+    "id" : 1347,
+    "location" : "AirLocation#1347",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1375",
+    "id" : 1375,
+    "location" : "AirLocation#1375",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1402",
+    "id" : 1402,
+    "location" : "AirLocation#1402",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1430",
+    "id" : 1430,
+    "location" : "AirLocation#1430",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1457",
+    "id" : 1457,
+    "location" : "AirLocation#1457",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1485",
+    "id" : 1485,
+    "location" : "AirLocation#1485",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1512",
+    "id" : 1512,
+    "location" : "AirLocation#1512",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1540",
+    "id" : 1540,
+    "location" : "AirLocation#1540",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1567",
+    "id" : 1567,
+    "location" : "AirLocation#1567",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1595",
+    "id" : 1595,
+    "location" : "AirLocation#1595",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1622",
+    "id" : 1622,
+    "location" : "AirLocation#1622",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1650",
+    "id" : 1650,
+    "location" : "AirLocation#1650",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1677",
+    "id" : 1677,
+    "location" : "AirLocation#1677",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1705",
+    "id" : 1705,
+    "location" : "AirLocation#1705",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1732",
+    "id" : 1732,
+    "location" : "AirLocation#1732",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1760",
+    "id" : 1760,
+    "location" : "AirLocation#1760",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1787",
+    "id" : 1787,
+    "location" : "AirLocation#1787",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1815",
+    "id" : 1815,
+    "location" : "AirLocation#1815",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1842",
+    "id" : 1842,
+    "location" : "AirLocation#1842",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1870",
+    "id" : 1870,
+    "location" : "AirLocation#1870",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1897",
+    "id" : 1897,
+    "location" : "AirLocation#1897",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1925",
+    "id" : 1925,
+    "location" : "AirLocation#1925",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1952",
+    "id" : 1952,
+    "location" : "AirLocation#1952",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#1980",
+    "id" : 1980,
+    "location" : "AirLocation#1980",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2007",
+    "id" : 2007,
+    "location" : "AirLocation#2007",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2035",
+    "id" : 2035,
+    "location" : "AirLocation#2035",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2062",
+    "id" : 2062,
+    "location" : "AirLocation#2062",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2090",
+    "id" : 2090,
+    "location" : "AirLocation#2090",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2117",
+    "id" : 2117,
+    "location" : "AirLocation#2117",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2145",
+    "id" : 2145,
+    "location" : "AirLocation#2145",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2172",
+    "id" : 2172,
+    "location" : "AirLocation#2172",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2200",
+    "id" : 2200,
+    "location" : "AirLocation#2200",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2227",
+    "id" : 2227,
+    "location" : "AirLocation#2227",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2255",
+    "id" : 2255,
+    "location" : "AirLocation#2255",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2282",
+    "id" : 2282,
+    "location" : "AirLocation#2282",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2310",
+    "id" : 2310,
+    "location" : "AirLocation#2310",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2337",
+    "id" : 2337,
+    "location" : "AirLocation#2337",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2365",
+    "id" : 2365,
+    "location" : "AirLocation#2365",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2392",
+    "id" : 2392,
+    "location" : "AirLocation#2392",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2420",
+    "id" : 2420,
+    "location" : "AirLocation#2420",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2447",
+    "id" : 2447,
+    "location" : "AirLocation#2447",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2475",
+    "id" : 2475,
+    "location" : "AirLocation#2475",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2502",
+    "id" : 2502,
+    "location" : "AirLocation#2502",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2530",
+    "id" : 2530,
+    "location" : "AirLocation#2530",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2557",
+    "id" : 2557,
+    "location" : "AirLocation#2557",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2585",
+    "id" : 2585,
+    "location" : "AirLocation#2585",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2612",
+    "id" : 2612,
+    "location" : "AirLocation#2612",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2640",
+    "id" : 2640,
+    "location" : "AirLocation#2640",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2667",
+    "id" : 2667,
+    "location" : "AirLocation#2667",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2695",
+    "id" : 2695,
+    "location" : "AirLocation#2695",
+    "previousStandstill" : null
+  }, {
+    "@type" : "visit",
+    "@id" : "Visit#2722",
+    "id" : 2722,
+    "location" : "AirLocation#2722",
+    "previousStandstill" : null
+  } ],
+  "score" : null
+}

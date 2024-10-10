@@ -267,8 +267,8 @@
       ]
     }
   ],
-  "completeReplications": 5,
+  "completeReplications": 1,
   "warmupTimeInSeconds": 30,
   "warmupRatio": 0.3,
-  "observationTimeInSeconds": 3600
+  "observationTimeInSeconds": 0
 }

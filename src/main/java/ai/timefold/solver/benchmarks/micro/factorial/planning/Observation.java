@@ -1,11 +1,21 @@
 package ai.timefold.solver.benchmarks.micro.factorial.planning;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import ai.timefold.solver.benchmarks.examples.cloudbalancing.app.CloudBalancingApp;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.app.ConferenceSchedulingApp;
+import ai.timefold.solver.benchmarks.examples.curriculumcourse.app.CurriculumCourseApp;
+import ai.timefold.solver.benchmarks.examples.examination.app.ExaminationApp;
+import ai.timefold.solver.benchmarks.examples.machinereassignment.app.MachineReassignmentApp;
+import ai.timefold.solver.benchmarks.examples.meetingscheduling.app.MeetingSchedulingApp;
+import ai.timefold.solver.benchmarks.examples.nurserostering.app.NurseRosteringApp;
+import ai.timefold.solver.benchmarks.examples.pas.app.PatientAdmissionScheduleApp;
+import ai.timefold.solver.benchmarks.examples.taskassigning.app.TaskAssigningApp;
+import ai.timefold.solver.benchmarks.examples.travelingtournament.app.TravelingTournamentApp;
 import ai.timefold.solver.benchmarks.examples.tsp.app.TspApp;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.app.VehicleRoutingApp;
 import ai.timefold.solver.benchmarks.micro.factorial.configuration.AbstractConfiguration;
@@ -27,7 +37,8 @@ public class Observation {
 
     public Observation(ExperimentWriter writer, List<AbstractConfiguration> configurationList, List<String> outputColumns) {
         this.writer = writer;
-        this.configurationMap = configurationList.stream().collect(Collectors.toMap(c -> c.getLevel().getFactorName(), c -> c));
+        this.configurationMap = configurationList.stream().collect(Collectors.toMap(AbstractConfiguration::getFactorName,
+                c -> c));
         this.outputColumns = outputColumns;
     }
 
@@ -36,11 +47,23 @@ public class Observation {
     }
 
     public void set(AbstractConfiguration configuration) {
-        configurationMap.put(configuration.getLevel().getFactorName(), configuration);
+        configurationMap.put(configuration.getFactorName(), configuration);
     }
 
     public Object getValue(String factorName) {
-        return configurationMap.get(factorName).getLevel().getValue();
+        var factor = configurationMap.get(factorName);
+        if (factor != null) {
+            var level = factor.getLevel();
+            if (level == null) {
+                return null;
+            }
+            return factor.getLevel().getValue();
+        }
+        return null;
+    }
+
+    private void initConfiguration() {
+        configurationMap.forEach((key, c) -> c.init(this));
     }
 
     public void prepare(SolverConfig solverConfig) {
@@ -48,23 +71,27 @@ public class Observation {
     }
 
     public void save(Object solution, Solver<?> solver) {
-        StringBuilder line = new StringBuilder();
+        List<String> line = new ArrayList<>();
         outputColumns.forEach(outputColumn -> {
             switch (outputColumn) {
+                case "id": {
+                    line.add(String.valueOf(id));
+                    break;
+                }
                 case "score": {
                     if (solver != null) {
-                        line.append(((DefaultSolver<?>) solver).getSolverScope().getBestScore()).append(";");
+                        line.add(String.valueOf(((DefaultSolver<?>) solver).getSolverScope().getBestScore()));
                     } else {
-                        line.append("ERROR;");
+                        line.add("ERROR");
                     }
                     break;
                 }
                 case "scoreConverted": {
                     if (solver != null) {
                         var bestScore = ((DefaultSolver<?>) solver).getSolverScope().getBestScore();
-                        line.append(convertScore(bestScore)).append(";");
+                        line.add(String.valueOf(convertScore(bestScore)));
                     } else {
-                        line.append("ERROR;");
+                        line.add("ERROR");
                     }
                     break;
                 }
@@ -77,65 +104,63 @@ public class Observation {
                         } else {
                             finalScore = Math.log(finalScore);
                         }
-                        line.append(finalScore).append(";");
+                        line.add(String.valueOf(finalScore));
                     } else {
-                        line.append("ERROR;");
+                        line.add("ERROR");
                     }
                     break;
                 }
                 case "scoreSpeed": {
                     if (solver != null) {
-                        line.append(((DefaultSolver<?>) solver).getScoreCalculationSpeed()).append(";");
+                        line.add(String.valueOf(((DefaultSolver<?>) solver).getScoreCalculationSpeed()));
                     } else {
-                        line.append("ERROR;");
+                        line.add("ERROR");
                     }
                     break;
                 }
                 case "scoreCount": {
                     if (solver != null) {
-                        line.append(((DefaultSolver<?>) solver).getScoreCalculationCount()).append(";");
+                        line.add(String.valueOf(((DefaultSolver<?>) solver).getScoreCalculationCount()));
                     } else {
-                        line.append("ERROR;");
+                        line.add("ERROR");
                     }
                     break;
                 }
                 case "moveSpeed": {
                     if (solver != null) {
-                        line.append(((DefaultSolver<?>) solver).getMoveEvaluationSpeed()).append(";");
+                        line.add(String.valueOf(((DefaultSolver<?>) solver).getMoveEvaluationSpeed()));
                     } else {
-                        line.append("ERROR;");
+                        line.add("ERROR");
                     }
                     break;
                 }
                 case "moveCount": {
                     if (solver != null) {
-                        line.append(((DefaultSolver<?>) solver).getMoveEvaluationCount()).append(";");
+                        line.add(String.valueOf(((DefaultSolver<?>) solver).getMoveEvaluationCount()));
                     } else {
-                        line.append("ERROR;");
+                        line.add("ERROR");
                     }
                     break;
                 }
                 case "timeSpent": {
                     if (solver != null) {
-                        line.append(((DefaultSolver<?>) solver).getTimeMillisSpent()).append(";");
+                        line.add(String.valueOf(((DefaultSolver<?>) solver).getTimeMillisSpent()));
                     } else {
-                        line.append("ERROR;");
+                        line.add("ERROR");
                     }
                     break;
                 }
                 default: {
                     var value = configurationMap.get(outputColumn);
                     if (value != null) {
-                        line.append(value.toCSV());
+                        line.add(value.toCSV());
                     } else {
-                        line.append("-");
+                        line.add("-");
                     }
-                    line.append(";");
                 }
             }
         });
-        line.append("\n");
-        writer.saveResult(line.toString());
+        writer.saveResult(String.join(";", line) + "\n");
     }
 
     private double convertScore(Score<?> score) {
@@ -172,20 +197,48 @@ public class Observation {
     public void run() {
         LOGGER.info("Running observation {}: {}", id, this);
         try {
+            initConfiguration();
+            if (getValue("type") == null) {
+                throw new IllegalArgumentException("The factor \"type\" is required");
+            }
+            if (getValue("datasetName") == null) {
+                throw new IllegalArgumentException("The factor \"datasetName\" is required");
+            }
             var type = getValue("type").toString();
             var datasetName = getValue("datasetName").toString();
+            var configFile = Optional.ofNullable(getValue("configFile")).map(Object::toString).orElse(null);
             switch (type) {
                 case "cloudbalancing" ->
-                    new CloudBalancingApp().solve(datasetName, this, Observation::prepare, Observation::save);
+                    new CloudBalancingApp().solve(datasetName, configFile, this, Observation::prepare, Observation::save);
                 case "conferencescheduling" ->
-                    new ConferenceSchedulingApp().solve(datasetName, this, Observation::prepare, Observation::save);
-                case "tsp" -> new TspApp().solve(datasetName, this, Observation::prepare, Observation::save);
-                case "vehiclerouting" -> new VehicleRoutingApp().solve(datasetName, this, Observation::prepare,
-                        Observation::save);
+                    new ConferenceSchedulingApp().solve(datasetName, configFile, this, Observation::prepare, Observation::save);
+                case "curriculumcourse" ->
+                    new CurriculumCourseApp().solve(datasetName, configFile, this, Observation::prepare, Observation::save);
+                case "examination" ->
+                    new ExaminationApp().solve(datasetName, configFile, this, Observation::prepare, Observation::save);
+                case "machinereassignment" ->
+                    new MachineReassignmentApp().solve(datasetName, configFile, this, Observation::prepare, Observation::save);
+                case "meetingscheduling" ->
+                    new MeetingSchedulingApp().solve(datasetName, configFile, this, Observation::prepare, Observation::save);
+                case "nurserostering" ->
+                    new NurseRosteringApp().solve(datasetName, configFile, this, Observation::prepare, Observation::save);
+                case "pas" ->
+                    new PatientAdmissionScheduleApp().solve(datasetName, configFile, this, Observation::prepare,
+                            Observation::save);
+                case "taskassigning" ->
+                    new TaskAssigningApp().solve(datasetName, configFile, this, Observation::prepare, Observation::save);
+                case "travelingtournament" ->
+                    new TravelingTournamentApp().solve(datasetName, configFile, this, Observation::prepare, Observation::save);
+                case "tsp" ->
+                    new TspApp().solve(datasetName, configFile, this, Observation::prepare, Observation::save);
+                case "vehiclerouting" ->
+                    new VehicleRoutingApp().solve(datasetName, configFile, this, Observation::prepare,
+                            Observation::save);
                 default -> throw new IllegalArgumentException();
             }
         } catch (Exception e) {
             // Add the result as error
+            LOGGER.error("Error running observation: " + id, e);
             save(null, null);
         }
     }

@@ -1,9 +1,5 @@
 package ai.timefold.solver.benchmarks.micro.factorial.configuration;
 
-import java.util.List;
-import java.util.Objects;
-
-import ai.timefold.solver.benchmarks.micro.factorial.planning.Factor;
 import ai.timefold.solver.benchmarks.micro.factorial.planning.Level;
 import ai.timefold.solver.benchmarks.micro.factorial.planning.Observation;
 import ai.timefold.solver.core.config.solver.SolverConfig;
@@ -16,32 +12,19 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = ObservationConfiguration.class, name = "Observation"),
-        @JsonSubTypes.Type(value = ExperimentConfiguration.class, name = "Experiment"),
+        @JsonSubTypes.Type(value = ReadOnlyConfiguration.class, name = "ReadOnly"),
         @JsonSubTypes.Type(value = ConditionalConfiguration.class, name = "Conditional") })
-public abstract class AbstractConfiguration {
+public interface AbstractConfiguration {
 
-    private final Level level;
+    String getFactorName();
 
-    protected AbstractConfiguration(String key, String value) {
-        this(new Factor(key, List.of(Objects.requireNonNull(value))).getLevelList().getFirst());
-    }
+    Level getLevel();
 
-    protected AbstractConfiguration(Level level) {
-        this.level = Objects.requireNonNull(level);
-    }
+    void apply(Observation observation, SolverConfig solverConfig);
 
-    public Level getLevel() {
-        return level;
-    }
+    void init(Observation observation);
 
-    public abstract void apply(Observation observation, SolverConfig solverConfig);
+    AbstractConfiguration copy();
 
-    public abstract String toCSV();
-
-    @Override
-    public String toString() {
-        return "AbstractConfiguration{" +
-                level.toString() +
-                '}';
-    }
+    String toCSV();
 }
