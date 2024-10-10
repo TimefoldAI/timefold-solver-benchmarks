@@ -21,6 +21,7 @@
     {
       "name": "approach",
       "levels": [
+        "default",
         "forager",
         "acceptor"
       ]
@@ -267,7 +268,7 @@
       ]
     }
   ],
-  "completeReplications": 5,
+  "completeReplications": 4,
   "warmupTimeInSeconds": 30,
   "warmupRatio": 0.3,
   "observationTimeInSeconds": 3600
