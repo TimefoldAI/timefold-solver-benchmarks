@@ -20,6 +20,7 @@ import ai.timefold.solver.core.impl.localsearch.DefaultLocalSearchPhase;
 import ai.timefold.solver.core.impl.localsearch.decider.LocalSearchDecider;
 import ai.timefold.solver.core.impl.localsearch.scope.LocalSearchPhaseScope;
 import ai.timefold.solver.core.impl.localsearch.scope.LocalSearchStepScope;
+import ai.timefold.solver.core.impl.move.director.MoveDirector;
 import ai.timefold.solver.core.impl.score.director.InnerScoreDirector;
 import ai.timefold.solver.core.impl.score.director.InnerScoreDirectorFactory;
 import ai.timefold.solver.core.impl.solver.DefaultSolver;
@@ -35,6 +36,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
     private final InnerScoreDirectorFactory<Solution_, ?> scoreDirectorFactory;
     private final Solution_ originalSolution;
 
+    private MoveDirector<Solution_> moveDirector;
     private InnerScoreDirector<Solution_, ?> scoreDirector;
     private MoveSelector<Solution_> moveSelector;
     private Iterator<Move<Solution_>> moveIterator;
@@ -104,6 +106,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
         scoreDirector.setWorkingSolution(scoreDirector.cloneSolution(originalSolution)); // Use fresh solution again.
         scoreDirector.triggerVariableListeners();
         scoreDirector.calculateScore();
+        moveDirector = new MoveDirector<>(scoreDirector);
         // Prepare the lifecycle.
         var solverScope = new SolverScope<Solution_>();
         solverScope.setScoreDirector(scoreDirector);
@@ -146,10 +149,14 @@ abstract class AbstractProblem<Solution_> implements Problem {
      */
     @Override
     public final Object runInvocation() {
+        var scoreDirector = (InnerScoreDirector<Solution_, ?>) moveDirector.getScoreDirector();
         if (willUndo) {
-            move = move.doMove(scoreDirector); // Do the move and prepare undo.
+            try (var ephemeralMoveDirector = moveDirector.ephemeral()) {
+                move.doMoveOnly(ephemeralMoveDirector.getScoreDirector());
+            }
+        } else {
+            move.doMoveOnly(scoreDirector); // Do the move without any undo.
         }
-        move.doMoveOnly(scoreDirector); // Run either the original move, or the undo.
         return scoreDirector.calculateScore();
     }
 
