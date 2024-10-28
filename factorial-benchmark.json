@@ -1,13 +1,12 @@
 {
   "outputColumns": [
     "id",
+    "approach",
     "type",
     "datasetName",
     "runTimeInSeconds",
     "experimentSeed",
     "observationSeed",
-    "moveCountLimitPercentage",
-    "lateAcceptanceReconfigurationSize",
     "score",
     "scoreSpeed",
     "scoreCount",
@@ -21,9 +20,8 @@
     {
       "name": "approach",
       "levels": [
-        "default",
-        "forager",
-        "acceptor"
+        "LA",
+        "DLAS-5"
       ]
     },
     {
@@ -47,47 +45,25 @@
   "globalConfigurations": [
     {
       "type": "Conditional",
-      "key": "selectedCountLimitRatio",
+      "key": "acceptorType",
       "values": [
         {
           "type": "Observation",
-          "value": "100",
+          "value": "LATE_ACCEPTANCE",
           "conditions": [
             {
               "requiredFactor": "approach",
-              "requiredLevel": "forager"
+              "requiredLevel": "LA"
             }
           ]
-        }
-      ]
-    },
-    {
-      "type": "Conditional",
-      "key": "moveCountLimitPercentage",
-      "values": [
+        },
         {
           "type": "Observation",
-          "value": "100",
+          "value": "DIVERSIFIED_LATE_ACCEPTANCE",
           "conditions": [
             {
               "requiredFactor": "approach",
-              "requiredLevel": "acceptor"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "type": "Conditional",
-      "key": "lateAcceptanceReconfigurationSize",
-      "values": [
-        {
-          "type": "Observation",
-          "value": "1",
-          "conditions": [
-            {
-              "requiredFactor": "approach",
-              "requiredLevel": "acceptor"
+              "requiredLevel": "DLAS-5"
             }
           ]
         }
@@ -268,7 +244,7 @@
       ]
     }
   ],
-  "completeReplications": 4,
+  "completeReplications": 3,
   "warmupTimeInSeconds": 30,
   "warmupRatio": 0.3,
   "observationTimeInSeconds": 3600

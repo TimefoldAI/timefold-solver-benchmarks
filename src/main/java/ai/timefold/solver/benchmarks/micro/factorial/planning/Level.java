@@ -1,6 +1,7 @@
 package ai.timefold.solver.benchmarks.micro.factorial.planning;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -8,7 +9,6 @@ import ai.timefold.solver.core.config.constructionheuristic.ConstructionHeuristi
 import ai.timefold.solver.core.config.localsearch.LocalSearchPhaseConfig;
 import ai.timefold.solver.core.config.localsearch.decider.acceptor.AcceptorType;
 import ai.timefold.solver.core.config.localsearch.decider.acceptor.LocalSearchAcceptorConfig;
-import ai.timefold.solver.core.config.localsearch.decider.acceptor.ReconfigurationConfig;
 import ai.timefold.solver.core.config.localsearch.decider.forager.LocalSearchForagerConfig;
 import ai.timefold.solver.core.config.solver.SolverConfig;
 import ai.timefold.solver.core.config.solver.termination.TerminationConfig;
@@ -41,25 +41,16 @@ public class Level {
                 solverConfig.withRandomSeed(Long.parseLong(value));
                 break;
             }
-            case "moveCountLimitPercentage": {
+            case "acceptorType": {
                 var acceptorConfig = getAcceptorConfig(solverConfig);
-                var reconfigurationConfig = Objects.requireNonNullElse(acceptorConfig.getReconfigurationConfig(),
-                        new ReconfigurationConfig());
-                reconfigurationConfig.withMoveCountLimitPercentage(Double.parseDouble(value));
-                acceptorConfig.withReconfiguration(reconfigurationConfig);
+                var type = Arrays.stream(AcceptorType.values()).filter(a -> a.name().equals(value)).findFirst()
+                        .orElseThrow(() -> new IllegalArgumentException("Unknown acceptor type: %s".formatted(value)));
+                acceptorConfig.withAcceptorTypeList(List.of(type));
                 break;
             }
-            case "lateAcceptanceReconfigurationSize": {
+            case "lateAcceptanceSize": {
                 var acceptorConfig = getAcceptorConfig(solverConfig);
-                var reconfigurationConfig = Objects.requireNonNullElse(acceptorConfig.getReconfigurationConfig(),
-                        new ReconfigurationConfig());
-                reconfigurationConfig.withReconfigurationRatio(Long.parseLong(value));
-                acceptorConfig.withReconfiguration(reconfigurationConfig);
-                break;
-            }
-            case "selectedCountLimitRatio": {
-                var foragerConfig = getForagerConfig(solverConfig);
-                foragerConfig.withSelectedCountLimitRatio(Double.parseDouble(value));
+                acceptorConfig.setLateAcceptanceSize(Integer.parseInt(value));
                 break;
             }
             default: //ignore
