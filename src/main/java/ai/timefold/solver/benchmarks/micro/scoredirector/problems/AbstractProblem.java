@@ -21,6 +21,7 @@ import ai.timefold.solver.core.impl.localsearch.decider.LocalSearchDecider;
 import ai.timefold.solver.core.impl.localsearch.scope.LocalSearchPhaseScope;
 import ai.timefold.solver.core.impl.localsearch.scope.LocalSearchStepScope;
 import ai.timefold.solver.core.impl.move.director.MoveDirector;
+import ai.timefold.solver.core.impl.score.constraint.ConstraintMatchPolicy;
 import ai.timefold.solver.core.impl.score.director.InnerScoreDirector;
 import ai.timefold.solver.core.impl.score.director.InnerScoreDirectorFactory;
 import ai.timefold.solver.core.impl.solver.DefaultSolver;
@@ -102,7 +103,8 @@ abstract class AbstractProblem<Solution_> implements Problem {
     public final void setupIteration() {
         // We only care about incremental performance; therefore calculate the entire solution outside of invocation.
         scoreDirector = scoreDirectorFactory.buildScoreDirector(false,
-                scoreDirectorType == ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED);
+                scoreDirectorType == ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED ? ConstraintMatchPolicy.ENABLED
+                        : ConstraintMatchPolicy.DISABLED);
         scoreDirector.setWorkingSolution(scoreDirector.cloneSolution(originalSolution)); // Use fresh solution again.
         scoreDirector.triggerVariableListeners();
         scoreDirector.calculateScore();

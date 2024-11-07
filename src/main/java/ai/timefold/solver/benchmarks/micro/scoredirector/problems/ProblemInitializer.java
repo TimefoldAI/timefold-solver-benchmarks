@@ -22,6 +22,7 @@ import ai.timefold.solver.core.impl.constructionheuristic.DefaultConstructionHeu
 import ai.timefold.solver.core.impl.constructionheuristic.DefaultConstructionHeuristicPhaseFactory;
 import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
 import ai.timefold.solver.core.impl.heuristic.HeuristicConfigPolicy;
+import ai.timefold.solver.core.impl.score.constraint.ConstraintMatchPolicy;
 import ai.timefold.solver.core.impl.score.director.InnerScoreDirectorFactory;
 import ai.timefold.solver.core.impl.solver.ClassInstanceCache;
 import ai.timefold.solver.core.impl.solver.DefaultSolver;
@@ -60,7 +61,7 @@ public final class ProblemInitializer {
 
     private static <Solution_> Solution_ initialize(Example example, Solution_ uninitializedSolution,
             InnerScoreDirectorFactory<Solution_, ?> scoreDirectorFactory) {
-        try (var scoreDirector = scoreDirectorFactory.buildScoreDirector(false, false)) {
+        try (var scoreDirector = scoreDirectorFactory.buildScoreDirector(false, ConstraintMatchPolicy.DISABLED)) {
             scoreDirector.setWorkingSolution(uninitializedSolution);
             scoreDirector.triggerVariableListeners();
             var score = scoreDirector.calculateScore();
