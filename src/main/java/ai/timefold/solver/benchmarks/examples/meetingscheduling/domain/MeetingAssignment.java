@@ -5,8 +5,6 @@ import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
 import ai.timefold.solver.core.api.domain.entity.PlanningPin;
 import ai.timefold.solver.core.api.domain.variable.PlanningVariable;
 
-import org.apache.commons.text.WordUtils;
-
 @PlanningEntity
 public class MeetingAssignment extends AbstractPersistable {
 
@@ -115,11 +113,6 @@ public class MeetingAssignment extends AbstractPersistable {
 
     public int getRequiredCapacity() {
         return meeting.getRequiredCapacity();
-    }
-
-    public String getLabel() {
-        int wrapLength = Math.max(8 * meeting.getDurationInGrains(), 16);
-        return "<html><center>" + WordUtils.wrap(meeting.getTopic(), wrapLength, "<br/>", false) + "</center></html>";
     }
 
     @Override
