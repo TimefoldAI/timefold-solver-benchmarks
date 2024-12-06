@@ -7,7 +7,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import ai.timefold.solver.benchmarks.examples.common.app.CommonApp;
 import ai.timefold.solver.benchmarks.examples.common.domain.location.AirLocation;
 import ai.timefold.solver.benchmarks.examples.common.domain.location.DistanceType;
 import ai.timefold.solver.benchmarks.examples.common.domain.location.Location;
@@ -56,19 +55,9 @@ public class VehicleRoutingImporter extends
                 solution = new VehicleRoutingSolution();
                 solution.setName(removePrefixSuffixFromLine(firstLine, "\\s*NAME\\s*:", ""));
                 readVrpWebFormat();
-            } else if (splitBySpacesOrTabs(firstLine).length == 3) {
-                timewindowed = false;
-                solution = new VehicleRoutingSolution();
-                solution.setName(CommonApp.getBaseFileName(inputFile));
-                String[] tokens = splitBySpacesOrTabs(firstLine, 3);
-                customerListSize = Integer.parseInt(tokens[0]);
-                vehicleListSize = Integer.parseInt(tokens[1]);
-                capacity = Integer.parseInt(tokens[2]);
-                readCourseraFormat();
             } else {
                 timewindowed = true;
-                solution =
-                        new TimeWindowedVehicleRoutingSolution();
+                solution = new TimeWindowedVehicleRoutingSolution();
                 solution.setName(firstLine);
                 readTimeWindowedFormat();
             }
@@ -284,50 +273,6 @@ public class VehicleRoutingImporter extends
                 vehicleList.add(vehicle);
             }
             solution.setVehicleList(vehicleList);
-        }
-
-        // ************************************************************************
-        // CVRP coursera format. See https://class.coursera.org/optimization-001/
-        // ************************************************************************
-
-        public void readCourseraFormat() throws IOException {
-            solution.setDistanceType(
-                    DistanceType.AIR_DISTANCE);
-            solution.setDistanceUnitOfMeasurement("distance");
-            List<Location> locationList =
-                    new ArrayList<>(customerListSize);
-            depotList = new ArrayList<>(1);
-            List<Customer> customerList =
-                    new ArrayList<>(customerListSize);
-            locationMap = new LinkedHashMap<>(customerListSize);
-            for (int i = 0; i < customerListSize; i++) {
-                String line = bufferedReader.readLine();
-                String[] lineTokens = splitBySpacesOrTabs(line.trim(), 3, 4);
-                AirLocation location =
-                        new AirLocation(i,
-                                Double.parseDouble(lineTokens[1]), Double.parseDouble(lineTokens[2]));
-                if (lineTokens.length >= 4) {
-                    location.setName(lineTokens[3]);
-                }
-                locationList.add(location);
-                if (i == 0) {
-                    Depot depot = new Depot(i, location);
-                    depotList.add(depot);
-                } else {
-                    int demand = Integer.parseInt(lineTokens[0]);
-                    // Do not add a customer that has no demand
-                    if (demand != 0) {
-                        // Notice that we leave the PlanningVariable properties on null
-                        Customer customer =
-                                new Customer(i, location, demand);
-                        customerList.add(customer);
-                    }
-                }
-            }
-            solution.setLocationList(locationList);
-            solution.setDepotList(depotList);
-            solution.setCustomerList(customerList);
-            createVehicleList();
         }
 
         // ************************************************************************
