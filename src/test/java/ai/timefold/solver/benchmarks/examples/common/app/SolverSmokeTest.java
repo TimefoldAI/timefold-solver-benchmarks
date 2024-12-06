@@ -43,6 +43,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
  *
  * @param <Solution_> the solution type, the class with the {@link PlanningSolution} annotation
  */
+@Execution(ExecutionMode.CONCURRENT)
 public abstract class SolverSmokeTest<Solution_, Score_ extends Score<Score_>> extends LoggingTest {
 
     private static final String MOVE_THREAD_COUNTS_STRING = System.getProperty(TestSystemProperties.MOVE_THREAD_COUNTS);

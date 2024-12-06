@@ -25,6 +25,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 /**
  * @param <Solution_> the solution type, the class with the {@link PlanningSolution} annotation
  */
+@Execution(ExecutionMode.CONCURRENT)
 public abstract class OpenDataFilesTest<Solution_> extends LoggingTest {
 
     protected abstract CommonApp<Solution_> createCommonApp();

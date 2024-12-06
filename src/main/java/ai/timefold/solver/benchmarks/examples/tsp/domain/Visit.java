@@ -2,13 +2,15 @@ package ai.timefold.solver.benchmarks.examples.tsp.domain;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.location.Location;
+import ai.timefold.solver.benchmarks.examples.tsp.domain.solver.DomicileAngleVisitDifficultyWeightFactory;
+import ai.timefold.solver.benchmarks.examples.tsp.domain.solver.DomicileDistanceStandstillStrengthWeightFactory;
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
 import ai.timefold.solver.core.api.domain.variable.PlanningVariable;
 import ai.timefold.solver.core.api.domain.variable.PlanningVariableGraphType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-@PlanningEntity
+@PlanningEntity(difficultyWeightFactoryClass = DomicileAngleVisitDifficultyWeightFactory.class)
 public class Visit extends AbstractPersistable implements Standstill {
 
     private Location location;
@@ -33,7 +35,8 @@ public class Visit extends AbstractPersistable implements Standstill {
         this.location = location;
     }
 
-    @PlanningVariable(graphType = PlanningVariableGraphType.CHAINED)
+    @PlanningVariable(graphType = PlanningVariableGraphType.CHAINED,
+            strengthWeightFactoryClass = DomicileDistanceStandstillStrengthWeightFactory.class)
     public Standstill getPreviousStandstill() {
         return previousStandstill;
     }
