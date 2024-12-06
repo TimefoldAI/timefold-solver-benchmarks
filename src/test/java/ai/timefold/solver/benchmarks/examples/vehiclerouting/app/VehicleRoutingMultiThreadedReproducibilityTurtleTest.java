@@ -8,7 +8,7 @@ import java.util.stream.IntStream;
 import ai.timefold.solver.benchmarks.examples.common.TestSystemProperties;
 import ai.timefold.solver.benchmarks.examples.common.app.CommonApp;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.persistence.VehicleRoutingImporter;
+import ai.timefold.solver.benchmarks.examples.vehiclerouting.persistence.VehicleRoutingSolutionFileIO;
 import ai.timefold.solver.core.api.solver.Solver;
 import ai.timefold.solver.core.api.solver.SolverFactory;
 import ai.timefold.solver.core.config.localsearch.LocalSearchPhaseConfig;
@@ -33,7 +33,7 @@ class VehicleRoutingMultiThreadedReproducibilityTurtleTest {
 
     private static final String MOVE_THREAD_COUNT = "4";
 
-    private static final String DATA_SET = "import/belgium/basic/air/belgium-n50-k10.vrp";
+    private static final String DATA_SET = "unsolved/cvrptw-100customers-A.json";
 
     private final VehicleRoutingApp vehicleRoutingApp =
             new VehicleRoutingApp();
@@ -44,10 +44,10 @@ class VehicleRoutingMultiThreadedReproducibilityTurtleTest {
 
     @BeforeEach
     void createUninitializedSolutions() {
-        final VehicleRoutingImporter importer = new VehicleRoutingImporter();
+        final VehicleRoutingSolutionFileIO io = new VehicleRoutingSolutionFileIO();
         for (int i = 0; i < REPETITION_COUNT; i++) {
             File dataSetFile = new File(CommonApp.determineDataDir(vehicleRoutingApp.getDataDirName()), DATA_SET);
-            VehicleRoutingSolution solution = importer.readSolution(dataSetFile);
+            VehicleRoutingSolution solution = io.read(dataSetFile);
             vehicleRoutingSolutions[i] = solution;
         }
 
