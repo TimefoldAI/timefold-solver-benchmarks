@@ -11,17 +11,21 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-class DatasetTest {
+class TSPLIBDatasetTest {
 
     @Execution(ExecutionMode.CONCURRENT)
     @ParameterizedTest
-    @EnumSource(Dataset.class)
-    void runConstructionHeuristics(Dataset dataset) {
+    @EnumSource(TSPLIBDataset.class)
+    void runConstructionHeuristics(TSPLIBDataset dataset) {
         assumeFalse(dataset.isLarge(), "Skipping large dataset: " + dataset); // CH takes too long.
         var solution = new TspImporter().readSolution(dataset.getPath().toFile());
         assertThat(solution).isNotNull();
 
-        var solverFactory = SolverFactory.create(Configuration.COMMUNITY_EDITION_TWEAKED.getSolverConfig(dataset));
+        var config = TSPLIBConfiguration.COMMUNITY_EDITION_TWEAKED.getSolverConfig(dataset);
+        var phases = config.getPhaseConfigList().subList(0, 1); // Keep only CH.
+        config.setPhaseConfigList(phases);
+
+        var solverFactory = SolverFactory.create(config);
         var solver = solverFactory.buildSolver();
         var bestSolution = solver.solve(solution);
         assertThat(bestSolution).isNotNull();

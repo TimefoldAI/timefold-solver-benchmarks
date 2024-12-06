@@ -2,6 +2,8 @@ package ai.timefold.solver.benchmarks.competitive.tsplib95;
 
 import java.nio.file.Path;
 
+import ai.timefold.solver.benchmarks.competitive.Dataset;
+
 /**
  * <dl>
  * <dt>Symmetric datasets</dt>
@@ -27,7 +29,7 @@ import java.nio.file.Path;
  * <p>
  * All of the data was downloaded on November 11, 2023 and copy-pasted manually into this file.
  */
-public enum Dataset {
+public enum TSPLIBDataset implements Dataset {
 
     a280(2579),
     ali535(202339),
@@ -164,20 +166,21 @@ public enum Dataset {
     private final boolean symmetric;
     private final boolean large;
 
-    Dataset(int bestKnownDistance) {
+    TSPLIBDataset(int bestKnownDistance) {
         this(bestKnownDistance, true);
     }
 
-    Dataset(int bestKnownDistance, boolean symmetric) {
+    TSPLIBDataset(int bestKnownDistance, boolean symmetric) {
         this(bestKnownDistance, symmetric, false);
     }
 
-    Dataset(int bestKnownDistance, boolean symmetric, boolean large) {
+    TSPLIBDataset(int bestKnownDistance, boolean symmetric, boolean large) {
         this.bestKnownDistance = bestKnownDistance;
         this.symmetric = symmetric;
         this.large = large;
     }
 
+    @Override
     public int getBestKnownDistance() {
         return bestKnownDistance;
     }
@@ -186,10 +189,12 @@ public enum Dataset {
         return symmetric;
     }
 
+    @Override
     public boolean isLarge() {
         return large;
     }
 
+    @Override
     public Path getPath() {
         var dir = isSymmetric() ? "symmetric" : "asymmetric";
         var extension = isSymmetric() ? "tsp" : "atsp";

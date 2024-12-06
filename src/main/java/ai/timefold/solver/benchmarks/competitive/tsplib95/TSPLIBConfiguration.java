@@ -1,28 +1,25 @@
 package ai.timefold.solver.benchmarks.competitive.tsplib95;
 
-import java.util.ArrayList;
-
+import ai.timefold.solver.benchmarks.competitive.AbstractCompetitiveBenchmark;
+import ai.timefold.solver.benchmarks.competitive.Configuration;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.TspSolution;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.Visit;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.solver.nearby.VisitNearbyDistanceMeter;
 import ai.timefold.solver.benchmarks.examples.tsp.score.TspConstraintProvider;
 import ai.timefold.solver.core.config.constructionheuristic.ConstructionHeuristicPhaseConfig;
 import ai.timefold.solver.core.config.constructionheuristic.ConstructionHeuristicType;
-import ai.timefold.solver.core.config.heuristic.selector.common.nearby.NearbySelectionConfig;
-import ai.timefold.solver.core.config.heuristic.selector.entity.EntitySelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.composite.UnionMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.ChangeMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.SwapMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.chained.SubChainChangeMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.chained.SubChainSwapMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.chained.TailChainSwapMoveSelectorConfig;
-import ai.timefold.solver.core.config.heuristic.selector.value.ValueSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.value.chained.SubChainSelectorConfig;
 import ai.timefold.solver.core.config.localsearch.LocalSearchPhaseConfig;
 import ai.timefold.solver.core.config.solver.SolverConfig;
 import ai.timefold.solver.core.config.solver.termination.TerminationConfig;
 
-public enum Configuration {
+public enum TSPLIBConfiguration implements Configuration<TSPLIBDataset> {
 
     /**
      * Community edition, everything left on default.
@@ -37,7 +34,8 @@ public enum Configuration {
      */
     ENTERPRISE_EDITION;
 
-    public SolverConfig getSolverConfig(Dataset dataset) {
+    @Override
+    public SolverConfig getSolverConfig(TSPLIBDataset dataset) {
         return switch (this) {
             case COMMUNITY_EDITION -> getCommunityEditionSolverConfig(dataset);
             case COMMUNITY_EDITION_TWEAKED -> getCommunityEditionTweakedSolverConfig(dataset);
@@ -45,9 +43,9 @@ public enum Configuration {
         };
     }
 
-    private static SolverConfig getCommunityEditionSolverConfig(Dataset dataset) {
+    private static SolverConfig getCommunityEditionSolverConfig(TSPLIBDataset dataset) {
         var terminationConfig = new TerminationConfig()
-                .withSecondsSpentLimit(Main.MAX_SECONDS)
+                .withSecondsSpentLimit(AbstractCompetitiveBenchmark.MAX_SECONDS)
                 .withBestScoreLimit(Long.toString(-dataset.getBestKnownDistance()));
         return new SolverConfig()
                 .withSolutionClass(TspSolution.class)
@@ -58,7 +56,7 @@ public enum Configuration {
 
     }
 
-    private static SolverConfig getCommunityEditionTweakedSolverConfig(Dataset dataset) {
+    private static SolverConfig getCommunityEditionTweakedSolverConfig(TSPLIBDataset dataset) {
         return getCommunityEditionSolverConfig(dataset)
                 .withPhases(
                         new ConstructionHeuristicPhaseConfig()
@@ -79,46 +77,11 @@ public enum Configuration {
                                                 new TailChainSwapMoveSelectorConfig())));
     }
 
-    private static SolverConfig getEnterpriseEditionSolverConfig(Dataset dataset) {
-        // Inherit community config, add move thread count.
-        var config = getCommunityEditionTweakedSolverConfig(dataset)
-                .withMoveThreadCount(Integer.toString(Main.ENTERPRISE_MOVE_THREAD_COUNT));
-        // Inherit construction heuristic.
-        var constructionHeuristicPhaseConfig = (ConstructionHeuristicPhaseConfig) config.getPhaseConfigList().get(0);
-        // Inherit local search, but add nearby selection.
-        var localSearchPhaseConfig = (LocalSearchPhaseConfig) config.getPhaseConfigList().get(1);
-        var moveSelectorConfig = (UnionMoveSelectorConfig) localSearchPhaseConfig.getMoveSelectorConfig();
-        var moveSelectorConfigList = new ArrayList<>(moveSelectorConfig.getMoveSelectorList());
-        moveSelectorConfigList.add(new ChangeMoveSelectorConfig()
-                .withEntitySelectorConfig(new EntitySelectorConfig().withId("es1"))
-                .withValueSelectorConfig(new ValueSelectorConfig()
-                        .withNearbySelectionConfig(
-                                new NearbySelectionConfig()
-                                        .withOriginEntitySelectorConfig(new EntitySelectorConfig().withMimicSelectorRef("es1"))
-                                        .withNearbyDistanceMeterClass(VisitNearbyDistanceMeter.class)
-                                        .withParabolicDistributionSizeMaximum(40))));
-        moveSelectorConfigList.add(new SwapMoveSelectorConfig()
-                .withEntitySelectorConfig(new EntitySelectorConfig().withId("es2"))
-                .withSecondaryEntitySelectorConfig(new EntitySelectorConfig()
-                        .withNearbySelectionConfig(
-                                new NearbySelectionConfig()
-                                        .withOriginEntitySelectorConfig(new EntitySelectorConfig().withMimicSelectorRef("es2"))
-                                        .withNearbyDistanceMeterClass(VisitNearbyDistanceMeter.class)
-                                        .withParabolicDistributionSizeMaximum(40))));
-        moveSelectorConfigList.add(new TailChainSwapMoveSelectorConfig()
-                .withEntitySelectorConfig(new EntitySelectorConfig().withId("es3"))
-                .withValueSelectorConfig(new ValueSelectorConfig()
-                        .withNearbySelectionConfig(
-                                new NearbySelectionConfig()
-                                        .withOriginEntitySelectorConfig(new EntitySelectorConfig().withMimicSelectorRef("es3"))
-                                        .withNearbyDistanceMeterClass(VisitNearbyDistanceMeter.class)
-                                        .withParabolicDistributionSizeMaximum(40))));
-        // Put it all together.
-        return config.withPhases(
-                constructionHeuristicPhaseConfig,
-                new LocalSearchPhaseConfig()
-                        .withMoveSelectorConfig(new UnionMoveSelectorConfig()
-                                .withMoveSelectorList(moveSelectorConfigList)));
+    private static SolverConfig getEnterpriseEditionSolverConfig(TSPLIBDataset dataset) {
+        // Inherit community config, add move thread count and nearby distance meter.
+        return getCommunityEditionTweakedSolverConfig(dataset)
+                .withMoveThreadCount(Integer.toString(AbstractCompetitiveBenchmark.ENTERPRISE_MOVE_THREAD_COUNT))
+                .withNearbyDistanceMeterClass(VisitNearbyDistanceMeter.class);
     }
 
 }
