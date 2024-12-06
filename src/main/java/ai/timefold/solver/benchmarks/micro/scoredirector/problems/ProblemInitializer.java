@@ -74,9 +74,12 @@ public final class ProblemInitializer {
             var config = new ConstructionHeuristicPhaseConfig()
                     .withConstructionHeuristicType(ConstructionHeuristicType.FIRST_FIT);
             var factory = new DefaultConstructionHeuristicPhaseFactory<Solution_>(config);
-            var policy = new HeuristicConfigPolicy.Builder<>(EnvironmentMode.REPRODUCIBLE,
-                    null, null, null, null, new Random(0), scoreDirectorFactory.getInitializingScoreTrend(),
-                    scoreDirectorFactory.getSolutionDescriptor(), ClassInstanceCache.create())
+            var policy = new HeuristicConfigPolicy.Builder<Solution_>()
+                    .withEnvironmentMode(EnvironmentMode.REPRODUCIBLE)
+                    .withRandom(new Random(0))
+                    .withInitializingScoreTrend(scoreDirectorFactory.getInitializingScoreTrend())
+                    .withSolutionDescriptor(scoreDirectorFactory.getSolutionDescriptor())
+                    .withClassInstanceCache(ClassInstanceCache.create())
                     .build();
             var bestSolutionRecaller =
                     BestSolutionRecallerFactory.create().<Solution_> buildBestSolutionRecaller(EnvironmentMode.REPRODUCIBLE);
