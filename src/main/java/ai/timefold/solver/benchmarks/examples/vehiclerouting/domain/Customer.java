@@ -1,8 +1,9 @@
 package ai.timefold.solver.benchmarks.examples.vehiclerouting.domain;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
+import ai.timefold.solver.benchmarks.examples.common.domain.location.Location;
+import ai.timefold.solver.benchmarks.examples.common.domain.location.LocationAware;
 import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.JacksonUniqueIdGenerator;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.Location;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.solver.DepotAngleCustomerDifficultyWeightFactory;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedCustomer;
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;

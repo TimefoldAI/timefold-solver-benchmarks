@@ -1,4 +1,4 @@
-package ai.timefold.solver.benchmarks.examples.tsp.domain.location;
+package ai.timefold.solver.benchmarks.examples.common.domain.location;
 
 import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.AbstractKeyDeserializer;
 import ai.timefold.solver.benchmarks.examples.tsp.persistence.TspSolutionFileIO;

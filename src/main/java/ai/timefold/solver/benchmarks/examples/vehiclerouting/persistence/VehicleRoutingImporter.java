@@ -8,17 +8,15 @@ import java.util.List;
 import java.util.Map;
 
 import ai.timefold.solver.benchmarks.examples.common.app.CommonApp;
+import ai.timefold.solver.benchmarks.examples.common.domain.location.AirLocation;
+import ai.timefold.solver.benchmarks.examples.common.domain.location.DistanceType;
+import ai.timefold.solver.benchmarks.examples.common.domain.location.Location;
+import ai.timefold.solver.benchmarks.examples.common.domain.location.RoadLocation;
 import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractTxtSolutionImporter;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Customer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Depot;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Vehicle;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.AirLocation;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.DistanceType;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.Location;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.RoadLocation;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.segmented.HubSegmentLocation;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.segmented.RoadSegmentLocation;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedCustomer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedDepot;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedVehicleRoutingSolution;
@@ -128,13 +126,6 @@ public class VehicleRoutingImporter extends
                 if (!edgeWeightFormat.equalsIgnoreCase("FULL_MATRIX")) {
                     throw new IllegalArgumentException("The edgeWeightFormat (" + edgeWeightFormat + ") is not supported.");
                 }
-            } else if (edgeWeightType.equalsIgnoreCase("SEGMENTED_EXPLICIT")) {
-                solution.setDistanceType(
-                        DistanceType.SEGMENTED_ROAD_DISTANCE);
-                String edgeWeightFormat = readStringValue("EDGE_WEIGHT_FORMAT *:");
-                if (!edgeWeightFormat.equalsIgnoreCase("HUB_AND_NEARBY_MATRIX")) {
-                    throw new IllegalArgumentException("The edgeWeightFormat (" + edgeWeightFormat + ") is not supported.");
-                }
             } else {
                 throw new IllegalArgumentException("The edgeWeightType (" + edgeWeightType + ") is not supported.");
             }
@@ -145,27 +136,7 @@ public class VehicleRoutingImporter extends
         private void readVrpWebLocationList() throws IOException {
             DistanceType distanceType =
                     solution.getDistanceType();
-            List<HubSegmentLocation> hubLocationList =
-                    null;
             locationMap = new LinkedHashMap<>(customerListSize);
-            if (distanceType == DistanceType.SEGMENTED_ROAD_DISTANCE) {
-                int hubListSize = readIntegerValue("HUBS *:");
-                hubLocationList = new ArrayList<>(hubListSize);
-                readConstantLine("HUB_COORD_SECTION");
-                for (int i = 0; i < hubListSize; i++) {
-                    String line = bufferedReader.readLine();
-                    String[] lineTokens = splitBySpacesOrTabs(line.trim(), 3, 4);
-                    HubSegmentLocation location =
-                            new HubSegmentLocation(
-                                    Long.parseLong(lineTokens[0]),
-                                    Double.parseDouble(lineTokens[1]), Double.parseDouble(lineTokens[2]));
-                    if (lineTokens.length >= 4) {
-                        location.setName(lineTokens[3]);
-                    }
-                    hubLocationList.add(location);
-                    locationMap.put(location.getId(), location);
-                }
-            }
             List<Location> customerLocationList =
                     new ArrayList<>(customerListSize);
             readConstantLine("NODE_COORD_SECTION");
@@ -175,26 +146,11 @@ public class VehicleRoutingImporter extends
                 long id = Long.parseLong(lineTokens[0]);
                 double latitude = Double.parseDouble(lineTokens[1]);
                 double longitude = Double.parseDouble(lineTokens[2]);
-                Location location;
-                switch (distanceType) {
-                    case AIR_DISTANCE:
-                        location = new AirLocation(id,
-                                latitude, longitude);
-                        break;
-                    case ROAD_DISTANCE:
-                        location = new RoadLocation(id,
-                                latitude, longitude);
-                        break;
-                    case SEGMENTED_ROAD_DISTANCE:
-                        location =
-                                new RoadSegmentLocation(
-                                        id, latitude, longitude);
-                        break;
-                    default:
-                        throw new IllegalStateException("The distanceType (" + distanceType
-                                + ") is not implemented.");
-
-                }
+                Location location = switch (distanceType) {
+                    case AIR_DISTANCE -> new AirLocation(id, latitude, longitude);
+                    case ROAD_DISTANCE -> new RoadLocation(id, latitude, longitude);
+                    default -> throw new IllegalStateException("The distanceType (" + distanceType + ") is not supported.");
+                };
                 if (lineTokens.length >= 4) {
                     location.setName(lineTokens[3]);
                 }
@@ -227,58 +183,7 @@ public class VehicleRoutingImporter extends
                     location.setTravelDistanceMap(travelDistanceMap);
                 }
             }
-            if (distanceType == DistanceType.SEGMENTED_ROAD_DISTANCE) {
-                readConstantLine("SEGMENTED_EDGE_WEIGHT_SECTION");
-                int locationListSize = hubLocationList.size() + customerListSize;
-                for (int i = 0; i < locationListSize; i++) {
-                    String line = bufferedReader.readLine();
-                    String[] lineTokens = splitBySpacesOrTabs(line.trim(), 3, null);
-                    if (lineTokens.length % 2 != 1) {
-                        throw new IllegalArgumentException("Invalid SEGMENTED_EDGE_WEIGHT_SECTION line (" + line + ").");
-                    }
-                    long id = Long.parseLong(lineTokens[0]);
-                    Location location =
-                            locationMap.get(id);
-                    if (location == null) {
-                        throw new IllegalArgumentException(
-                                "The location with id (" + id + ") of line (" + line + ") does not exist.");
-                    }
-                    Map<HubSegmentLocation, Double> hubTravelDistanceMap =
-                            new LinkedHashMap<>(lineTokens.length / 2);
-                    Map<RoadSegmentLocation, Double> nearbyTravelDistanceMap =
-                            new LinkedHashMap<>(lineTokens.length / 2);
-                    for (int j = 1; j < lineTokens.length; j += 2) {
-                        Location otherLocation =
-                                locationMap.get(Long.parseLong(lineTokens[j]));
-                        double travelDistance = Double.parseDouble(lineTokens[j + 1]);
-                        if (otherLocation instanceof HubSegmentLocation segmentLocation) {
-                            hubTravelDistanceMap.put(segmentLocation, travelDistance);
-                        } else {
-                            nearbyTravelDistanceMap.put(
-                                    (RoadSegmentLocation) otherLocation,
-                                    travelDistance);
-                        }
-                    }
-                    if (location instanceof HubSegmentLocation hubSegmentLocation) {
-                        hubSegmentLocation.setHubTravelDistanceMap(hubTravelDistanceMap);
-                        hubSegmentLocation.setNearbyTravelDistanceMap(nearbyTravelDistanceMap);
-                    } else {
-                        RoadSegmentLocation roadSegmentLocation =
-                                (RoadSegmentLocation) location;
-                        roadSegmentLocation.setHubTravelDistanceMap(hubTravelDistanceMap);
-                        roadSegmentLocation.setNearbyTravelDistanceMap(nearbyTravelDistanceMap);
-                    }
-                }
-            }
-            List<Location> locationList;
-            if (distanceType == DistanceType.SEGMENTED_ROAD_DISTANCE) {
-                locationList = new ArrayList<>(hubLocationList.size() + customerListSize);
-                locationList.addAll(hubLocationList);
-                locationList.addAll(customerLocationList);
-            } else {
-                locationList = customerLocationList;
-            }
-            solution.setLocationList(locationList);
+            solution.setLocationList(customerLocationList);
         }
 
         private void readVrpWebCustomerList() throws IOException {

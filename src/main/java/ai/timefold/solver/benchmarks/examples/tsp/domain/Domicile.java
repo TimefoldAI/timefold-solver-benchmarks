@@ -1,7 +1,7 @@
 package ai.timefold.solver.benchmarks.examples.tsp.domain;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
-import ai.timefold.solver.benchmarks.examples.tsp.domain.location.Location;
+import ai.timefold.solver.benchmarks.examples.common.domain.location.Location;
 
 public class Domicile extends AbstractPersistable implements Standstill {
 

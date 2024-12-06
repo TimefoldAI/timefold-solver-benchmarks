@@ -1,4 +1,4 @@
-package ai.timefold.solver.benchmarks.examples.tsp.domain.location;
+package ai.timefold.solver.benchmarks.examples.common.domain.location;
 
 /**
  * The cost between 2 locations is a straight line: the euclidean distance between their GPS coordinates.

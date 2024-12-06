@@ -1,7 +1,7 @@
 package ai.timefold.solver.benchmarks.examples.tsp.domain;
 
+import ai.timefold.solver.benchmarks.examples.common.domain.location.LocationAware;
 import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.JacksonUniqueIdGenerator;
-import ai.timefold.solver.benchmarks.examples.tsp.domain.location.Location;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -16,12 +16,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 })
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonIdentityInfo(generator = JacksonUniqueIdGenerator.class)
-public interface Standstill {
-
-    /**
-     * @return never null
-     */
-    Location getLocation();
+public interface Standstill extends LocationAware {
 
     /**
      * @param standstill never null

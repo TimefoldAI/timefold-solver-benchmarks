@@ -4,12 +4,10 @@ import java.io.File;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import ai.timefold.solver.benchmarks.examples.common.domain.location.DistanceType;
+import ai.timefold.solver.benchmarks.examples.common.domain.location.RoadLocation;
 import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractJsonSolutionFileIO;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.DistanceType;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.RoadLocation;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.segmented.HubSegmentLocation;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.segmented.RoadSegmentLocation;
 
 public class VehicleRoutingSolutionFileIO extends
         AbstractJsonSolutionFileIO<VehicleRoutingSolution> {
@@ -23,11 +21,8 @@ public class VehicleRoutingSolutionFileIO extends
         VehicleRoutingSolution vehicleRoutingSolution =
                 super.read(inputSolutionFile);
 
-        if (vehicleRoutingSolution
-                .getDistanceType() == DistanceType.ROAD_DISTANCE) {
+        if (vehicleRoutingSolution.getDistanceType() == DistanceType.ROAD_DISTANCE) {
             deduplicateRoadLocations(vehicleRoutingSolution);
-        } else if (vehicleRoutingSolution.getDistanceType() == DistanceType.SEGMENTED_ROAD_DISTANCE) {
-            deduplicateRoadSegments(vehicleRoutingSolution);
         }
 
         return vehicleRoutingSolution;
@@ -38,7 +33,7 @@ public class VehicleRoutingSolutionFileIO extends
         var roadLocationList = vehicleRoutingSolution.getLocationList().stream()
                 .filter(location -> location instanceof RoadLocation)
                 .map(location -> (RoadLocation) location)
-                .collect(Collectors.toList());
+                .toList();
         var locationsById = roadLocationList.stream()
                 .collect(Collectors.toMap(
                         RoadLocation::getId,
@@ -54,42 +49,4 @@ public class VehicleRoutingSolutionFileIO extends
         }
     }
 
-    private void deduplicateRoadSegments(VehicleRoutingSolution vehicleRoutingSolution) {
-        var hubSegmentLocationList = vehicleRoutingSolution.getLocationList().stream()
-                .filter(location -> location instanceof HubSegmentLocation)
-                .map(location -> (HubSegmentLocation) location)
-                .collect(Collectors.toList());
-        var roadSegmentLocationList = vehicleRoutingSolution.getLocationList().stream()
-                .filter(location -> location instanceof RoadSegmentLocation)
-                .map(location -> (RoadSegmentLocation) location)
-                .collect(Collectors.toList());
-        var hubSegmentLocationsById = hubSegmentLocationList.stream()
-                .collect(Collectors.toMap(
-                        HubSegmentLocation::getId,
-                        Function.identity()));
-        var roadSegmentLocationsById = roadSegmentLocationList.stream()
-                .collect(Collectors.toMap(
-                        RoadSegmentLocation::getId,
-                        Function.identity()));
-
-        for (HubSegmentLocation hubSegmentLocation : hubSegmentLocationList) {
-            var newHubTravelDistanceMap = deduplicateMap(hubSegmentLocation.getHubTravelDistanceMap(),
-                    hubSegmentLocationsById,
-                    HubSegmentLocation::getId);
-            var newNearbyTravelDistanceMap = deduplicateMap(hubSegmentLocation.getNearbyTravelDistanceMap(),
-                    roadSegmentLocationsById,
-                    RoadSegmentLocation::getId);
-            hubSegmentLocation.setHubTravelDistanceMap(newHubTravelDistanceMap);
-            hubSegmentLocation.setNearbyTravelDistanceMap(newNearbyTravelDistanceMap);
-        }
-
-        for (RoadSegmentLocation roadSegmentLocation : roadSegmentLocationList) {
-            var newHubTravelDistanceMap = deduplicateMap(roadSegmentLocation.getHubTravelDistanceMap(),
-                    hubSegmentLocationsById, HubSegmentLocation::getId);
-            var newNearbyTravelDistanceMap = deduplicateMap(roadSegmentLocation.getNearbyTravelDistanceMap(),
-                    roadSegmentLocationsById, RoadSegmentLocation::getId);
-            roadSegmentLocation.setHubTravelDistanceMap(newHubTravelDistanceMap);
-            roadSegmentLocation.setNearbyTravelDistanceMap(newNearbyTravelDistanceMap);
-        }
-    }
 }

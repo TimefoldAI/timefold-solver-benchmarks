@@ -1,4 +1,4 @@
-package ai.timefold.solver.benchmarks.examples.tsp.domain.location;
+package ai.timefold.solver.benchmarks.examples.common.domain.location;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
 import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.JacksonUniqueIdGenerator;

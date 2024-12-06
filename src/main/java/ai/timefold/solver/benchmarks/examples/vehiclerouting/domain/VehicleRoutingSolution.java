@@ -4,8 +4,8 @@ import java.text.NumberFormat;
 import java.util.List;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.DistanceType;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.Location;
+import ai.timefold.solver.benchmarks.examples.common.domain.location.DistanceType;
+import ai.timefold.solver.benchmarks.examples.common.domain.location.Location;
 import ai.timefold.solver.core.api.domain.solution.PlanningEntityCollectionProperty;
 import ai.timefold.solver.core.api.domain.solution.PlanningScore;
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;

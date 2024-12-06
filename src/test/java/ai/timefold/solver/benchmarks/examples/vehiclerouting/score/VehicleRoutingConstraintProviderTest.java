@@ -2,14 +2,14 @@ package ai.timefold.solver.benchmarks.examples.vehiclerouting.score;
 
 import java.util.Arrays;
 
+import ai.timefold.solver.benchmarks.examples.common.domain.location.AirLocation;
+import ai.timefold.solver.benchmarks.examples.common.domain.location.Location;
 import ai.timefold.solver.benchmarks.examples.common.score.AbstractConstraintProviderTest;
 import ai.timefold.solver.benchmarks.examples.common.score.ConstraintProviderTest;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Customer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Depot;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Vehicle;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.AirLocation;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.Location;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedCustomer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedDepot;
 import ai.timefold.solver.test.api.score.stream.ConstraintVerifier;
@@ -63,7 +63,7 @@ class VehicleRoutingConstraintProviderTest
         constraintVerifier.verifyThat(
                 VehicleRoutingConstraintProvider::distanceToPreviousStandstill)
                 .given(vehicleA, customer1, customer2)
-                .penalizesBy(9000L);
+                .penalizesBy(9L);
     }
 
     @ConstraintProviderTest
@@ -78,7 +78,7 @@ class VehicleRoutingConstraintProviderTest
         constraintVerifier.verifyThat(
                 VehicleRoutingConstraintProvider::distanceFromLastCustomerToDepot)
                 .given(vehicleA, customer1, customer2)
-                .penalizesBy(3000L);
+                .penalizesBy(3L);
     }
 
     @ConstraintProviderTest
