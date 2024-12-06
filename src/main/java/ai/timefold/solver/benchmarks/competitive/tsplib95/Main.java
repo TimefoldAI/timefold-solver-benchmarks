@@ -18,18 +18,28 @@ public class Main extends AbstractCompetitiveBenchmark<TSPLIBDataset, TSPLIBConf
     }
 
     @Override
+    protected String getLibraryName() {
+        return "TSPLIB95";
+    }
+
+    @Override
     protected SimpleLongScore extractScore(TspSolution tspSolution) {
         return tspSolution.getScore();
     }
 
     @Override
-    protected long extractScore(SimpleLongScore score) {
-        return score.score();
+    protected long extractDistance(SimpleLongScore score) {
+        return -score.score();
     }
 
     @Override
     protected int countLocations(TspSolution tspSolution) {
         return tspSolution.getVisitList().size();
+    }
+
+    @Override
+    protected int countVehicles(TspSolution tspSolution) {
+        return 1;
     }
 
     @Override

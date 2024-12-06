@@ -11,9 +11,9 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
+@Execution(ExecutionMode.CONCURRENT)
 class CVRPLIBDatasetTest {
 
-    @Execution(ExecutionMode.CONCURRENT)
     @ParameterizedTest
     @EnumSource(CVRPLIBDataset.class)
     void runConstructionHeuristics(CVRPLIBDataset dataset) {

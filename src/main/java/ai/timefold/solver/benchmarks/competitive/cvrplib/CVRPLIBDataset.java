@@ -7,7 +7,7 @@ import ai.timefold.solver.benchmarks.competitive.Dataset;
 /**
  * TODO document the source of the data.
  */
-public enum CVRPLIBDataset implements Dataset {
+public enum CVRPLIBDataset implements Dataset<CVRPLIBDataset> {
 
     A_N32_K5("A-n32-k5.vrp", 784),
     A_N33_K5("A-n33-k5.vrp", 661),

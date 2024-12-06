@@ -9,8 +9,6 @@ import java.util.Map;
 
 import ai.timefold.solver.benchmarks.examples.common.app.CommonApp;
 import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractTxtSolutionImporter;
-import ai.timefold.solver.benchmarks.examples.common.persistence.SolutionConverter;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.app.VehicleRoutingApp;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Customer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Depot;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Vehicle;
@@ -27,20 +25,6 @@ import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed
 
 public class VehicleRoutingImporter extends
         AbstractTxtSolutionImporter<VehicleRoutingSolution> {
-
-    public static void main(String[] args) {
-        SolutionConverter<VehicleRoutingSolution> converter =
-                SolutionConverter.createImportConverter(
-                        VehicleRoutingApp.DATA_DIR_NAME, new VehicleRoutingImporter(), new VehicleRoutingSolutionFileIO());
-        converter.convert("vrpweb/basic/air/A-n33-k6.vrp", "cvrp-32customers.json");
-        converter.convert("vrpweb/basic/air/A-n55-k9.vrp", "cvrp-54customers.json");
-        converter.convert("vrpweb/basic/air/F-n72-k4.vrp", "cvrp-72customers.json");
-        converter.convert("vrpweb/timewindowed/air/Solomon_025_C101.vrp", "cvrptw-25customers.json");
-        converter.convert("vrpweb/timewindowed/air/Solomon_100_R101.vrp", "cvrptw-100customers-A.json");
-        converter.convert("vrpweb/timewindowed/air/Solomon_100_R201.vrp", "cvrptw-100customers-B.json");
-        converter.convert("vrpweb/timewindowed/air/Homberger_0400_R1_4_1.vrp", "cvrptw-400customers.json");
-        converter.convert("vrpweb/basic/road-unknown/bays-n29-k5.vrp", "road-cvrp-29customers.json");
-    }
 
     @Override
     public String getInputFileSuffix() {

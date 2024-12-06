@@ -2,7 +2,7 @@ package ai.timefold.solver.benchmarks.competitive;
 
 import java.nio.file.Path;
 
-public interface Dataset {
+public interface Dataset<Dataset_> extends Comparable<Dataset_> {
 
     String name();
 

@@ -14,8 +14,7 @@ import ai.timefold.solver.core.impl.heuristic.selector.common.decorator.Selectio
  * On large datasets, the constructed solution looks like pizza slices.
  */
 public class DepotAngleCustomerDifficultyWeightFactory
-        implements
-        SelectionSorterWeightFactory<VehicleRoutingSolution, Customer> {
+        implements SelectionSorterWeightFactory<VehicleRoutingSolution, Customer> {
 
     @Override
     public DepotAngleCustomerDifficultyWeight createSorterWeight(VehicleRoutingSolution vehicleRoutingSolution,

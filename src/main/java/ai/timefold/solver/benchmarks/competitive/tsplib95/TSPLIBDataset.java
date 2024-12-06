@@ -29,7 +29,7 @@ import ai.timefold.solver.benchmarks.competitive.Dataset;
  * <p>
  * All of the data was downloaded on November 11, 2023 and copy-pasted manually into this file.
  */
-public enum TSPLIBDataset implements Dataset {
+public enum TSPLIBDataset implements Dataset<TSPLIBDataset> {
 
     a280(2579),
     ali535(202339),

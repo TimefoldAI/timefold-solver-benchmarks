@@ -19,18 +19,28 @@ public class Main
     }
 
     @Override
+    protected String getLibraryName() {
+        return "CVRPLIB";
+    }
+
+    @Override
     protected HardSoftLongScore extractScore(VehicleRoutingSolution vehicleRoutingSolution) {
         return vehicleRoutingSolution.getScore();
     }
 
     @Override
-    protected long extractScore(HardSoftLongScore score) {
-        return score.softScore();
+    protected long extractDistance(HardSoftLongScore score) {
+        return -score.softScore();
     }
 
     @Override
     protected int countLocations(VehicleRoutingSolution vehicleRoutingSolution) {
         return vehicleRoutingSolution.getCustomerList().size();
+    }
+
+    @Override
+    protected int countVehicles(VehicleRoutingSolution vehicleRoutingSolution) {
+        return vehicleRoutingSolution.getVehicleList().size();
     }
 
     @Override
