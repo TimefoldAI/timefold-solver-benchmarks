@@ -116,6 +116,7 @@ public class VehicleRoutingImporter extends
                 throw new IllegalArgumentException("The edgeWeightType (" + edgeWeightType + ") is not supported.");
             }
             solution.setDistanceUnitOfMeasurement(readOptionalStringValue("EDGE_WEIGHT_UNIT_OF_MEASUREMENT *:", "distance"));
+            readOptionalConstantLine("NODE_COORD_TYPE *:.*");
             capacity = readIntegerValue("CAPACITY *:");
             return lowerDiag;
         }
@@ -142,7 +143,7 @@ public class VehicleRoutingImporter extends
         private void setDistancesSymmetrical(Map<Long, Location> locationMap, int locationListSize,
                 Map<LocationPair, Double> distanceMap) {
             if (locationMap.isEmpty()) {
-                for (int i = 1; i <= locationListSize; i++) {
+                for (int i = 1; i <= locationListSize; i++) { // The datasets indexes customers from 1.
                     RoadLocation roadLocation = new RoadLocation(i);
                     roadLocation.setTravelDistanceMap(new LinkedHashMap<>());
                     locationMap.put(roadLocation.getId(), roadLocation);
@@ -151,6 +152,7 @@ public class VehicleRoutingImporter extends
             locationMap.forEach((id, location) -> {
                 var roadLocation = (RoadLocation) location;
                 distanceMap.forEach((locationPair, distance) -> {
+                    // Locations are indexed from 1, but the locationMap is indexed from 0.
                     if (locationPair.locationA + 1 == roadLocation.getId()) {
                         RoadLocation otherLocation = (RoadLocation) locationMap.get(locationPair.locationB + 1);
                         roadLocation.getTravelDistanceMap().put(otherLocation, distance);
@@ -256,7 +258,7 @@ public class VehicleRoutingImporter extends
         }
 
         private void readVrpWebCustomerList() throws IOException {
-            readConstantLine("DEMAND_SECTION");
+            readUntilConstantLine("DEMAND_SECTION");
             depotList = new ArrayList<>(customerListSize);
             List<Customer> customerList = new ArrayList<>(customerListSize);
             for (int i = 0; i < customerListSize; i++) {

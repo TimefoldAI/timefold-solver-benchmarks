@@ -9,16 +9,16 @@ import ai.timefold.solver.benchmarks.competitive.Dataset;
  * <p>
  * Out of that, roughly 100 datasets were excluded because there was no easy way to get the expected number of vehicles:
  * <ul>
- *     <li>Golden et al.</li>
- *     <li>Li et al.</li>
- *     <li>Arnold, Gendreau and Sörensen</li>
- *     <li>Rochat and Taillard</li>
- *     <li>Christofides, Mingozzi and Toth (1979)</li>
+ * <li>Golden et al.</li>
+ * <li>Li et al.</li>
+ * <li>Arnold, Gendreau and Sörensen</li>
+ * <li>Rochat and Taillard</li>
+ * <li>Christofides, Mingozzi and Toth (1979)</li>
  * </ul>
  * <p>
  * Some were removed for other reasons:
  * <ul>
- *     <li>XML100; hundreds of very similar, seemingly randomly generated datasets.</li>
+ * <li>XML100; hundreds of very similar, seemingly randomly generated datasets.</li>
  * </ul>
  *
  */
