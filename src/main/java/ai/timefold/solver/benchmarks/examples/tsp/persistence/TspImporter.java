@@ -9,8 +9,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import ai.timefold.solver.benchmarks.examples.common.app.CommonApp;
-import ai.timefold.solver.benchmarks.examples.common.domain.location.AirLocation;
 import ai.timefold.solver.benchmarks.examples.common.domain.location.DistanceType;
 import ai.timefold.solver.benchmarks.examples.common.domain.location.Location;
 import ai.timefold.solver.benchmarks.examples.common.domain.location.RoadLocation;
@@ -59,14 +57,8 @@ public class TspImporter extends AbstractTxtSolutionImporter<TspSolution> {
         public TspSolution readSolution() throws IOException {
             tspSolution = new TspSolution(0);
             String firstLine = readStringValue();
-            if (firstLine.matches("\\s*NAME\\s*:.*")) {
-                tspSolution.setName(removePrefixSuffixFromLine(firstLine, "\\s*NAME\\s*:", ""));
-                readTspLibFormat();
-            } else {
-                tspSolution.setName(CommonApp.getBaseFileName(inputFile));
-                locationListSize = Integer.parseInt(firstLine.trim());
-                readCourseraFormat();
-            }
+            tspSolution.setName(removePrefixSuffixFromLine(firstLine, "\\s*NAME\\s*:", ""));
+            readTspLibFormat();
             BigInteger possibleSolutionSize = factorial(tspSolution.getLocationList().size() - 1);
             logger.info("TspSolution {} has {} locations with a search space of {}.", getInputId(),
                     tspSolution.getLocationList().size(), getFlooredPossibleSolutionSize(possibleSolutionSize));
@@ -428,23 +420,6 @@ public class TspImporter extends AbstractTxtSolutionImporter<TspSolution> {
                 visit.setPreviousStandstill(previousStandstill);
                 previousStandstill = visit;
             }
-        }
-
-        // ************************************************************************
-        // TSP coursera format. See https://class.coursera.org/optimization-001/
-        // ************************************************************************
-
-        private void readCourseraFormat() throws IOException {
-            List<Location> locationList = new ArrayList<>(locationListSize);
-            long id = 0;
-            for (int i = 0; i < locationListSize; i++) {
-                String line = bufferedReader.readLine();
-                String[] lineTokens = splitBySpace(line, 2);
-                Location location = new AirLocation(id, Double.parseDouble(lineTokens[0]), Double.parseDouble(lineTokens[1]));
-                locationList.add(location);
-            }
-            tspSolution.setLocationList(locationList);
-            createVisitsFromLocations(tspSolution);
         }
 
     }
