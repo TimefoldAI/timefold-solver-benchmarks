@@ -103,6 +103,7 @@ public class VehicleRoutingImporter extends
                 default:
                     throw new IllegalArgumentException("The vrpType (" + vrpType + ") is not supported.");
             }
+            readOptionalConstantLine("COMMENT *:.*");
             customerListSize = readIntegerValue("DIMENSION *:");
             String edgeWeightType = readStringValue("EDGE_WEIGHT_TYPE *:");
             if (edgeWeightType.equalsIgnoreCase("EUC_2D")) {
@@ -263,13 +264,10 @@ public class VehicleRoutingImporter extends
         }
 
         private void createVehicleList() {
-            List<Vehicle> vehicleList =
-                    new ArrayList<>(vehicleListSize);
-            long id = 0;
+            List<Vehicle> vehicleList = new ArrayList<>(vehicleListSize);
             for (int i = 0; i < vehicleListSize; i++) {
                 // Round robin the vehicles to a depot if there are multiple depots
-                Vehicle vehicle =
-                        new Vehicle(i, capacity, depotList.get(i % depotList.size()));
+                Vehicle vehicle = new Vehicle(i, capacity, depotList.get(i % depotList.size()));
                 vehicleList.add(vehicle);
             }
             solution.setVehicleList(vehicleList);
