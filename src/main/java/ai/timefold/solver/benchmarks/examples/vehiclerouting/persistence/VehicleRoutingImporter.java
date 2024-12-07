@@ -3,6 +3,8 @@ package ai.timefold.solver.benchmarks.examples.vehiclerouting.persistence;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +53,6 @@ public class VehicleRoutingImporter extends
                 throws IOException {
             String firstLine = readStringValue();
             if (firstLine.matches("\\s*NAME\\s*:.*")) {
-                // Might be replaced by TimeWindowedVehicleRoutingSolution later on
                 solution = new VehicleRoutingSolution();
                 solution.setName(removePrefixSuffixFromLine(firstLine, "\\s*NAME\\s*:", ""));
                 readVrpWebFormat();
@@ -78,57 +79,135 @@ public class VehicleRoutingImporter extends
         // ************************************************************************
 
         public void readVrpWebFormat() throws IOException {
-            readVrpWebHeaders();
-            readVrpWebLocationList();
+            if (readVrpWebHeaders()) {
+                readLowerRowVrpWebLocationList();
+            } else {
+                readFullVrpWebLocationList();
+            }
             readVrpWebCustomerList();
             readVrpWebDepotList();
             createVrpWebVehicleList();
             readConstantLine("EOF");
         }
 
-        private void readVrpWebHeaders() throws IOException {
+        private boolean readVrpWebHeaders() throws IOException {
             skipOptionalConstantLines("COMMENT *:.*");
             String vrpType = readStringValue("TYPE *:");
-            switch (vrpType) {
-                case "CVRP":
-                    timewindowed = false;
-                    break;
-                case "CVRPTW":
-                    timewindowed = true;
-                    Long solutionId = solution.getId();
-                    String solutionName = solution.getName();
-                    solution = new TimeWindowedVehicleRoutingSolution(solutionId);
-                    solution.setName(solutionName);
-                    break;
-                default:
-                    throw new IllegalArgumentException("The vrpType (" + vrpType + ") is not supported.");
+            if (vrpType.equals("CVRP")) {
+                timewindowed = false;
+            } else {
+                throw new IllegalArgumentException("The vrpType (" + vrpType + ") is not supported at this point.");
             }
             readOptionalConstantLine("COMMENT *:.*");
             customerListSize = readIntegerValue("DIMENSION *:");
             String edgeWeightType = readStringValue("EDGE_WEIGHT_TYPE *:");
+            boolean lowerDiag = false;
             if (edgeWeightType.equalsIgnoreCase("EUC_2D")) {
-                solution.setDistanceType(
-                        DistanceType.AIR_DISTANCE);
+                solution.setDistanceType(DistanceType.AIR_DISTANCE);
             } else if (edgeWeightType.equalsIgnoreCase("EXPLICIT")) {
-                solution.setDistanceType(
-                        DistanceType.ROAD_DISTANCE);
+                solution.setDistanceType(DistanceType.ROAD_DISTANCE);
                 String edgeWeightFormat = readStringValue("EDGE_WEIGHT_FORMAT *:");
-                if (!edgeWeightFormat.equalsIgnoreCase("FULL_MATRIX")) {
+                if (!edgeWeightFormat.equalsIgnoreCase("LOWER_ROW")) {
                     throw new IllegalArgumentException("The edgeWeightFormat (" + edgeWeightFormat + ") is not supported.");
                 }
+                lowerDiag = true;
+                readOptionalConstantLine("DISPLAY_DATA_TYPE *:.*");
             } else {
                 throw new IllegalArgumentException("The edgeWeightType (" + edgeWeightType + ") is not supported.");
             }
             solution.setDistanceUnitOfMeasurement(readOptionalStringValue("EDGE_WEIGHT_UNIT_OF_MEASUREMENT *:", "distance"));
             capacity = readIntegerValue("CAPACITY *:");
+            return lowerDiag;
         }
 
-        private void readVrpWebLocationList() throws IOException {
-            DistanceType distanceType =
-                    solution.getDistanceType();
+        private void readLowerRowVrpWebLocationList() throws IOException {
             locationMap = new LinkedHashMap<>(customerListSize);
-            List<Location> customerLocationList =
-                    new ArrayList<>(customerListSize);
+            setDistancesFromLowerRowMatrix(locationMap, customerListSize);
+            solution.setLocationList(new ArrayList<>(locationMap.values()));
+        }
+
+        private void setDistancesFromLowerRowMatrix(Map<Long, Location> locationMap, int locationListSize) throws IOException {
+            Map<LocationPair, Double> distanceMap = new HashMap<>();
+            String[][] lineTokens = readLowerRowMatrix(locationListSize);
+            for (int locationA = 1; locationA <= lineTokens.length; locationA++) {
+                var positionA = locationA - 1;
+                for (int locationB = 0; locationB < locationA; locationB++) {
+                    distanceMap.put(new LocationPair(locationA, locationB),
+                            Double.parseDouble(lineTokens[positionA][locationB]));
+                }
+            }
+            setDistancesSymmetrical(locationMap, locationListSize, distanceMap);
+        }
+
+        private void setDistancesSymmetrical(Map<Long, Location> locationMap, int locationListSize,
+                Map<LocationPair, Double> distanceMap) {
+            if (locationMap.isEmpty()) {
+                for (int i = 1; i <= locationListSize; i++) {
+                    RoadLocation roadLocation = new RoadLocation(i);
+                    roadLocation.setTravelDistanceMap(new LinkedHashMap<>());
+                    locationMap.put(roadLocation.getId(), roadLocation);
+                }
+            }
+            locationMap.forEach((id, location) -> {
+                var roadLocation = (RoadLocation) location;
+                distanceMap.forEach((locationPair, distance) -> {
+                    if (locationPair.locationA + 1 == roadLocation.getId()) {
+                        RoadLocation otherLocation = (RoadLocation) locationMap.get(locationPair.locationB + 1);
+                        roadLocation.getTravelDistanceMap().put(otherLocation, distance);
+                        otherLocation.getTravelDistanceMap().put(roadLocation, distance);
+                    }
+                });
+            });
+        }
+
+        private String[][] readLowerRowMatrix(int expectedLocations) throws IOException {
+            List<String> tokens = readRowMatrix(expectedLocations);
+            // Split array into chunks of expectedLocations
+            String[][] tokenArray = new String[expectedLocations - 1][];
+            List<String> unprocessedTokens = tokens;
+            int expectedTokenCount = 1;
+            for (int i = 0; i < expectedLocations - 1; i++) {
+                tokenArray[i] = unprocessedTokens.subList(0, expectedTokenCount).toArray(new String[0]);
+                unprocessedTokens = unprocessedTokens.subList(expectedTokenCount, unprocessedTokens.size());
+                expectedTokenCount = expectedTokenCount + 1;
+            }
+            if (!unprocessedTokens.isEmpty()) {
+                throw new IllegalStateException("Not all tokens processed: " + unprocessedTokens);
+            }
+            return tokenArray;
+        }
+
+        private List<String> readRowMatrix(int expectedLocations) throws IOException {
+            int unreadTokens = (int) Math.round(expectedLocations * ((expectedLocations - 1) / 2.0));
+            return readMatrix(unreadTokens);
+        }
+
+        private List<String> readMatrix(int unreadTokens) throws IOException {
+            readConstantLine("EDGE_WEIGHT_SECTION");
+            List<String> tokens = new ArrayList<>(unreadTokens);
+            while (unreadTokens > 0) {
+                String line = bufferedReader.readLine();
+                if (line == null) {
+                    throw new IllegalStateException("Unprocessed tokens: " + unreadTokens);
+                } else if (line.trim().isEmpty()) {
+                    continue;
+                }
+                List<String> lineTokens = Arrays.stream(splitBySpace(line, 1, unreadTokens, true, true))
+                        .peek(t -> {
+                            if (!t.chars().allMatch(Character::isDigit)) {
+                                throw new IllegalStateException("Token is not a number: " + t);
+                            }
+                        }).toList();
+                tokens.addAll(lineTokens);
+                unreadTokens -= lineTokens.size();
+            }
+            return tokens;
+        }
+
+        private void readFullVrpWebLocationList() throws IOException {
+            DistanceType distanceType = solution.getDistanceType();
+            locationMap = new LinkedHashMap<>(customerListSize);
+            List<Location> customerLocationList = new ArrayList<>(customerListSize);
             readConstantLine("NODE_COORD_SECTION");
             for (int i = 0; i < customerListSize; i++) {
                 String line = bufferedReader.readLine();
@@ -179,8 +258,7 @@ public class VehicleRoutingImporter extends
         private void readVrpWebCustomerList() throws IOException {
             readConstantLine("DEMAND_SECTION");
             depotList = new ArrayList<>(customerListSize);
-            List<Customer> customerList =
-                    new ArrayList<>(customerListSize);
+            List<Customer> customerList = new ArrayList<>(customerListSize);
             for (int i = 0; i < customerListSize; i++) {
                 String line = bufferedReader.readLine();
                 String[] lineTokens = splitBySpacesOrTabs(line.trim(), timewindowed ? 5 : 2);
@@ -188,8 +266,7 @@ public class VehicleRoutingImporter extends
                 int demand = Integer.parseInt(lineTokens[1]);
                 // Depots have no demand
                 if (demand == 0) {
-                    Location location =
-                            locationMap.get(id);
+                    Location location = locationMap.get(id);
                     if (location == null) {
                         throw new IllegalArgumentException("The depot with id (" + id
                                 + ") has no location (" + location + ").");
@@ -208,8 +285,7 @@ public class VehicleRoutingImporter extends
                         depotList.add(new Depot(id, location));
                     }
                 } else {
-                    Location location =
-                            locationMap.get(id);
+                    Location location = locationMap.get(id);
                     if (location == null) {
                         throw new IllegalArgumentException("The customer with id (" + id
                                 + ") has no location (" + location + ").");
@@ -355,6 +431,9 @@ public class VehicleRoutingImporter extends
             customerListSize = locationList.size();
         }
 
+    }
+
+    private record LocationPair(long locationA, long locationB) {
     }
 
 }
