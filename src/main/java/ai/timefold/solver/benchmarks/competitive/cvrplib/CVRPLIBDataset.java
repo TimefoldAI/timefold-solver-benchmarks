@@ -5,7 +5,21 @@ import java.nio.file.Path;
 import ai.timefold.solver.benchmarks.competitive.Dataset;
 
 /**
- * TODO document the source of the data.
+ * The datasets come <a href="http://vrp.galgos.inf.puc-rio.br/index.php/en/">from here</a>.
+ * <p>
+ * Some were removed because there was no easy way to get the expected number of vehicles:
+ * <ul>
+ *     <li>Golden et al.</li>
+ *     <li>Li et al.</li>
+ *     <li>Arnold, Gendreau and Sörensen</li>
+ *     <li>Rochat and Taillard</li>
+ * </ul>
+ * <p>
+ * Some were removed for other reasons:
+ * <ul>
+ *     <li>XML100; hundreds of very similar, seemingly randomly generated datasets.</li>
+ * </ul>
+ *
  */
 public enum CVRPLIBDataset implements Dataset<CVRPLIBDataset> {
 
@@ -486,19 +500,6 @@ public enum CVRPLIBDataset implements Dataset<CVRPLIBDataset> {
     RC2_8_7("RC2_8_7.txt", 16362),
     RC2_8_8("RC2_8_8.txt", 15528),
     RC2_8_9("RC2_8_9.txt", 15177),
-    TAI100A("tai100a.vrp", 2041),
-    TAI100B("tai100b.vrp", 1939),
-    TAI100C("tai100c.vrp", 1406),
-    TAI100D("tai100d.vrp", 1580),
-    TAI150A("tai150a.vrp", 3055),
-    TAI150B("tai150b.vrp", 2727),
-    TAI150C("tai150c.vrp", 2358),
-    TAI150D("tai150d.vrp", 2645),
-    TAI385("tai385.vrp", 24366),
-    TAI75A("tai75a.vrp", 1618),
-    TAI75B("tai75b.vrp", 1344),
-    TAI75C("tai75c.vrp", 1291),
-    TAI75D("tai75d.vrp", 1365),
     X_N1001_K43("X-n1001-k43.vrp", 72355),
     X_N101_K25("X-n101-k25.vrp", 27591),
     X_N106_K14("X-n106-k14.vrp", 26362),
