@@ -7,12 +7,13 @@ import ai.timefold.solver.benchmarks.competitive.Dataset;
 /**
  * The datasets come <a href="http://vrp.galgos.inf.puc-rio.br/index.php/en/">from here</a>.
  * <p>
- * Some were removed because there was no easy way to get the expected number of vehicles:
+ * Out of that, roughly 100 datasets were excluded because there was no easy way to get the expected number of vehicles:
  * <ul>
  *     <li>Golden et al.</li>
  *     <li>Li et al.</li>
  *     <li>Arnold, Gendreau and Sörensen</li>
  *     <li>Rochat and Taillard</li>
+ *     <li>Christofides, Mingozzi and Toth (1979)</li>
  * </ul>
  * <p>
  * Some were removed for other reasons:
@@ -190,20 +191,6 @@ public enum CVRPLIBDataset implements Dataset<CVRPLIBDataset> {
     C2_8_7("C2_8_7.txt", 11332),
     C2_8_8("C2_8_8.txt", 11133),
     C2_8_9("C2_8_9.txt", 11140),
-    CMT1("CMT1.vrp", 524),
-    CMT10("CMT10.vrp", 1395),
-    CMT11("CMT11.vrp", 1042),
-    CMT12("CMT12.vrp", 819),
-    CMT13("CMT13.vrp", 1541),
-    CMT14("CMT14.vrp", 866),
-    CMT2("CMT2.vrp", 835),
-    CMT3("CMT3.vrp", 826),
-    CMT4("CMT4.vrp", 1028),
-    CMT5("CMT5.vrp", 1291),
-    CMT6("CMT6.vrp", 555),
-    CMT7("CMT7.vrp", 909),
-    CMT8("CMT8.vrp", 865),
-    CMT9("CMT9.vrp", 1162),
     E_N101_K14("E-n101-k14.vrp", 1067),
     E_N101_K8("E-n101-k8.vrp", 815),
     E_N13_K4("E-n13-k4.vrp", 247),
