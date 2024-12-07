@@ -148,6 +148,8 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
     private String getComment(long bestKnown, Score_ actual) {
         if (!actual.isSolutionInitialized()) {
             return "Uninitialized.";
+        } else if (!actual.isFeasible()) {
+            return "Infeasible.";
         }
         long actualScore = extractDistance(actual);
         if (actualScore == bestKnown) {
