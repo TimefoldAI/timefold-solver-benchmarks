@@ -48,6 +48,7 @@ public enum CVRPLIBConfiguration implements Configuration<CVRPLIBDataset> {
     private static SolverConfig getCommunityEditionSolverConfig(CVRPLIBDataset dataset) {
         var terminationConfig = new TerminationConfig()
                 .withSecondsSpentLimit(AbstractCompetitiveBenchmark.MAX_SECONDS)
+                .withUnimprovedSecondsSpentLimit(AbstractCompetitiveBenchmark.UNIMPROVED_SECONDS_TERMINATION)
                 .withBestScoreLimit(HardSoftLongScore.ofSoft(-dataset.getBestKnownDistance()).toString());
         return new SolverConfig()
                 .withSolutionClass(VehicleRoutingSolution.class)
