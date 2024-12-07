@@ -73,16 +73,16 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                 var communityScore = communityResult.score();
                 var communityRuntime = communityResult.runtime().toMillis();
                 var communityGap = computeGap(bestKnownDistance, communityScore);
-                var communityComment = getComment(bestKnownDistance, communityScore, communityResult.runtime());
+                var communityComment = getComment(dataset, communityScore, communityResult.runtime());
                 var communityTweakedScore = communityTweakedResult.score();
                 var communityTweakedRuntime = communityTweakedResult.runtime().toMillis();
                 var communityTweakedGap = computeGap(bestKnownDistance, communityTweakedScore);
                 var communityTweakedComment =
-                        getComment(bestKnownDistance, communityTweakedScore, communityTweakedResult.runtime());
+                        getComment(dataset, communityTweakedScore, communityTweakedResult.runtime());
                 var enterpriseScore = enterpriseResult.score();
                 var enterpriseRuntime = enterpriseResult.runtime().toMillis();
                 var enterpriseTweakedGap = computeGap(bestKnownDistance, enterpriseScore);
-                var enterpriseComment = getComment(bestKnownDistance, enterpriseScore, enterpriseResult.runtime());
+                var enterpriseComment = getComment(dataset, enterpriseScore, enterpriseResult.runtime());
                 result.append(line.formatted(
                         quote(datasetName),
                         communityResult.locationCount(),
@@ -147,19 +147,17 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                 .divide(BigDecimal.valueOf(bestKnown, 0), 2, RoundingMode.HALF_EVEN);
     }
 
-    private String getComment(long bestKnown, Score_ actual, Duration runTime) {
+    private String getComment(Dataset_ dataset, Score_ actual, Duration runTime) {
         if (!actual.isSolutionInitialized()) {
             return "Uninitialized.";
         } else if (!actual.isFeasible()) {
             return "Infeasible.";
         }
-        long actualScore = extractDistance(actual);
+        var bestKnown = dataset.getBestKnownDistance();
+        var actualScore = extractDistance(actual);
         if (actualScore == bestKnown) {
             return "Optimal.";
-        } else if (actualScore == bestKnown - 1) {
-            return "Optimal. (Rounding error.)"; // Happens in CVRPTW, which uses doubles.
-        } else if (actualScore < bestKnown) {
-            // The best known solutions are typically optimal; this suggests score calculation issues.
+        } else if (actualScore < bestKnown && dataset.bestKnownDistanceOptimal()) {
             return "Suspicious.";
         } else {
             var cutoff = MAX_SECONDS * 1000 - 100; // Give some leeway before declaring flat line.
@@ -183,9 +181,8 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                 configuration.name());
         var bestSolution = solver.solve(solution);
         var runtime = Duration.ofNanos(System.nanoTime() - nanotime);
-        var bestKnownDistance = dataset.getBestKnownDistance();
         var actualDistance = extractScore(bestSolution);
-        var verdict = getComment(bestKnownDistance, actualDistance, runtime);
+        var verdict = getComment(dataset, actualDistance, runtime);
         LOGGER.info("Solved {} in {} ms with a distance of {}; verdict: {}",
                 dataset.name(),
                 runtime.toMillis(),

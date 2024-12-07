@@ -195,6 +195,11 @@ public enum TSPLIBDataset implements Dataset<TSPLIBDataset> {
     }
 
     @Override
+    public boolean bestKnownDistanceOptimal() {
+        return true;
+    }
+
+    @Override
     public Path getPath() {
         var dir = isSymmetric() ? "symmetric" : "asymmetric";
         var extension = isSymmetric() ? "tsp" : "atsp";
