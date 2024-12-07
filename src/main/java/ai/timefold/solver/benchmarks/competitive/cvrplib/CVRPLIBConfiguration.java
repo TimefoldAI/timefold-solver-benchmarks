@@ -12,8 +12,8 @@ import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
 import ai.timefold.solver.core.config.constructionheuristic.ConstructionHeuristicPhaseConfig;
 import ai.timefold.solver.core.config.heuristic.selector.list.SubListSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.composite.UnionMoveSelectorConfig;
-import ai.timefold.solver.core.config.heuristic.selector.move.generic.ChangeMoveSelectorConfig;
-import ai.timefold.solver.core.config.heuristic.selector.move.generic.SwapMoveSelectorConfig;
+import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.ListChangeMoveSelectorConfig;
+import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.ListSwapMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.SubListChangeMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.SubListSwapMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.kopt.KOptListMoveSelectorConfig;
@@ -65,8 +65,8 @@ public enum CVRPLIBConfiguration implements Configuration<CVRPLIBDataset> {
                         new LocalSearchPhaseConfig()
                                 .withMoveSelectorConfig(new UnionMoveSelectorConfig()
                                         .withMoveSelectors(
-                                                new ChangeMoveSelectorConfig(),
-                                                new SwapMoveSelectorConfig(),
+                                                new ListChangeMoveSelectorConfig(),
+                                                new ListSwapMoveSelectorConfig(),
                                                 new SubListChangeMoveSelectorConfig()
                                                         .withSubListSelectorConfig(
                                                                 new SubListSelectorConfig().withMaximumSubListSize(50))
