@@ -12,7 +12,7 @@ public interface Dataset<Dataset_> extends Comparable<Dataset_> {
 
     boolean isLarge();
 
-    boolean bestKnownDistanceOptimal();
+    boolean isBestKnownDistanceOptimal();
 
     Path getPath();
 

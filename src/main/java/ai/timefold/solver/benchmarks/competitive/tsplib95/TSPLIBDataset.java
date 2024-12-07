@@ -195,7 +195,7 @@ public enum TSPLIBDataset implements Dataset<TSPLIBDataset> {
     }
 
     @Override
-    public boolean bestKnownDistanceOptimal() {
+    public boolean isBestKnownDistanceOptimal() {
         return true;
     }
 

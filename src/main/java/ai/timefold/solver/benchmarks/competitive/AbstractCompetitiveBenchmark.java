@@ -58,9 +58,9 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                     %s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s
                     """;
             String header = line.formatted("Dataset", "Location count", "Vehicle count", "Best known score",
-                    "CE Achieved score", "CE run time (ms)", "CE gap to best (%)", "CE comment",
-                    "CE+ Achieved score", "CE+ run time (ms)", "CE+ gap to best (%)", "CE+ comment",
-                    "EE Achieved score", "EE run time (ms)", "EE gap to best (%)", "EE comment");
+                    "CE Achieved score", "CE run time (ms)", "CE gap to best (%)", "CE Health",
+                    "CE+ Achieved score", "CE+ run time (ms)", "CE+ gap to best (%)", "CE+ Health",
+                    "EE Achieved score", "EE run time (ms)", "EE gap to best (%)", "EE Health");
             result.append(header);
 
             for (var dataset : datasets) {
@@ -73,16 +73,16 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                 var communityScore = communityResult.score();
                 var communityRuntime = communityResult.runtime().toMillis();
                 var communityGap = computeGap(bestKnownDistance, communityScore);
-                var communityComment = getComment(dataset, communityScore, communityResult.runtime());
+                var communityHealth = determineHealth(dataset, communityScore, communityResult.runtime());
                 var communityTweakedScore = communityTweakedResult.score();
                 var communityTweakedRuntime = communityTweakedResult.runtime().toMillis();
                 var communityTweakedGap = computeGap(bestKnownDistance, communityTweakedScore);
-                var communityTweakedComment =
-                        getComment(dataset, communityTweakedScore, communityTweakedResult.runtime());
+                var communityTweakedHealth =
+                        determineHealth(dataset, communityTweakedScore, communityTweakedResult.runtime());
                 var enterpriseScore = enterpriseResult.score();
                 var enterpriseRuntime = enterpriseResult.runtime().toMillis();
                 var enterpriseTweakedGap = computeGap(bestKnownDistance, enterpriseScore);
-                var enterpriseComment = getComment(dataset, enterpriseScore, enterpriseResult.runtime());
+                var enterpriseHealth = determineHealth(dataset, enterpriseScore, enterpriseResult.runtime());
                 result.append(line.formatted(
                         quote(datasetName),
                         communityResult.locationCount(),
@@ -91,15 +91,15 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                         extractDistance(communityScore),
                         communityRuntime,
                         communityGap,
-                        quote(communityComment),
+                        quote(communityHealth),
                         extractDistance(communityTweakedScore),
                         communityTweakedRuntime,
                         communityTweakedGap,
-                        quote(communityTweakedComment),
+                        quote(communityTweakedHealth),
                         extractDistance(enterpriseScore),
                         enterpriseRuntime,
                         enterpriseTweakedGap,
-                        quote(enterpriseComment)));
+                        quote(enterpriseHealth)));
             }
         } finally { // Do everything possible to not lose the results.
             var filename = "%s-%s.csv"
@@ -147,25 +147,26 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                 .divide(BigDecimal.valueOf(bestKnown, 0), 2, RoundingMode.HALF_EVEN);
     }
 
-    private String getComment(Dataset_ dataset, Score_ actual, Duration runTime) {
+    private String determineHealth(Dataset_ dataset, Score_ actual, Duration runTime) {
         if (!actual.isSolutionInitialized()) {
             return "Uninitialized.";
         } else if (!actual.isFeasible()) {
             return "Infeasible.";
         }
-        var bestKnown = dataset.getBestKnownDistance();
-        var actualScore = extractDistance(actual);
-        if (actualScore == bestKnown) {
+        var bestKnownDistance = dataset.getBestKnownDistance();
+        var actualDistance = extractDistance(actual);
+        if (actualDistance == bestKnownDistance) {
             return "Optimal.";
-        } else if (actualScore < bestKnown && dataset.bestKnownDistanceOptimal()) {
-            return "Suspicious.";
+        } else if (actualDistance < bestKnownDistance && dataset.isBestKnownDistanceOptimal()) { // CVRPTW uses doubles, we do not.
+            return "Suspicious (%d better than optimal)."
+                    .formatted(bestKnownDistance - actualDistance);
         } else {
             var cutoff = MAX_SECONDS * 1000 - 100; // Give some leeway before declaring flat line.
             if (runTime.toMillis() < cutoff) {
                 var actualRunTime = (int) Math.round((runTime.toMillis() - (UNIMPROVED_SECONDS_TERMINATION * 1000)) / 1000.0);
                 return "Flatlined after ~" + actualRunTime + " s.";
             } else {
-                return "All good.";
+                return "Healthy.";
             }
         }
     }
@@ -182,12 +183,9 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         var bestSolution = solver.solve(solution);
         var runtime = Duration.ofNanos(System.nanoTime() - nanotime);
         var actualDistance = extractScore(bestSolution);
-        var verdict = getComment(dataset, actualDistance, runtime);
-        LOGGER.info("Solved {} in {} ms with a distance of {}; verdict: {}",
-                dataset.name(),
-                runtime.toMillis(),
-                extractDistance(actualDistance),
-                verdict);
+        var health = determineHealth(dataset, actualDistance, runtime);
+        LOGGER.info("Solved {} in {} ms with a distance of {}; verdict: {}", dataset.name(), runtime.toMillis(),
+                extractDistance(actualDistance), health);
         return new Result<>(dataset, actualDistance, countLocations(bestSolution) + 1, countVehicles(bestSolution), runtime);
     }
 
