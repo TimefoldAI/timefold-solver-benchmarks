@@ -154,10 +154,13 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         long actualScore = extractDistance(actual);
         if (actualScore == bestKnown) {
             return "Optimal.";
-        } else if (actualScore > bestKnown) {
-            return "Timed out.";
-        } else { // The best known solutions are typically optimal; this suggests score calculation issues.
+        } else if (actualScore == bestKnown - 1) {
+            return "Optimal. (Rounding error.)"; // Happens in CVRPTW, which uses doubles.
+        }else if (actualScore < bestKnown) {
+            // The best known solutions are typically optimal; this suggests score calculation issues.
             return "Suspicious.";
+        } else {
+            return "Timed out.";
         }
     }
 
