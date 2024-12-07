@@ -156,7 +156,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
             return "Optimal.";
         } else if (actualScore == bestKnown - 1) {
             return "Optimal. (Rounding error.)"; // Happens in CVRPTW, which uses doubles.
-        }else if (actualScore < bestKnown) {
+        } else if (actualScore < bestKnown) {
             // The best known solutions are typically optimal; this suggests score calculation issues.
             return "Suspicious.";
         } else {
