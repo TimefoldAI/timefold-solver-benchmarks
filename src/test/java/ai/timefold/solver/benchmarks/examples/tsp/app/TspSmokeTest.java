@@ -5,7 +5,6 @@ import java.util.stream.Stream;
 import ai.timefold.solver.benchmarks.examples.common.app.SolverSmokeTest;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.TspSolution;
 import ai.timefold.solver.core.api.score.buildin.simplelong.SimpleLongScore;
-import ai.timefold.solver.core.api.score.stream.ConstraintStreamImplType;
 
 class TspSmokeTest extends SolverSmokeTest<TspSolution, SimpleLongScore> {
 
@@ -19,7 +18,7 @@ class TspSmokeTest extends SolverSmokeTest<TspSolution, SimpleLongScore> {
     @Override
     protected Stream<TestData<SimpleLongScore>> testData() {
         return Stream.of(
-                TestData.of(ConstraintStreamImplType.BAVET, UNSOLVED_DATA_FILE,
+                TestData.of(UNSOLVED_DATA_FILE,
                         SimpleLongScore.of(-217365),
                         SimpleLongScore.of(-217365)));
     }

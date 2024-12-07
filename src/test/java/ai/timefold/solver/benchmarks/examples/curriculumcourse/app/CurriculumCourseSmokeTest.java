@@ -5,7 +5,6 @@ import java.util.stream.Stream;
 import ai.timefold.solver.benchmarks.examples.common.app.SolverSmokeTest;
 import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.CourseSchedule;
 import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
-import ai.timefold.solver.core.api.score.stream.ConstraintStreamImplType;
 
 class CurriculumCourseSmokeTest extends SolverSmokeTest<CourseSchedule, HardSoftScore> {
 
@@ -19,7 +18,7 @@ class CurriculumCourseSmokeTest extends SolverSmokeTest<CourseSchedule, HardSoft
     @Override
     protected Stream<TestData<HardSoftScore>> testData() {
         return Stream.of(
-                TestData.of(ConstraintStreamImplType.BAVET, UNSOLVED_DATA_FILE,
+                TestData.of(UNSOLVED_DATA_FILE,
                         HardSoftScore.ofSoft(-55),
                         HardSoftScore.ofSoft(-64)));
     }

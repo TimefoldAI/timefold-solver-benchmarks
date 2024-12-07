@@ -5,7 +5,6 @@ import java.util.stream.Stream;
 import ai.timefold.solver.benchmarks.examples.common.app.SolverSmokeTest;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
 import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
-import ai.timefold.solver.core.api.score.stream.ConstraintStreamImplType;
 
 class VehicleRoutingSmokeTest extends SolverSmokeTest<VehicleRoutingSolution, HardSoftLongScore> {
 
@@ -20,10 +19,10 @@ class VehicleRoutingSmokeTest extends SolverSmokeTest<VehicleRoutingSolution, Ha
     @Override
     protected Stream<TestData<HardSoftLongScore>> testData() {
         return Stream.of(
-                TestData.of(ConstraintStreamImplType.BAVET, CVRP_32_CUSTOMERS,
+                TestData.of(CVRP_32_CUSTOMERS,
                         HardSoftLongScore.ofSoft(-744),
                         HardSoftLongScore.ofSoft(-744)),
-                TestData.of(ConstraintStreamImplType.BAVET, CVRPTW_100_CUSTOMERS_A,
+                TestData.of(CVRPTW_100_CUSTOMERS_A,
                         HardSoftLongScore.ofSoft(-1661),
                         HardSoftLongScore.ofSoft(-1661)));
     }
