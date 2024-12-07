@@ -128,20 +128,20 @@ public class VehicleRoutingImporter extends
         }
 
         private void setDistancesFromLowerRowMatrix(Map<Long, Location> locationMap, int locationListSize) throws IOException {
-            Map<LocationPair, Double> distanceMap = new HashMap<>();
+            Map<LocationPair, Long> distanceMap = new HashMap<>();
             String[][] lineTokens = readLowerRowMatrix(locationListSize);
             for (int locationA = 1; locationA <= lineTokens.length; locationA++) {
                 var positionA = locationA - 1;
                 for (int locationB = 0; locationB < locationA; locationB++) {
                     distanceMap.put(new LocationPair(locationA, locationB),
-                            Double.parseDouble(lineTokens[positionA][locationB]));
+                            Long.parseLong(lineTokens[positionA][locationB]));
                 }
             }
             setDistancesSymmetrical(locationMap, locationListSize, distanceMap);
         }
 
         private void setDistancesSymmetrical(Map<Long, Location> locationMap, int locationListSize,
-                Map<LocationPair, Double> distanceMap) {
+                Map<LocationPair, Long> distanceMap) {
             if (locationMap.isEmpty()) {
                 for (int i = 1; i <= locationListSize; i++) { // The datasets indexes customers from 1.
                     RoadLocation roadLocation = new RoadLocation(i);
@@ -231,17 +231,14 @@ public class VehicleRoutingImporter extends
             if (distanceType == DistanceType.ROAD_DISTANCE) {
                 readConstantLine("EDGE_WEIGHT_SECTION");
                 for (int i = 0; i < customerListSize; i++) {
-                    RoadLocation location =
-                            (RoadLocation) customerLocationList
-                                    .get(i);
-                    Map<RoadLocation, Double> travelDistanceMap =
-                            new LinkedHashMap<>(customerListSize);
+                    RoadLocation location = (RoadLocation) customerLocationList.get(i);
+                    Map<RoadLocation, Long> travelDistanceMap = new LinkedHashMap<>(customerListSize);
                     String line = bufferedReader.readLine();
                     String[] lineTokens = splitBySpacesOrTabs(line.trim(), customerListSize);
                     for (int j = 0; j < customerListSize; j++) {
-                        double travelDistance = Double.parseDouble(lineTokens[j]);
+                        long travelDistance = Long.parseLong(lineTokens[j]);
                         if (i == j) {
-                            if (travelDistance != 0.0) {
+                            if (travelDistance != 0) {
                                 throw new IllegalStateException("The travelDistance (" + travelDistance
                                         + ") should be zero.");
                             }

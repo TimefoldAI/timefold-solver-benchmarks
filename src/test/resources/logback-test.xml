@@ -24,7 +24,7 @@
 
   <logger name="ai.timefold.solver" level="${logback.level.ai.timefold.solver:-info}"/>
 
-  <root level="INFO">
+  <root level="warn">
     <appender-ref ref="consoleAppender" />
   </root>
 
