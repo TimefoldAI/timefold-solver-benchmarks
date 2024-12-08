@@ -1,6 +1,8 @@
 package ai.timefold.solver.benchmarks.competitive.tsplib95;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.concurrent.ExecutionException;
 
 import ai.timefold.solver.benchmarks.competitive.AbstractCompetitiveBenchmark;
@@ -28,8 +30,9 @@ public class Main extends AbstractCompetitiveBenchmark<TSPLIBDataset, TSPLIBConf
     }
 
     @Override
-    protected double extractDistance(TSPLIBDataset dataset, SimpleLongScore score) {
-        return Math.round(-score.score());
+    protected BigDecimal extractDistance(TSPLIBDataset dataset, SimpleLongScore score) {
+        return BigDecimal.valueOf(-score.score())
+                .setScale(0, RoundingMode.HALF_EVEN);
     }
 
     @Override

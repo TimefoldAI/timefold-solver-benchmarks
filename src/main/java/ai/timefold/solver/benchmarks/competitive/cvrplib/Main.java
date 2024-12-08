@@ -1,6 +1,8 @@
 package ai.timefold.solver.benchmarks.competitive.cvrplib;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.concurrent.ExecutionException;
 
 import ai.timefold.solver.benchmarks.competitive.AbstractCompetitiveBenchmark;
@@ -30,11 +32,12 @@ public class Main
     }
 
     @Override
-    protected double extractDistance(CVRPLIBDataset dataset, HardSoftLongScore score) {
+    protected BigDecimal extractDistance(CVRPLIBDataset dataset, HardSoftLongScore score) {
         if (!dataset.isTimeWindowed()) {
-            return Math.round(-score.softScore());
+            return BigDecimal.valueOf(-score.softScore());
         }
-        return -score.hardScore() / TimeWindowedAirLocation.MULTIPLIER;
+        return BigDecimal.valueOf(-score.softScore())
+                .divide(BigDecimal.valueOf(TimeWindowedAirLocation.MULTIPLIER), RoundingMode.HALF_EVEN);
     }
 
     @Override

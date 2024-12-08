@@ -37,7 +37,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
 
     protected abstract Score_ extractScore(Solution_ solution);
 
-    protected abstract double extractDistance(Dataset_ dataset, Score_ score);
+    protected abstract BigDecimal extractDistance(Dataset_ dataset, Score_ score);
 
     protected abstract int countLocations(Solution_ solution);
 
@@ -69,7 +69,6 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                 var enterpriseResult = enterpriseResultList.get(dataset);
 
                 var datasetName = dataset.name();
-                var bestKnownDistance = Math.round(dataset.getBestKnownDistance());
                 var communityScore = communityResult.score();
                 var communityRuntime = communityResult.runtime().toMillis();
                 var communityGap = computeGap(dataset, communityScore);
@@ -77,8 +76,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                 var communityTweakedScore = communityTweakedResult.score();
                 var communityTweakedRuntime = communityTweakedResult.runtime().toMillis();
                 var communityTweakedGap = computeGap(dataset, communityTweakedScore);
-                var communityTweakedHealth =
-                        determineHealth(dataset, communityTweakedScore, communityTweakedResult.runtime());
+                var communityTweakedHealth = determineHealth(dataset, communityTweakedScore, communityTweakedResult.runtime());
                 var enterpriseScore = enterpriseResult.score();
                 var enterpriseRuntime = enterpriseResult.runtime().toMillis();
                 var enterpriseTweakedGap = computeGap(dataset, enterpriseScore);
@@ -87,16 +85,16 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                         quote(datasetName),
                         communityResult.locationCount(),
                         communityResult.vehicleCount(),
-                        bestKnownDistance,
-                        Math.round(extractDistance(dataset, communityScore)),
+                        roundToOneDecimal(dataset.getBestKnownDistance()),
+                        roundToOneDecimal(extractDistance(dataset, communityScore)),
                         communityRuntime,
                         communityGap,
                         quote(communityHealth),
-                        Math.round(extractDistance(dataset, communityTweakedScore)),
+                        roundToOneDecimal(extractDistance(dataset, communityTweakedScore)),
                         communityTweakedRuntime,
                         communityTweakedGap,
                         quote(communityTweakedHealth),
-                        Math.round(extractDistance(dataset, enterpriseScore)),
+                        roundToOneDecimal(extractDistance(dataset, enterpriseScore)),
                         enterpriseRuntime,
                         enterpriseTweakedGap,
                         quote(enterpriseHealth)));
@@ -109,6 +107,14 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
             Files.writeString(target, result);
             LOGGER.info("Wrote results to {}.", target);
         }
+    }
+
+    private static String roundToOneDecimal(BigDecimal d) {
+        return roundToOneDecimal(d.doubleValue());
+    }
+
+    private static String roundToOneDecimal(double d) {
+        return String.format("%.1f", d);
     }
 
     private static String quote(Object s) {
@@ -139,10 +145,9 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
     private BigDecimal computeGap(Dataset_ dataset, Score_ actual) {
         var bestKnownDistance = dataset.getBestKnownDistance();
         var actualDistance = extractDistance(dataset, actual);
-        var difference = actualDistance - bestKnownDistance;
-        return BigDecimal.valueOf(difference)
+        return actualDistance.subtract(bestKnownDistance)
                 .multiply(BigDecimal.valueOf(100))
-                .divide(BigDecimal.valueOf(bestKnownDistance), 2, RoundingMode.HALF_EVEN);
+                .divide(bestKnownDistance, 2, RoundingMode.HALF_EVEN);
     }
 
     private String determineHealth(Dataset_ dataset, Score_ actual, Duration runTime) {
@@ -151,14 +156,14 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         } else if (!actual.isFeasible()) {
             return "Infeasible.";
         }
-        var bestKnownDistance = BigDecimal.valueOf(dataset.getBestKnownDistance());
-        var actualDistance = BigDecimal.valueOf(extractDistance(dataset, actual));
+        var bestKnownDistance = dataset.getBestKnownDistance();
+        var actualDistance = extractDistance(dataset, actual);
         var comparison = actualDistance.compareTo(bestKnownDistance);
         if (comparison == 0) {
             return "Optimal.";
         } else if (comparison < 0 && dataset.isBestKnownDistanceOptimal()) {
-            return "Suspicious (%d better than optimal)."
-                    .formatted(bestKnownDistance.subtract(actualDistance).intValue());
+            return "Suspicious (%s better than optimal)."
+                    .formatted(roundToOneDecimal(bestKnownDistance.subtract(actualDistance).doubleValue()));
         } else {
             var cutoff = MAX_SECONDS * 1000 - 100; // Give some leeway before declaring flat line.
             if (runTime.toMillis() < cutoff) {
@@ -184,7 +189,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         var actualDistance = extractScore(bestSolution);
         var health = determineHealth(dataset, actualDistance, runtime);
         LOGGER.info("Solved {} in {} ms with a distance of {}; verdict: {}", dataset.name(), runtime.toMillis(),
-                Math.round(extractDistance(dataset, actualDistance)), health);
+                roundToOneDecimal(extractDistance(dataset, actualDistance)), health);
         return new Result<>(dataset, actualDistance, countLocations(bestSolution) + 1, countVehicles(bestSolution), runtime);
     }
 

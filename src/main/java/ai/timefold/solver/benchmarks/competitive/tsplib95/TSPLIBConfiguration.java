@@ -1,5 +1,7 @@
 package ai.timefold.solver.benchmarks.competitive.tsplib95;
 
+import java.math.RoundingMode;
+
 import ai.timefold.solver.benchmarks.competitive.AbstractCompetitiveBenchmark;
 import ai.timefold.solver.benchmarks.competitive.Configuration;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.TspSolution;
@@ -44,10 +46,12 @@ public enum TSPLIBConfiguration implements Configuration<TSPLIBDataset> {
     }
 
     private static SolverConfig getCommunityEditionSolverConfig(TSPLIBDataset dataset) {
+        var threshold = dataset.getBestKnownDistance().negate()
+                .setScale(0, RoundingMode.HALF_EVEN);
         var terminationConfig = new TerminationConfig()
                 .withSecondsSpentLimit(AbstractCompetitiveBenchmark.MAX_SECONDS)
                 .withUnimprovedSecondsSpentLimit(AbstractCompetitiveBenchmark.UNIMPROVED_SECONDS_TERMINATION)
-                .withBestScoreLimit(Long.toString(Math.round(-dataset.getBestKnownDistance())));
+                .withBestScoreLimit(Long.toString(threshold.longValue()));
         return new SolverConfig()
                 .withSolutionClass(TspSolution.class)
                 .withEntityClasses(Visit.class)

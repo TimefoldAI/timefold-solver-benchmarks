@@ -1,5 +1,6 @@
 package ai.timefold.solver.benchmarks.competitive.tsplib95;
 
+import java.math.BigDecimal;
 import java.nio.file.Path;
 
 import ai.timefold.solver.benchmarks.competitive.Dataset;
@@ -181,8 +182,8 @@ public enum TSPLIBDataset implements Dataset<TSPLIBDataset> {
     }
 
     @Override
-    public double getBestKnownDistance() {
-        return bestKnownDistance;
+    public BigDecimal getBestKnownDistance() {
+        return BigDecimal.valueOf(bestKnownDistance);
     }
 
     public boolean isSymmetric() {

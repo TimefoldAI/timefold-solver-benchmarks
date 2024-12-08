@@ -1,5 +1,8 @@
 package ai.timefold.solver.benchmarks.competitive.cvrplib;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 import ai.timefold.solver.benchmarks.competitive.AbstractCompetitiveBenchmark;
 import ai.timefold.solver.benchmarks.competitive.Configuration;
 import ai.timefold.solver.benchmarks.examples.common.domain.location.TimeWindowedAirLocation;
@@ -47,13 +50,14 @@ public enum CVRPLIBConfiguration implements Configuration<CVRPLIBDataset> {
     }
 
     private static SolverConfig getCommunityEditionSolverConfig(CVRPLIBDataset dataset) {
+        var source = dataset.getBestKnownDistance().negate();
         var threshold =
-                dataset.isTimeWindowed() ? -dataset.getBestKnownDistance() * TimeWindowedAirLocation.MULTIPLIER
-                        : -dataset.getBestKnownDistance();
+                dataset.isTimeWindowed() ? source.multiply(BigDecimal.valueOf(TimeWindowedAirLocation.MULTIPLIER)) : source;
+        var roundedThreshold = threshold.setScale(0, RoundingMode.HALF_EVEN);
         var terminationConfig = new TerminationConfig()
                 .withSecondsSpentLimit(AbstractCompetitiveBenchmark.MAX_SECONDS)
                 .withUnimprovedSecondsSpentLimit(AbstractCompetitiveBenchmark.UNIMPROVED_SECONDS_TERMINATION)
-                .withBestScoreLimit(HardSoftLongScore.ofSoft(Math.round(threshold)).toString());
+                .withBestScoreLimit(HardSoftLongScore.ofSoft(roundedThreshold.longValue()).toString());
         return new SolverConfig()
                 .withSolutionClass(VehicleRoutingSolution.class)
                 .withEntityClasses(Vehicle.class, Customer.class, TimeWindowedCustomer.class)
