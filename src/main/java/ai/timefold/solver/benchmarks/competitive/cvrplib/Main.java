@@ -30,11 +30,11 @@ public class Main
     }
 
     @Override
-    protected long extractDistance(CVRPLIBDataset dataset, HardSoftLongScore score) {
+    protected double extractDistance(CVRPLIBDataset dataset, HardSoftLongScore score) {
         if (!dataset.isTimeWindowed()) {
-            return -score.softScore();
+            return Math.round(-score.softScore());
         }
-        return Math.round(-score.hardScore() / TimeWindowedAirLocation.MULTIPLIER);
+        return -score.hardScore() / TimeWindowedAirLocation.MULTIPLIER;
     }
 
     @Override

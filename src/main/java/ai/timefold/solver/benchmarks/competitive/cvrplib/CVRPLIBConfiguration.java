@@ -48,12 +48,12 @@ public enum CVRPLIBConfiguration implements Configuration<CVRPLIBDataset> {
 
     private static SolverConfig getCommunityEditionSolverConfig(CVRPLIBDataset dataset) {
         var threshold =
-                dataset.isTimeWindowed() ? Math.round(-dataset.getBestKnownDistance() * TimeWindowedAirLocation.MULTIPLIER)
+                dataset.isTimeWindowed() ? -dataset.getBestKnownDistance() * TimeWindowedAirLocation.MULTIPLIER
                         : -dataset.getBestKnownDistance();
         var terminationConfig = new TerminationConfig()
                 .withSecondsSpentLimit(AbstractCompetitiveBenchmark.MAX_SECONDS)
                 .withUnimprovedSecondsSpentLimit(AbstractCompetitiveBenchmark.UNIMPROVED_SECONDS_TERMINATION)
-                .withBestScoreLimit(HardSoftLongScore.ofSoft(threshold).toString());
+                .withBestScoreLimit(HardSoftLongScore.ofSoft(Math.round(threshold)).toString());
         return new SolverConfig()
                 .withSolutionClass(VehicleRoutingSolution.class)
                 .withEntityClasses(Vehicle.class, Customer.class, TimeWindowedCustomer.class)

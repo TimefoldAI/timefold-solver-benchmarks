@@ -37,7 +37,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
 
     protected abstract Score_ extractScore(Solution_ solution);
 
-    protected abstract long extractDistance(Dataset_ dataset, Score_ score);
+    protected abstract double extractDistance(Dataset_ dataset, Score_ score);
 
     protected abstract int countLocations(Solution_ solution);
 
@@ -69,7 +69,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                 var enterpriseResult = enterpriseResultList.get(dataset);
 
                 var datasetName = dataset.name();
-                var bestKnownDistance = dataset.getBestKnownDistance();
+                var bestKnownDistance = Math.round(dataset.getBestKnownDistance());
                 var communityScore = communityResult.score();
                 var communityRuntime = communityResult.runtime().toMillis();
                 var communityGap = computeGap(dataset, communityScore);
@@ -88,15 +88,15 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                         communityResult.locationCount(),
                         communityResult.vehicleCount(),
                         bestKnownDistance,
-                        extractDistance(dataset, communityScore),
+                        Math.round(extractDistance(dataset, communityScore)),
                         communityRuntime,
                         communityGap,
                         quote(communityHealth),
-                        extractDistance(dataset, communityTweakedScore),
+                        Math.round(extractDistance(dataset, communityTweakedScore)),
                         communityTweakedRuntime,
                         communityTweakedGap,
                         quote(communityTweakedHealth),
-                        extractDistance(dataset, enterpriseScore),
+                        Math.round(extractDistance(dataset, enterpriseScore)),
                         enterpriseRuntime,
                         enterpriseTweakedGap,
                         quote(enterpriseHealth)));
@@ -139,13 +139,10 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
     private BigDecimal computeGap(Dataset_ dataset, Score_ actual) {
         var bestKnownDistance = dataset.getBestKnownDistance();
         var actualDistance = extractDistance(dataset, actual);
-        if (actualDistance == bestKnownDistance) {
-            return BigDecimal.ZERO;
-        }
         var difference = actualDistance - bestKnownDistance;
-        return BigDecimal.valueOf(difference, 0)
+        return BigDecimal.valueOf(difference)
                 .multiply(BigDecimal.valueOf(100))
-                .divide(BigDecimal.valueOf(bestKnownDistance, 0), 2, RoundingMode.HALF_EVEN);
+                .divide(BigDecimal.valueOf(bestKnownDistance), 2, RoundingMode.HALF_EVEN);
     }
 
     private String determineHealth(Dataset_ dataset, Score_ actual, Duration runTime) {
@@ -154,13 +151,14 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         } else if (!actual.isFeasible()) {
             return "Infeasible.";
         }
-        var bestKnownDistance = dataset.getBestKnownDistance();
-        var actualDistance = extractDistance(dataset, actual);
-        if (actualDistance == bestKnownDistance) {
+        var bestKnownDistance = BigDecimal.valueOf(dataset.getBestKnownDistance());
+        var actualDistance = BigDecimal.valueOf(extractDistance(dataset, actual));
+        var comparison = actualDistance.compareTo(bestKnownDistance);
+        if (comparison == 0) {
             return "Optimal.";
-        } else if (actualDistance < bestKnownDistance && dataset.isBestKnownDistanceOptimal()) { // CVRPTW uses doubles, we do not.
+        } else if (comparison < 0 && dataset.isBestKnownDistanceOptimal()) {
             return "Suspicious (%d better than optimal)."
-                    .formatted(bestKnownDistance - actualDistance);
+                    .formatted(bestKnownDistance.subtract(actualDistance).intValue());
         } else {
             var cutoff = MAX_SECONDS * 1000 - 100; // Give some leeway before declaring flat line.
             if (runTime.toMillis() < cutoff) {
@@ -186,7 +184,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         var actualDistance = extractScore(bestSolution);
         var health = determineHealth(dataset, actualDistance, runtime);
         LOGGER.info("Solved {} in {} ms with a distance of {}; verdict: {}", dataset.name(), runtime.toMillis(),
-                extractDistance(dataset, actualDistance), health);
+                Math.round(extractDistance(dataset, actualDistance)), health);
         return new Result<>(dataset, actualDistance, countLocations(bestSolution) + 1, countVehicles(bestSolution), runtime);
     }
 

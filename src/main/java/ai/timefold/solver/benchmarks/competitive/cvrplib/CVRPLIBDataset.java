@@ -594,7 +594,7 @@ public enum CVRPLIBDataset implements Dataset<CVRPLIBDataset> {
     RC2_10_10("RC2_10_10.txt", 21731.2, false);
 
     private final String filename;
-    private final int bestKnownDistance;
+    private final double bestKnownDistance;
     private final boolean bestKnownDistanceOptimal;
 
     CVRPLIBDataset(String filename, int bestKnownDistance) {
@@ -602,9 +602,7 @@ public enum CVRPLIBDataset implements Dataset<CVRPLIBDataset> {
     }
 
     CVRPLIBDataset(String filename, int bestKnownDistance, boolean bestKnownDistanceOptimal) {
-        this.filename = filename;
-        this.bestKnownDistance = bestKnownDistance;
-        this.bestKnownDistanceOptimal = bestKnownDistanceOptimal;
+        this(filename, (double) bestKnownDistance, bestKnownDistanceOptimal);
     }
 
     CVRPLIBDataset(String filename, double bestKnownDistance) {
@@ -612,11 +610,13 @@ public enum CVRPLIBDataset implements Dataset<CVRPLIBDataset> {
     }
 
     CVRPLIBDataset(String filename, double bestKnownDistance, boolean bestKnownDistanceOptimal) {
-        this(filename, (int) Math.round(bestKnownDistance), bestKnownDistanceOptimal);
+        this.filename = filename;
+        this.bestKnownDistance = bestKnownDistance;
+        this.bestKnownDistanceOptimal = bestKnownDistanceOptimal;
     }
 
     @Override
-    public int getBestKnownDistance() {
+    public double getBestKnownDistance() {
         return bestKnownDistance;
     }
 

@@ -181,7 +181,7 @@ public enum TSPLIBDataset implements Dataset<TSPLIBDataset> {
     }
 
     @Override
-    public int getBestKnownDistance() {
+    public double getBestKnownDistance() {
         return bestKnownDistance;
     }
 

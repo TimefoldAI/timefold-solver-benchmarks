@@ -47,7 +47,7 @@ public enum TSPLIBConfiguration implements Configuration<TSPLIBDataset> {
         var terminationConfig = new TerminationConfig()
                 .withSecondsSpentLimit(AbstractCompetitiveBenchmark.MAX_SECONDS)
                 .withUnimprovedSecondsSpentLimit(AbstractCompetitiveBenchmark.UNIMPROVED_SECONDS_TERMINATION)
-                .withBestScoreLimit(Long.toString(-dataset.getBestKnownDistance()));
+                .withBestScoreLimit(Long.toString(Math.round(-dataset.getBestKnownDistance())));
         return new SolverConfig()
                 .withSolutionClass(TspSolution.class)
                 .withEntityClasses(Visit.class)

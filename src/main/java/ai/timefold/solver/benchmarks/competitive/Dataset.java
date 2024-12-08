@@ -8,7 +8,7 @@ public interface Dataset<Dataset_> extends Comparable<Dataset_> {
 
     int ordinal();
 
-    int getBestKnownDistance();
+    double getBestKnownDistance();
 
     boolean isLarge();
 
