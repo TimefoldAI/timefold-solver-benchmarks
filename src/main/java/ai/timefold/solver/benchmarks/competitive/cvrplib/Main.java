@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
 import ai.timefold.solver.benchmarks.competitive.AbstractCompetitiveBenchmark;
+import ai.timefold.solver.benchmarks.examples.common.domain.location.TimeWindowedAirLocation;
 import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutionImporter;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.persistence.VehicleRoutingImporter;
@@ -29,8 +30,11 @@ public class Main
     }
 
     @Override
-    protected long extractDistance(HardSoftLongScore score) {
-        return -score.softScore();
+    protected long extractDistance(CVRPLIBDataset dataset, HardSoftLongScore score) {
+        if (!dataset.isTimeWindowed()) {
+            return -score.softScore();
+        }
+        return Math.round(-score.hardScore() / TimeWindowedAirLocation.MULTIPLIER);
     }
 
     @Override

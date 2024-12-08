@@ -13,6 +13,7 @@ import ai.timefold.solver.benchmarks.examples.common.domain.location.AirLocation
 import ai.timefold.solver.benchmarks.examples.common.domain.location.DistanceType;
 import ai.timefold.solver.benchmarks.examples.common.domain.location.Location;
 import ai.timefold.solver.benchmarks.examples.common.domain.location.RoadLocation;
+import ai.timefold.solver.benchmarks.examples.common.domain.location.TimeWindowedAirLocation;
 import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractTxtSolutionImporter;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Customer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Depot;
@@ -385,8 +386,8 @@ public class VehicleRoutingImporter extends
             while (line != null && !line.trim().isEmpty()) {
                 String[] lineTokens = splitBySpacesOrTabs(line.trim(), 7);
                 long id = Long.parseLong(lineTokens[0]);
-                AirLocation location =
-                        new AirLocation(id, Double.parseDouble(lineTokens[1]), Double.parseDouble(lineTokens[2]));
+                TimeWindowedAirLocation location =
+                        new TimeWindowedAirLocation(id, Double.parseDouble(lineTokens[1]), Double.parseDouble(lineTokens[2]));
                 locationList.add(location);
                 int demand = Integer.parseInt(lineTokens[3]);
                 long minStartTime = Long.parseLong(lineTokens[4]) * 1000L;

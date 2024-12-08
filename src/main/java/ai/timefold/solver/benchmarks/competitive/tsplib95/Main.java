@@ -28,7 +28,7 @@ public class Main extends AbstractCompetitiveBenchmark<TSPLIBDataset, TSPLIBConf
     }
 
     @Override
-    protected long extractDistance(SimpleLongScore score) {
+    protected long extractDistance(TSPLIBDataset dataset, SimpleLongScore score) {
         return -score.score();
     }
 

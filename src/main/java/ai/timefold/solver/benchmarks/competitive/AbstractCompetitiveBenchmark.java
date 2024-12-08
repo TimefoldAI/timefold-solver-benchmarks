@@ -37,7 +37,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
 
     protected abstract Score_ extractScore(Solution_ solution);
 
-    protected abstract long extractDistance(Score_ score);
+    protected abstract long extractDistance(Dataset_ dataset, Score_ score);
 
     protected abstract int countLocations(Solution_ solution);
 
@@ -72,31 +72,31 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                 var bestKnownDistance = dataset.getBestKnownDistance();
                 var communityScore = communityResult.score();
                 var communityRuntime = communityResult.runtime().toMillis();
-                var communityGap = computeGap(bestKnownDistance, communityScore);
+                var communityGap = computeGap(dataset, communityScore);
                 var communityHealth = determineHealth(dataset, communityScore, communityResult.runtime());
                 var communityTweakedScore = communityTweakedResult.score();
                 var communityTweakedRuntime = communityTweakedResult.runtime().toMillis();
-                var communityTweakedGap = computeGap(bestKnownDistance, communityTweakedScore);
+                var communityTweakedGap = computeGap(dataset, communityTweakedScore);
                 var communityTweakedHealth =
                         determineHealth(dataset, communityTweakedScore, communityTweakedResult.runtime());
                 var enterpriseScore = enterpriseResult.score();
                 var enterpriseRuntime = enterpriseResult.runtime().toMillis();
-                var enterpriseTweakedGap = computeGap(bestKnownDistance, enterpriseScore);
+                var enterpriseTweakedGap = computeGap(dataset, enterpriseScore);
                 var enterpriseHealth = determineHealth(dataset, enterpriseScore, enterpriseResult.runtime());
                 result.append(line.formatted(
                         quote(datasetName),
                         communityResult.locationCount(),
                         communityResult.vehicleCount(),
                         bestKnownDistance,
-                        extractDistance(communityScore),
+                        extractDistance(dataset, communityScore),
                         communityRuntime,
                         communityGap,
                         quote(communityHealth),
-                        extractDistance(communityTweakedScore),
+                        extractDistance(dataset, communityTweakedScore),
                         communityTweakedRuntime,
                         communityTweakedGap,
                         quote(communityTweakedHealth),
-                        extractDistance(enterpriseScore),
+                        extractDistance(dataset, enterpriseScore),
                         enterpriseRuntime,
                         enterpriseTweakedGap,
                         quote(enterpriseHealth)));
@@ -136,15 +136,16 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         return results;
     }
 
-    private BigDecimal computeGap(long bestKnown, Score_ actual) {
-        long actualScore = extractDistance(actual);
-        if (actualScore == bestKnown) {
+    private BigDecimal computeGap(Dataset_ dataset, Score_ actual) {
+        var bestKnownDistance = dataset.getBestKnownDistance();
+        var actualDistance = extractDistance(dataset, actual);
+        if (actualDistance == bestKnownDistance) {
             return BigDecimal.ZERO;
         }
-        var difference = actualScore - bestKnown;
+        var difference = actualDistance - bestKnownDistance;
         return BigDecimal.valueOf(difference, 0)
                 .multiply(BigDecimal.valueOf(100))
-                .divide(BigDecimal.valueOf(bestKnown, 0), 2, RoundingMode.HALF_EVEN);
+                .divide(BigDecimal.valueOf(bestKnownDistance, 0), 2, RoundingMode.HALF_EVEN);
     }
 
     private String determineHealth(Dataset_ dataset, Score_ actual, Duration runTime) {
@@ -154,7 +155,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
             return "Infeasible.";
         }
         var bestKnownDistance = dataset.getBestKnownDistance();
-        var actualDistance = extractDistance(actual);
+        var actualDistance = extractDistance(dataset, actual);
         if (actualDistance == bestKnownDistance) {
             return "Optimal.";
         } else if (actualDistance < bestKnownDistance && dataset.isBestKnownDistanceOptimal()) { // CVRPTW uses doubles, we do not.
@@ -185,7 +186,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         var actualDistance = extractScore(bestSolution);
         var health = determineHealth(dataset, actualDistance, runtime);
         LOGGER.info("Solved {} in {} ms with a distance of {}; verdict: {}", dataset.name(), runtime.toMillis(),
-                extractDistance(actualDistance), health);
+                extractDistance(dataset, actualDistance), health);
         return new Result<>(dataset, actualDistance, countLocations(bestSolution) + 1, countVehicles(bestSolution), runtime);
     }
 

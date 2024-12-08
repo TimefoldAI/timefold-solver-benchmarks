@@ -630,6 +630,10 @@ public enum CVRPLIBDataset implements Dataset<CVRPLIBDataset> {
         return bestKnownDistanceOptimal;
     }
 
+    public boolean isTimeWindowed() {
+        return this.filename.endsWith(".txt");
+    }
+
     @Override
     public Path getPath() {
         return Path.of("data", "vehiclerouting", "import", this.filename);

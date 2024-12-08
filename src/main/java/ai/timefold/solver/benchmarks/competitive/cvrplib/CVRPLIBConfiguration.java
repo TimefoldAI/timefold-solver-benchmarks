@@ -2,6 +2,7 @@ package ai.timefold.solver.benchmarks.competitive.cvrplib;
 
 import ai.timefold.solver.benchmarks.competitive.AbstractCompetitiveBenchmark;
 import ai.timefold.solver.benchmarks.competitive.Configuration;
+import ai.timefold.solver.benchmarks.examples.common.domain.location.TimeWindowedAirLocation;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Customer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Vehicle;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
@@ -46,10 +47,13 @@ public enum CVRPLIBConfiguration implements Configuration<CVRPLIBDataset> {
     }
 
     private static SolverConfig getCommunityEditionSolverConfig(CVRPLIBDataset dataset) {
+        var threshold =
+                dataset.isTimeWindowed() ? Math.round(-dataset.getBestKnownDistance() * TimeWindowedAirLocation.MULTIPLIER)
+                        : -dataset.getBestKnownDistance();
         var terminationConfig = new TerminationConfig()
                 .withSecondsSpentLimit(AbstractCompetitiveBenchmark.MAX_SECONDS)
                 .withUnimprovedSecondsSpentLimit(AbstractCompetitiveBenchmark.UNIMPROVED_SECONDS_TERMINATION)
-                .withBestScoreLimit(HardSoftLongScore.ofSoft(-dataset.getBestKnownDistance()).toString());
+                .withBestScoreLimit(HardSoftLongScore.ofSoft(threshold).toString());
         return new SolverConfig()
                 .withSolutionClass(VehicleRoutingSolution.class)
                 .withEntityClasses(Vehicle.class, Customer.class, TimeWindowedCustomer.class)
