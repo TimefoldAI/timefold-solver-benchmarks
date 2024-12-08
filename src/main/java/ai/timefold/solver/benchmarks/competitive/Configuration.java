@@ -8,4 +8,6 @@ public interface Configuration<Dataset_ extends Dataset<Dataset_>> {
 
     String name();
 
+    boolean usesEnterprise();
+
 }

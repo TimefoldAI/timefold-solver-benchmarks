@@ -26,15 +26,21 @@ public enum TSPLIBConfiguration implements Configuration<TSPLIBDataset> {
     /**
      * Community edition, everything left on default.
      */
-    COMMUNITY_EDITION,
+    COMMUNITY_EDITION(false),
     /**
      * Community edition, added some move selectors.
      */
-    COMMUNITY_EDITION_TWEAKED,
+    COMMUNITY_EDITION_TWEAKED(false),
     /**
      * Full power of the enterprise edition.
      */
-    ENTERPRISE_EDITION;
+    ENTERPRISE_EDITION(true);
+
+    private final boolean usesEnterprise;
+
+    TSPLIBConfiguration(boolean usesEnterprise) {
+        this.usesEnterprise = usesEnterprise;
+    }
 
     @Override
     public SolverConfig getSolverConfig(TSPLIBDataset dataset) {
@@ -43,6 +49,11 @@ public enum TSPLIBConfiguration implements Configuration<TSPLIBDataset> {
             case COMMUNITY_EDITION_TWEAKED -> getCommunityEditionTweakedSolverConfig(dataset);
             case ENTERPRISE_EDITION -> getEnterpriseEditionSolverConfig(dataset);
         };
+    }
+
+    @Override
+    public boolean usesEnterprise() {
+        return usesEnterprise;
     }
 
     private static SolverConfig getCommunityEditionSolverConfig(TSPLIBDataset dataset) {

@@ -48,9 +48,9 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
     public void run(Configuration_ communityEdition, Configuration_ communityEditionTweaked, Configuration_ enterpriseEdition,
             Dataset_... datasets)
             throws ExecutionException, InterruptedException, IOException {
-        var communityResultList = run(communityEdition, false, datasets);
-        var communityTweakedResultList = run(communityEditionTweaked, false, datasets);
-        var enterpriseResultList = run(enterpriseEdition, true, datasets);
+        var communityResultList = run(communityEdition, datasets);
+        var communityTweakedResultList = run(communityEditionTweaked, datasets);
+        var enterpriseResultList = run(enterpriseEdition, datasets);
 
         var result = new StringBuilder();
         try {
@@ -121,12 +121,11 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         return "\"" + s + "\"";
     }
 
-    private Map<Dataset_, Result<Dataset_, Score_>> run(Configuration_ configuration, boolean isEnterprise,
-            Dataset_... datasets)
+    private Map<Dataset_, Result<Dataset_, Score_>> run(Configuration_ configuration, Dataset_... datasets)
             throws ExecutionException, InterruptedException {
         System.out.println("Running with " + configuration.name() + " solver config");
         var results = new TreeMap<Dataset_, Result<Dataset_, Score_>>();
-        var parallelSolverCount = isEnterprise ? MAX_THREADS / ENTERPRISE_MOVE_THREAD_COUNT : MAX_THREADS;
+        var parallelSolverCount = determineParallelSolverCount(configuration);
         try (var executorService = Executors.newFixedThreadPool(parallelSolverCount)) {
             var resultFutureList = new ArrayList<Future<Result<Dataset_, Score_>>>(datasets.length);
             for (var dataset : datasets) {
@@ -140,6 +139,10 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
             }
         }
         return results;
+    }
+
+    private int determineParallelSolverCount(Configuration_ configuration) {
+        return configuration.usesEnterprise() ? MAX_THREADS / ENTERPRISE_MOVE_THREAD_COUNT : MAX_THREADS;
     }
 
     private BigDecimal computeGap(Dataset_ dataset, Score_ actual) {
@@ -182,8 +185,13 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         var solverFactory = SolverFactory.<Solution_> create(solverConfig);
         var solver = solverFactory.buildSolver();
         var nanotime = System.nanoTime();
-        LOGGER.info("Started {} ({} / {}) using {}.", dataset.name(), dataset.ordinal() + 1, totalDatasetCount,
-                configuration.name());
+        var remainingDatasets = totalDatasetCount - dataset.ordinal();
+        var parallelSolverCount = determineParallelSolverCount(configuration);
+        var remainingCycles = (long) Math.ceil(remainingDatasets / (double) parallelSolverCount);
+        var minutesRemaining = Duration.ofSeconds(MAX_SECONDS * remainingCycles)
+                .toMinutes();
+        LOGGER.info("Started {} ({} / {}), ~{} minute(s) remain in {}.", dataset.name(), dataset.ordinal() + 1,
+                totalDatasetCount, minutesRemaining, configuration.name());
         var bestSolution = solver.solve(solution);
         var runtime = Duration.ofNanos(System.nanoTime() - nanotime);
         var actualDistance = extractScore(bestSolution);
