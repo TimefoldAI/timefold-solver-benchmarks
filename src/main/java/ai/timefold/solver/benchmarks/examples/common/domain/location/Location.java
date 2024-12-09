@@ -80,7 +80,7 @@ public abstract class Location extends AbstractPersistable {
         // Euclidean distance (Pythagorean theorem) - not correct when the surface is a sphere
         double latitudeDifference = location.latitude - latitude;
         double longitudeDifference = location.longitude - longitude;
-        return Math.sqrt(
+        return StrictMath.sqrt(
                 (latitudeDifference * latitudeDifference) + (longitudeDifference * longitudeDifference));
     }
 

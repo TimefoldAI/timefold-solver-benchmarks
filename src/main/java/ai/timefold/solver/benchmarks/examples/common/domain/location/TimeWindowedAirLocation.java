@@ -5,7 +5,7 @@ package ai.timefold.solver.benchmarks.examples.common.domain.location;
  */
 public class TimeWindowedAirLocation extends Location {
 
-    public static final double MULTIPLIER = 1000L;
+    public static final double MULTIPLIER = 10L;
 
     public TimeWindowedAirLocation() {
     }

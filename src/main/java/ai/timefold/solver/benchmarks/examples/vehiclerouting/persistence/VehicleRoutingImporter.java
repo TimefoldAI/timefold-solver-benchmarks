@@ -380,6 +380,7 @@ public class VehicleRoutingImporter extends
             int locationListSizeEstimation = 25;
             List<Location> locationList = new ArrayList<>(locationListSizeEstimation);
             depotList = new ArrayList<>(1);
+            TimeWindowedDepot depot = null;
             List<Customer> customerList = new ArrayList<>(locationListSizeEstimation);
             boolean first = true;
             while (line != null && !line.trim().isEmpty()) {
@@ -389,9 +390,9 @@ public class VehicleRoutingImporter extends
                         new TimeWindowedAirLocation(id, Double.parseDouble(lineTokens[1]), Double.parseDouble(lineTokens[2]));
                 locationList.add(location);
                 int demand = Integer.parseInt(lineTokens[3]);
-                long minStartTime = Long.parseLong(lineTokens[4]) * 1000L;
-                long maxEndTime = Long.parseLong(lineTokens[5]) * 1000L;
-                long serviceDuration = Long.parseLong(lineTokens[6]) * 1000L;
+                long minStartTime = Math.round(Long.parseLong(lineTokens[4]) * TimeWindowedAirLocation.MULTIPLIER);
+                long maxEndTime = Math.round(Long.parseLong(lineTokens[5]) * TimeWindowedAirLocation.MULTIPLIER);
+                long serviceDuration = Math.round(Long.parseLong(lineTokens[6]) * TimeWindowedAirLocation.MULTIPLIER);
                 if (first) {
                     if (demand != 0) {
                         throw new IllegalArgumentException("The depot with id (" + id
@@ -401,10 +402,20 @@ public class VehicleRoutingImporter extends
                         throw new IllegalArgumentException("The depot with id (" + id
                                 + ") has a serviceDuration (" + serviceDuration + ").");
                     }
-                    TimeWindowedDepot depot = new TimeWindowedDepot(id, location, minStartTime, maxEndTime);
+                    depot = new TimeWindowedDepot(id, location, minStartTime, maxEndTime);
                     depotList.add(depot);
                     first = false;
                 } else {
+                    // Score constraint arrivalAfterMaxEndTimeAtDepot is a built-in hard constraint in VehicleRoutingImporter
+                    long maximumAllowedMaxEndTime = Math.round(depot.getMaxEndTime() * TimeWindowedAirLocation.MULTIPLIER)
+                            - location.getDistanceTo(depot.getLocation());
+                    if (maxEndTime > maximumAllowedMaxEndTime) {
+                        logger.warn("The customer ({})'s maxEndTime ({}) was automatically reduced" +
+                                        " to maximumAllowedMaxEndTime ({}) because of the depot's maxEndTime ({}).",
+                                id, maxEndTime, maximumAllowedMaxEndTime, depot.getMaxEndTime());
+                        maxEndTime = maximumAllowedMaxEndTime;
+                    }
+
                     // Do not add a customer that has no demand
                     if (demand != 0) {
                         // Notice that we leave the PlanningVariable properties on null
