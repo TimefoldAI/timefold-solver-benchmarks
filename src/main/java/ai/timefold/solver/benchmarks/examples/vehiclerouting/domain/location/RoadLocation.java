@@ -48,7 +48,7 @@ public class RoadLocation extends Location {
             throw new IllegalStateException("The travelDistanceMap in location (%s) does not contain the key (%s)."
                     .formatted(this, location));
         }
-        return distance;
+        return (long) (distance * AirLocation.MULTIPLIER);
     }
 
 }

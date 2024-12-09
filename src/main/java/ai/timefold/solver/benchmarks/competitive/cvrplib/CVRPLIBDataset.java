@@ -9,11 +9,12 @@ import ai.timefold.solver.benchmarks.competitive.Dataset;
  * The datasets come <a href="http://vrp.galgos.inf.puc-rio.br/index.php/en/">from here</a>.
  * The data on best known solutions were downloaded from the website on December 6, 2024.
  * <p>
- * Out of that, roughly 100 datasets were excluded because they require double precision,
- * but CVRP only supports integer.
+ * Out of that, roughly 100 datasets were excluded because they require two-decimal precision,
+ * but CVRP only supports integer or single-decimal precision.
  * Specifically, the old datasets require integer, and these newer ones suddenly switch to using double.
- * Those two methods are mutually incompatible - switching to doubles caused rounding errors in the old datasets.
- * Without adding two different models for this, we decided to not include the following datasets instead:
+ * And they did not switch to the single-decimal double of CVRPTW, they switched to two-decimal double.
+ * Supporting all three methods would be undesiredly complex.
+ * The datasets in question are:
  * <ul>
  * <li>Golden et al.</li>
  * <li>Li et al.</li>

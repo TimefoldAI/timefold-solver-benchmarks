@@ -8,7 +8,7 @@ import ai.timefold.solver.benchmarks.competitive.Configuration;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Customer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Vehicle;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.TimeWindowedAirLocation;
+import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.AirLocation;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.solver.nearby.CustomerNearbyDistanceMeter;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedCustomer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.score.VehicleRoutingConstraintProvider;
@@ -51,7 +51,7 @@ public enum CVRPLIBConfiguration implements Configuration<CVRPLIBDataset> {
     private static SolverConfig getCommunityEditionSolverConfig(CVRPLIBDataset dataset) {
         var source = dataset.getBestKnownDistance().negate();
         var threshold =
-                dataset.isTimeWindowed() ? source.multiply(BigDecimal.valueOf(TimeWindowedAirLocation.MULTIPLIER)) : source;
+                dataset.isTimeWindowed() ? source.multiply(BigDecimal.valueOf(AirLocation.MULTIPLIER)) : source;
         var roundedThreshold = threshold.setScale(0, RoundingMode.HALF_EVEN);
         var terminationConfig = new TerminationConfig()
                 .withSecondsSpentLimit(AbstractCompetitiveBenchmark.MAX_SECONDS)

@@ -18,7 +18,6 @@ import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.Air
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.DistanceType;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.Location;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.RoadLocation;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.TimeWindowedAirLocation;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedCustomer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedDepot;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedVehicleRoutingSolution;
@@ -80,10 +79,14 @@ public class VehicleRoutingImporter extends
         // ************************************************************************
 
         public void readVrpWebFormat() throws IOException {
-            if (readVrpWebHeaders()) {
+            var datasetType = readVrpWebHeaders();
+            if (datasetType.lowerDiagRequired) {
+                if (datasetType.doublePrecisionRequired) {
+                    throw new UnsupportedOperationException(); // Haven't seen this in the datasets.
+                }
                 readLowerRowVrpWebLocationList();
             } else {
-                readFullVrpWebLocationList();
+                readFullVrpWebLocationList(datasetType.doublePrecisionRequired());
             }
             readVrpWebCustomerList();
             readVrpWebDepotList();
@@ -91,8 +94,8 @@ public class VehicleRoutingImporter extends
             readConstantLine("EOF");
         }
 
-        private boolean readVrpWebHeaders() throws IOException {
-            skipOptionalConstantLines("COMMENT *:.*");
+        private DatasetType readVrpWebHeaders() throws IOException {
+            boolean doublePrecisionRequired = doublePrecisionRequired();
             String vrpType = readStringValue("TYPE *:");
             if (vrpType.equals("CVRP")) {
                 timewindowed = false;
@@ -102,7 +105,7 @@ public class VehicleRoutingImporter extends
             readOptionalConstantLine("COMMENT *:.*");
             customerListSize = readIntegerValue("DIMENSION *:");
             String edgeWeightType = readStringValue("EDGE_WEIGHT_TYPE *:");
-            boolean lowerDiag = false;
+            boolean lowerDiagRequired = false;
             if (edgeWeightType.equalsIgnoreCase("EUC_2D")) {
                 solution.setDistanceType(DistanceType.AIR_DISTANCE);
             } else if (edgeWeightType.equalsIgnoreCase("EXPLICIT")) {
@@ -111,7 +114,7 @@ public class VehicleRoutingImporter extends
                 if (!edgeWeightFormat.equalsIgnoreCase("LOWER_ROW")) {
                     throw new IllegalArgumentException("The edgeWeightFormat (" + edgeWeightFormat + ") is not supported.");
                 }
-                lowerDiag = true;
+                lowerDiagRequired = true;
                 readOptionalConstantLine("DISPLAY_DATA_TYPE *:.*");
             } else {
                 throw new IllegalArgumentException("The edgeWeightType (" + edgeWeightType + ") is not supported.");
@@ -119,7 +122,19 @@ public class VehicleRoutingImporter extends
             solution.setDistanceUnitOfMeasurement(readOptionalStringValue("EDGE_WEIGHT_UNIT_OF_MEASUREMENT *:", "distance"));
             readOptionalConstantLine("NODE_COORD_TYPE *:.*");
             capacity = readIntegerValue("CAPACITY *:");
-            return lowerDiag;
+            return new DatasetType(lowerDiagRequired, doublePrecisionRequired);
+        }
+
+        private boolean doublePrecisionRequired() throws IOException {
+            try {
+                Double.parseDouble(readStringValue("COMMENT *:"));
+                return true;
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        }
+
+        private record DatasetType(boolean lowerDiagRequired, boolean doublePrecisionRequired) {
         }
 
         private void readLowerRowVrpWebLocationList() throws IOException {
@@ -207,7 +222,7 @@ public class VehicleRoutingImporter extends
             return tokens;
         }
 
-        private void readFullVrpWebLocationList() throws IOException {
+        private void readFullVrpWebLocationList(boolean doublePrecisionRequired) throws IOException {
             DistanceType distanceType = solution.getDistanceType();
             locationMap = new LinkedHashMap<>(customerListSize);
             List<Location> customerLocationList = new ArrayList<>(customerListSize);
@@ -219,7 +234,7 @@ public class VehicleRoutingImporter extends
                 double latitude = Double.parseDouble(lineTokens[1]);
                 double longitude = Double.parseDouble(lineTokens[2]);
                 Location location = switch (distanceType) {
-                    case AIR_DISTANCE -> new AirLocation(id, latitude, longitude);
+                    case AIR_DISTANCE -> new AirLocation(id, latitude, longitude, doublePrecisionRequired);
                     case ROAD_DISTANCE -> new RoadLocation(id, latitude, longitude);
                 };
                 if (lineTokens.length >= 4) {
@@ -382,13 +397,13 @@ public class VehicleRoutingImporter extends
             while (line != null && !line.trim().isEmpty()) {
                 String[] lineTokens = splitBySpacesOrTabs(line.trim(), 7);
                 long id = Long.parseLong(lineTokens[0]);
-                TimeWindowedAirLocation location =
-                        new TimeWindowedAirLocation(id, Double.parseDouble(lineTokens[1]), Double.parseDouble(lineTokens[2]));
+                AirLocation location =
+                        new AirLocation(id, Double.parseDouble(lineTokens[1]), Double.parseDouble(lineTokens[2]), true);
                 locationList.add(location);
                 int demand = Integer.parseInt(lineTokens[3]);
-                long minStartTime = Math.round(Long.parseLong(lineTokens[4]) * TimeWindowedAirLocation.MULTIPLIER);
-                long maxEndTime = Math.round(Long.parseLong(lineTokens[5]) * TimeWindowedAirLocation.MULTIPLIER);
-                long serviceDuration = Math.round(Long.parseLong(lineTokens[6]) * TimeWindowedAirLocation.MULTIPLIER);
+                long minStartTime = Math.round(Long.parseLong(lineTokens[4]) * AirLocation.MULTIPLIER);
+                long maxEndTime = Math.round(Long.parseLong(lineTokens[5]) * AirLocation.MULTIPLIER);
+                long serviceDuration = Math.round(Long.parseLong(lineTokens[6]) * AirLocation.MULTIPLIER);
                 if (first) {
                     if (demand != 0) {
                         throw new IllegalArgumentException("The depot with id (" + id

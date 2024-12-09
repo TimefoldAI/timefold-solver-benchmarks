@@ -8,7 +8,7 @@ import java.util.concurrent.ExecutionException;
 import ai.timefold.solver.benchmarks.competitive.AbstractCompetitiveBenchmark;
 import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutionImporter;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.TimeWindowedAirLocation;
+import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.AirLocation;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.persistence.VehicleRoutingImporter;
 import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
 
@@ -36,7 +36,7 @@ public class Main
             return BigDecimal.valueOf(-score.softScore());
         }
         return BigDecimal.valueOf(-score.softScore())
-                .divide(BigDecimal.valueOf(TimeWindowedAirLocation.MULTIPLIER), 1, RoundingMode.HALF_EVEN);
+                .divide(BigDecimal.valueOf(AirLocation.MULTIPLIER), 1, RoundingMode.HALF_EVEN);
     }
 
     @Override

@@ -63,7 +63,7 @@ class VehicleRoutingConstraintProviderTest
         constraintVerifier.verifyThat(
                 VehicleRoutingConstraintProvider::distanceToPreviousStandstillPossiblyWithReturnToDepot)
                 .given(vehicleA, customer1, customer2)
-                .penalizesBy(12L); // Includes return to depot.
+                .penalizesBy(120L); // Includes return to depot.
     }
 
     @ConstraintProviderTest
@@ -95,7 +95,7 @@ class VehicleRoutingConstraintProviderTest
         constraintVerifier.verifyThat(
                 VehicleRoutingConstraintProvider::depotArrivalAfterMaxEndTime)
                 .given(vehicleA, customer1)
-                .penalizesBy(40_04L);
+                .penalizesBy(40_40L);
     }
 
     static void connect(Vehicle vehicle, Customer... customers) {
