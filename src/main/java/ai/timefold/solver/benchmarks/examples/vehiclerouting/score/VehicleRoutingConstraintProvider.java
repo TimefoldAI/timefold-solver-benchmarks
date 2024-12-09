@@ -15,7 +15,8 @@ public class VehicleRoutingConstraintProvider implements ConstraintProvider {
     public Constraint[] defineConstraints(ConstraintFactory factory) {
         return new Constraint[] {
                 vehicleCapacity(factory),
-                distanceToPreviousStandstillPossiblyWithReturnToDepot(factory),
+                distanceToPreviousStandstill(factory),
+                distanceFromLastCustomerToDepot(factory),
                 arrivalAfterMaxEndTime(factory)
         };
     }
@@ -38,16 +39,20 @@ public class VehicleRoutingConstraintProvider implements ConstraintProvider {
     // Soft constraints
     // ************************************************************************
 
-    protected Constraint distanceToPreviousStandstillPossiblyWithReturnToDepot(ConstraintFactory factory) {
+    protected Constraint distanceToPreviousStandstill(ConstraintFactory factory) {
         return factory.forEach(Customer.class)
                 .filter(customer -> customer.getVehicle() != null)
-                .penalizeLong(HardSoftLongScore.ONE_SOFT, customer -> {
-                    var distance = customer.getDistanceFromPreviousStandstill();
-                    if (customer.getNextCustomer() == null) {
-                        distance += customer.getDistanceToDepot();
-                    }
-                    return distance;
-                }).asConstraint("distanceToPreviousStandstillPossiblyWithReturnToDepot");
+                .penalizeLong(HardSoftLongScore.ONE_SOFT,
+                        Customer::getDistanceFromPreviousStandstill)
+                .asConstraint("distanceToPreviousStandstill");
+    }
+
+    protected Constraint distanceFromLastCustomerToDepot(ConstraintFactory factory) {
+        return factory.forEach(Customer.class)
+                .filter(customer -> customer.getVehicle() != null && customer.getNextCustomer() == null)
+                .penalizeLong(HardSoftLongScore.ONE_SOFT,
+                        Customer::getDistanceToDepot)
+                .asConstraint("distanceFromLastCustomerToDepot");
     }
 
     // ************************************************************************
