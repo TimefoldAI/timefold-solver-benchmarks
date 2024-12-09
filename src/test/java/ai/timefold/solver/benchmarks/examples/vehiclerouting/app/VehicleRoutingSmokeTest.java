@@ -20,10 +20,10 @@ class VehicleRoutingSmokeTest extends SolverSmokeTest<VehicleRoutingSolution, Ha
     protected Stream<TestData<HardSoftLongScore>> testData() {
         return Stream.of(
                 TestData.of(CVRP_32_CUSTOMERS,
-                        HardSoftLongScore.ofSoft(-744),
-                        HardSoftLongScore.ofSoft(-744)),
+                        HardSoftLongScore.ofSoft(-7440),
+                        HardSoftLongScore.ofSoft(-7440)),
                 TestData.of(CVRPTW_100_CUSTOMERS_A,
-                        HardSoftLongScore.ofSoft(-1661),
-                        HardSoftLongScore.ofSoft(-1661)));
+                        HardSoftLongScore.ofSoft(-16610),
+                        HardSoftLongScore.ofSoft(-16610)));
     }
 }

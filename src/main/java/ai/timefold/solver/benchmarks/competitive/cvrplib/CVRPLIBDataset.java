@@ -9,7 +9,11 @@ import ai.timefold.solver.benchmarks.competitive.Dataset;
  * The datasets come <a href="http://vrp.galgos.inf.puc-rio.br/index.php/en/">from here</a>.
  * The data on best known solutions were downloaded from the website on December 6, 2024.
  * <p>
- * Out of that, roughly 100 datasets were excluded because there was no easy way to get the expected number of vehicles:
+ * Out of that, roughly 100 datasets were excluded because they require double precision,
+ * but CVRP only supports integer.
+ * Specifically, the old datasets require integer, and these newer ones suddenly switch to using double.
+ * Those two methods are mutually incompatible - switching to doubles caused rounding errors in the old datasets.
+ * Without adding two different models for this, we decided to not include the following datasets instead:
  * <ul>
  * <li>Golden et al.</li>
  * <li>Li et al.</li>
@@ -17,7 +21,7 @@ import ai.timefold.solver.benchmarks.competitive.Dataset;
  * <li>Christofides, Mingozzi and Toth (1979)</li>
  * </ul>
  * <p>
- * Some were removed for other reasons:
+ * Some datasets were removed for other reasons:
  * <ul>
  * <li>XML100; hundreds of very similar, seemingly randomly generated datasets.</li>
  * </ul>
