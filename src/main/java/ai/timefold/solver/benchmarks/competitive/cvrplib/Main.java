@@ -32,9 +32,6 @@ public class Main
 
     @Override
     protected BigDecimal extractDistance(CVRPLIBDataset dataset, HardSoftLongScore score) {
-        if (!dataset.isTimeWindowed()) {
-            return BigDecimal.valueOf(-score.softScore());
-        }
         return BigDecimal.valueOf(-score.softScore())
                 .divide(BigDecimal.valueOf(AirLocation.MULTIPLIER), 1, RoundingMode.HALF_EVEN);
     }
