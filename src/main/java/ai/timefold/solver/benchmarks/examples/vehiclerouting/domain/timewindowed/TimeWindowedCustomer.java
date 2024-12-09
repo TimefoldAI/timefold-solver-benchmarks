@@ -6,6 +6,8 @@ import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
 import ai.timefold.solver.core.api.domain.variable.ShadowVariable;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @PlanningEntity
 public class TimeWindowedCustomer extends Customer {
 
@@ -90,30 +92,9 @@ public class TimeWindowedCustomer extends Customer {
         return Math.max(arrivalTime, minStartTime) + serviceDuration;
     }
 
-    public boolean isArrivalBeforeMinStartTime() {
-        return arrivalTime != null
-                && arrivalTime < minStartTime;
-    }
-
-    public boolean isArrivalAfterMaxEndTime() {
-        return arrivalTime != null
-                && maxEndTime < arrivalTime;
-    }
-
-    /**
-     * @return a positive number, the time multiplied by 1000 to avoid floating point arithmetic rounding errors
-     */
-    public long getTimeWindowGapTo(TimeWindowedCustomer other) {
-        // maxEndTime doesn't account for serviceDuration
-        long latestDepartureTime = maxEndTime + serviceDuration;
-        long otherLatestDepartureTime = other.getMaxEndTime() + other.getServiceDuration();
-        if (latestDepartureTime < other.getMinStartTime()) {
-            return other.getMinStartTime() - latestDepartureTime;
-        }
-        if (otherLatestDepartureTime < minStartTime) {
-            return minStartTime - otherLatestDepartureTime;
-        }
-        return 0L;
+    @JsonIgnore
+    public long getArrivalAtDepot() {
+        return getDepartureTime() + getDistanceToDepot();
     }
 
 }

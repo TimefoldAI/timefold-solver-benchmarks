@@ -4,6 +4,7 @@ import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.sum;
 
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Customer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedCustomer;
+import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedDepot;
 import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
 import ai.timefold.solver.core.api.score.stream.Constraint;
 import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
@@ -16,7 +17,8 @@ public class VehicleRoutingConstraintProvider implements ConstraintProvider {
         return new Constraint[] {
                 vehicleCapacity(factory),
                 distanceToPreviousStandstillPossiblyWithReturnToDepot(factory),
-                arrivalAfterMaxEndTime(factory)
+                arrivalAfterMaxEndTime(factory),
+                depotArrivalAfterMaxEndTime(factory)
         };
     }
 
@@ -56,10 +58,26 @@ public class VehicleRoutingConstraintProvider implements ConstraintProvider {
 
     protected Constraint arrivalAfterMaxEndTime(ConstraintFactory factory) {
         return factory.forEach(TimeWindowedCustomer.class)
-                .filter(customer -> customer.getVehicle() != null && customer.getArrivalTime() > customer.getMaxEndTime())
+                .filter(customer -> customer.getVehicle() != null)
+                .filter(customer -> customer.getArrivalTime() > customer.getMaxEndTime())
                 .penalizeLong(HardSoftLongScore.ONE_HARD,
                         customer -> customer.getArrivalTime() - customer.getMaxEndTime())
                 .asConstraint("arrivalAfterMaxEndTime");
+    }
+
+    protected Constraint depotArrivalAfterMaxEndTime(ConstraintFactory factory) {
+        return factory.forEach(TimeWindowedCustomer.class)
+                .filter(customer -> customer.getVehicle() != null)
+                .filter(customer -> customer.getNextCustomer() == null && getDepotArrivalDifference(customer) > 0)
+                .penalizeLong(HardSoftLongScore.ONE_HARD,
+                        VehicleRoutingConstraintProvider::getDepotArrivalDifference)
+                .asConstraint("depotArrivalAfterMaxEndTime");
+    }
+
+    private static long getDepotArrivalDifference(TimeWindowedCustomer customer) {
+        var depotMaxEndTime = ((TimeWindowedDepot) customer.getVehicle().getDepot()).getMaxEndTime();
+        var arrivalTime = customer.getArrivalAtDepot();
+        return arrivalTime - depotMaxEndTime;
     }
 
 }

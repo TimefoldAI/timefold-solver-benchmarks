@@ -380,7 +380,6 @@ public class VehicleRoutingImporter extends
             int locationListSizeEstimation = 25;
             List<Location> locationList = new ArrayList<>(locationListSizeEstimation);
             depotList = new ArrayList<>(1);
-            TimeWindowedDepot depot = null;
             List<Customer> customerList = new ArrayList<>(locationListSizeEstimation);
             boolean first = true;
             while (line != null && !line.trim().isEmpty()) {
@@ -402,25 +401,10 @@ public class VehicleRoutingImporter extends
                         throw new IllegalArgumentException("The depot with id (" + id
                                 + ") has a serviceDuration (" + serviceDuration + ").");
                     }
-                    depot = new TimeWindowedDepot(id, location, minStartTime, maxEndTime);
+                    TimeWindowedDepot depot = new TimeWindowedDepot(id, location, minStartTime, maxEndTime);
                     depotList.add(depot);
                     first = false;
                 } else {
-                    // Score constraint arrivalAfterMaxEndTimeAtDepot is a built-in hard constraint in VehicleRoutingImporter
-                    long maximumAllowedMaxEndTime =
-                            depot.getMaxEndTime() - serviceDuration - location.getDistanceTo(depot.getLocation());
-                    if (maxEndTime > maximumAllowedMaxEndTime) {
-                        logger.warn("The customer ({})'s maxEndTime ({}) was automatically reduced" +
-                                " to maximumAllowedMaxEndTime ({}) because of the depot's maxEndTime ({}).",
-                                id, maxEndTime, maximumAllowedMaxEndTime, depot.getMaxEndTime());
-                        maxEndTime = maximumAllowedMaxEndTime;
-                    }
-                    if (maximumAllowedMaxEndTime < minStartTime) { // Just to be safe.
-                        throw new IllegalArgumentException("The customer (" + id
-                                + ")'s maximumAllowedMaxEndTime (" + maximumAllowedMaxEndTime
-                                + ") is lower than the minStartTime (" + minStartTime + ").");
-                    }
-
                     // Do not add a customer that has no demand
                     if (demand != 0) {
                         // Notice that we leave the PlanningVariable properties on null

@@ -83,6 +83,21 @@ class VehicleRoutingConstraintProviderTest
                 .penalizesBy(90_00L);
     }
 
+    @ConstraintProviderTest
+    void depotArrivalAfterMaxEndTime(
+            ConstraintVerifier<VehicleRoutingConstraintProvider, VehicleRoutingSolution> constraintVerifier) {
+        TimeWindowedCustomer customer1 = new TimeWindowedCustomer(2L, location2, 1, 8_00_00L, 18_00_00L, 1_00_00L);
+        customer1.setArrivalTime(8_00_00L + 4000L);
+        Vehicle vehicleA = new Vehicle(1L, 100, new TimeWindowedDepot(1L, location1, 8_00_00L, 9_00_00L));
+
+        connect(vehicleA, customer1);
+
+        constraintVerifier.verifyThat(
+                VehicleRoutingConstraintProvider::depotArrivalAfterMaxEndTime)
+                .given(vehicleA, customer1)
+                .penalizesBy(40_04L);
+    }
+
     static void connect(Vehicle vehicle, Customer... customers) {
         vehicle.setCustomers(Arrays.asList(customers));
         for (int i = 0; i < customers.length; i++) {
