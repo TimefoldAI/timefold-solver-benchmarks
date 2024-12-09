@@ -14,13 +14,6 @@ import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.score.VehicleRoutingConstraintProvider;
 import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
 import ai.timefold.solver.core.config.constructionheuristic.ConstructionHeuristicPhaseConfig;
-import ai.timefold.solver.core.config.heuristic.selector.list.SubListSelectorConfig;
-import ai.timefold.solver.core.config.heuristic.selector.move.composite.UnionMoveSelectorConfig;
-import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.ListChangeMoveSelectorConfig;
-import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.ListSwapMoveSelectorConfig;
-import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.SubListChangeMoveSelectorConfig;
-import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.SubListSwapMoveSelectorConfig;
-import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.kopt.KOptListMoveSelectorConfig;
 import ai.timefold.solver.core.config.localsearch.LocalSearchPhaseConfig;
 import ai.timefold.solver.core.config.solver.SolverConfig;
 import ai.timefold.solver.core.config.solver.termination.TerminationConfig;
@@ -31,10 +24,6 @@ public enum CVRPLIBConfiguration implements Configuration<CVRPLIBDataset> {
      * Community edition, everything left on default.
      */
     COMMUNITY_EDITION(false),
-    /**
-     * Community edition, added some move selectors.
-     */
-    COMMUNITY_EDITION_TWEAKED(false),
     /**
      * Full power of the enterprise edition.
      */
@@ -50,7 +39,6 @@ public enum CVRPLIBConfiguration implements Configuration<CVRPLIBDataset> {
     public SolverConfig getSolverConfig(CVRPLIBDataset dataset) {
         return switch (this) {
             case COMMUNITY_EDITION -> getCommunityEditionSolverConfig(dataset);
-            case COMMUNITY_EDITION_TWEAKED -> getCommunityEditionTweakedSolverConfig(dataset);
             case ENTERPRISE_EDITION -> getEnterpriseEditionSolverConfig(dataset);
         };
     }
@@ -78,28 +66,9 @@ public enum CVRPLIBConfiguration implements Configuration<CVRPLIBDataset> {
 
     }
 
-    private static SolverConfig getCommunityEditionTweakedSolverConfig(CVRPLIBDataset dataset) {
-        return getCommunityEditionSolverConfig(dataset)
-                .withPhases(new ConstructionHeuristicPhaseConfig(),
-                        new LocalSearchPhaseConfig()
-                                .withMoveSelectorConfig(new UnionMoveSelectorConfig()
-                                        .withMoveSelectors(
-                                                new ListChangeMoveSelectorConfig(),
-                                                new ListSwapMoveSelectorConfig(),
-                                                new SubListChangeMoveSelectorConfig()
-                                                        .withSubListSelectorConfig(
-                                                                new SubListSelectorConfig().withMaximumSubListSize(50))
-                                                        .withSelectReversingMoveToo(true),
-                                                new SubListSwapMoveSelectorConfig()
-                                                        .withSubListSelectorConfig(
-                                                                new SubListSelectorConfig().withMaximumSubListSize(50))
-                                                        .withSelectReversingMoveToo(true),
-                                                new KOptListMoveSelectorConfig())));
-    }
-
     private static SolverConfig getEnterpriseEditionSolverConfig(CVRPLIBDataset dataset) {
         // Inherit community config, add move thread count and nearby distance meter class.
-        return getCommunityEditionTweakedSolverConfig(dataset)
+        return getCommunityEditionSolverConfig(dataset)
                 .withMoveThreadCount(Integer.toString(AbstractCompetitiveBenchmark.ENTERPRISE_MOVE_THREAD_COUNT))
                 .withNearbyDistanceMeterClass(CustomerNearbyDistanceMeter.class);
     }

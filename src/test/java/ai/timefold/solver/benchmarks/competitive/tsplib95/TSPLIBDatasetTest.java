@@ -21,7 +21,7 @@ class TSPLIBDatasetTest {
         var solution = new TspImporter().readSolution(dataset.getPath().toFile());
         assertThat(solution).isNotNull();
 
-        var config = TSPLIBConfiguration.COMMUNITY_EDITION_TWEAKED.getSolverConfig(dataset);
+        var config = TSPLIBConfiguration.ENTERPRISE_EDITION.getSolverConfig(dataset);
         var phases = config.getPhaseConfigList().subList(0, 1); // Keep only CH.
         config.setPhaseConfigList(phases);
 

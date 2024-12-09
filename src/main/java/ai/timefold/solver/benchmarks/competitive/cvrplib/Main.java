@@ -17,8 +17,7 @@ public class Main
 
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
         var benchmark = new Main();
-        benchmark.run(CVRPLIBConfiguration.COMMUNITY_EDITION, CVRPLIBConfiguration.COMMUNITY_EDITION_TWEAKED,
-                CVRPLIBConfiguration.ENTERPRISE_EDITION, CVRPLIBDataset.values());
+        benchmark.run(CVRPLIBConfiguration.COMMUNITY_EDITION, CVRPLIBConfiguration.ENTERPRISE_EDITION, CVRPLIBDataset.values());
     }
 
     @Override

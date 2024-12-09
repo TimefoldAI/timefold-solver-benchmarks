@@ -21,7 +21,7 @@ class CVRPLIBDatasetTest {
         var solution = new VehicleRoutingImporter().readSolution(dataset.getPath().toFile());
         assertThat(solution).isNotNull();
 
-        var config = CVRPLIBConfiguration.COMMUNITY_EDITION_TWEAKED.getSolverConfig(dataset);
+        var config = CVRPLIBConfiguration.ENTERPRISE_EDITION.getSolverConfig(dataset);
         var phases = config.getPhaseConfigList().subList(0, 1); // Keep only CH.
         config.setPhaseConfigList(phases);
 

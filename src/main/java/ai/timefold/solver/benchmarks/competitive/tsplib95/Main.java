@@ -15,8 +15,7 @@ public class Main extends AbstractCompetitiveBenchmark<TSPLIBDataset, TSPLIBConf
 
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
         var benchmark = new Main();
-        benchmark.run(TSPLIBConfiguration.COMMUNITY_EDITION, TSPLIBConfiguration.COMMUNITY_EDITION_TWEAKED,
-                TSPLIBConfiguration.ENTERPRISE_EDITION, TSPLIBDataset.values());
+        benchmark.run(TSPLIBConfiguration.COMMUNITY_EDITION, TSPLIBConfiguration.ENTERPRISE_EDITION, TSPLIBDataset.values());
     }
 
     @Override

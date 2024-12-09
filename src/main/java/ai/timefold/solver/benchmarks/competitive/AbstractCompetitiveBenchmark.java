@@ -31,7 +31,9 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
     public static final long UNIMPROVED_SECONDS_TERMINATION = MAX_SECONDS / 3;
 
     static final int MAX_THREADS = 4; // Set to the number of performance cores on your machine.
-    public static final int ENTERPRISE_MOVE_THREAD_COUNT = 4; // Recommended to divide MAX_THREADS without remainder.
+    // Recommended to divide MAX_THREADS without remainder.
+    // Don't overdo it with move threads; it's not a silver bullet.
+    public static final int ENTERPRISE_MOVE_THREAD_COUNT = 4;
 
     protected abstract String getLibraryName();
 
@@ -45,27 +47,24 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
 
     protected abstract AbstractSolutionImporter<Solution_> createImporter();
 
-    public void run(Configuration_ communityEdition, Configuration_ communityEditionTweaked, Configuration_ enterpriseEdition,
+    public void run(Configuration_ communityEdition, Configuration_ enterpriseEdition,
             Dataset_... datasets)
             throws ExecutionException, InterruptedException, IOException {
         var communityResultList = run(communityEdition, datasets);
-        var communityTweakedResultList = run(communityEditionTweaked, datasets);
         var enterpriseResultList = run(enterpriseEdition, datasets);
 
         var result = new StringBuilder();
         try {
             String line = """
-                    %s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s
+                    %s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s
                     """;
             String header = line.formatted("Dataset", "Location count", "Vehicle count", "Best known score",
                     "CE Achieved score", "CE run time (ms)", "CE gap to best (%)", "CE Health",
-                    "CE+ Achieved score", "CE+ run time (ms)", "CE+ gap to best (%)", "CE+ Health",
                     "EE Achieved score", "EE run time (ms)", "EE gap to best (%)", "EE Health");
             result.append(header);
 
             for (var dataset : datasets) {
                 var communityResult = communityResultList.get(dataset);
-                var communityTweakedResult = communityTweakedResultList.get(dataset);
                 var enterpriseResult = enterpriseResultList.get(dataset);
 
                 var datasetName = dataset.name();
@@ -73,10 +72,6 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                 var communityRuntime = communityResult.runtime().toMillis();
                 var communityGap = computeGap(dataset, communityScore);
                 var communityHealth = determineHealth(dataset, communityScore, communityResult.runtime());
-                var communityTweakedScore = communityTweakedResult.score();
-                var communityTweakedRuntime = communityTweakedResult.runtime().toMillis();
-                var communityTweakedGap = computeGap(dataset, communityTweakedScore);
-                var communityTweakedHealth = determineHealth(dataset, communityTweakedScore, communityTweakedResult.runtime());
                 var enterpriseScore = enterpriseResult.score();
                 var enterpriseRuntime = enterpriseResult.runtime().toMillis();
                 var enterpriseTweakedGap = computeGap(dataset, enterpriseScore);
@@ -90,10 +85,6 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                         communityRuntime,
                         communityGap,
                         quote(communityHealth),
-                        roundToOneDecimal(extractDistance(dataset, communityTweakedScore)),
-                        communityTweakedRuntime,
-                        communityTweakedGap,
-                        quote(communityTweakedHealth),
                         roundToOneDecimal(extractDistance(dataset, enterpriseScore)),
                         enterpriseRuntime,
                         enterpriseTweakedGap,
