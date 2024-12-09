@@ -13,7 +13,6 @@ import ai.timefold.solver.benchmarks.competitive.Dataset;
  * <ul>
  * <li>Golden et al.</li>
  * <li>Li et al.</li>
- * <li>Arnold, Gendreau and Sörensen</li>
  * <li>Rochat and Taillard</li>
  * <li>Christofides, Mingozzi and Toth (1979)</li>
  * </ul>
@@ -235,6 +234,17 @@ public enum CVRPLIBDataset implements Dataset<CVRPLIBDataset> {
     X_N957_K87("X-n957-k87.vrp", 85465, false),
     X_N979_K58("X-n979-k58.vrp", 118976, false),
     X_N1001_K43("X-n1001-k43.vrp", 72355, false),
+    // CVRP Arnold, Gendreau and Sörensen (2017); k decided by rounding the BKS number of vehicles up to nearest 50.
+    ANTWERP1("Antwerp1-n6000-k350.vrp", 477277, false, true),
+    ANTWERP2("Antwerp2-n7000-k150.vrp", 291350, false, true),
+    BRUSSELS1("Brussels1-n15000-k550.vrp", 501719, false, true),
+    BRUSSELS2("Brussels2-n16000-k200.vrp", 345468, false, true),
+    FLANDERS1("Flanders1-n20000-k700.vrp", 7240118, false, true),
+    FLANDERS2("Flanders2-n30000-k300.vrp", 4373244, false, true),
+    GHENT1("Ghent1-n10000-k500.vrp", 469531, false, true),
+    GHENT2("Ghent2-n11000-k150.vrp", 257748, false, true),
+    LEUVEN1("Leuven1-n3000-k250.vrp", 192848, false, true),
+    LEUVEN2("Leuven2-n4000-k50.vrp", 111391, false, true),
     // CVRPTW Solomon
     C101("C101.txt", 827.3),
     C102("C102.txt", 827.3),
@@ -597,15 +607,14 @@ public enum CVRPLIBDataset implements Dataset<CVRPLIBDataset> {
     private final String filename;
     private final BigDecimal bestKnownDistance;
     private final boolean bestKnownDistanceOptimal;
+    private final boolean large;
 
     CVRPLIBDataset(String filename, int bestKnownDistance) {
         this(filename, bestKnownDistance, true);
     }
 
     CVRPLIBDataset(String filename, int bestKnownDistance, boolean bestKnownDistanceOptimal) {
-        this.filename = filename;
-        this.bestKnownDistance = BigDecimal.valueOf(bestKnownDistance);
-        this.bestKnownDistanceOptimal = bestKnownDistanceOptimal;
+        this(filename, bestKnownDistance, bestKnownDistanceOptimal, false);
     }
 
     CVRPLIBDataset(String filename, double bestKnownDistance) {
@@ -613,9 +622,14 @@ public enum CVRPLIBDataset implements Dataset<CVRPLIBDataset> {
     }
 
     CVRPLIBDataset(String filename, double bestKnownDistance, boolean bestKnownDistanceOptimal) {
+        this(filename, bestKnownDistance, bestKnownDistanceOptimal, false);
+    }
+
+    CVRPLIBDataset(String filename, double bestKnownDistance, boolean bestKnownDistanceOptimal, boolean large) {
         this.filename = filename;
         this.bestKnownDistance = BigDecimal.valueOf(bestKnownDistance);
         this.bestKnownDistanceOptimal = bestKnownDistanceOptimal;
+        this.large = large;
     }
 
     @Override
@@ -625,7 +639,7 @@ public enum CVRPLIBDataset implements Dataset<CVRPLIBDataset> {
 
     @Override
     public boolean isLarge() {
-        return false;
+        return large;
     }
 
     @Override
