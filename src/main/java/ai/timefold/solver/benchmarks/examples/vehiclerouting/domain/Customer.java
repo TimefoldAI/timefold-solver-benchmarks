@@ -98,7 +98,7 @@ public class Customer extends AbstractPersistable implements LocationAware {
                     "This method must not be called when the shadow variables are not initialized yet.");
         }
         if (previousCustomer == null) {
-            return vehicle.getLocation().getDistanceTo(location);
+            return getDistanceToDepot();
         }
         return previousCustomer.getLocation().getDistanceTo(location);
     }

@@ -52,7 +52,7 @@ class VehicleRoutingConstraintProviderTest
     }
 
     @ConstraintProviderTest
-    void distanceToPreviousStandstill(
+    void distanceToPreviousStandstillPossiblyWithReturnToDepot(
             ConstraintVerifier<VehicleRoutingConstraintProvider, VehicleRoutingSolution> constraintVerifier) {
         Customer customer1 = new Customer(2L, location2, 80);
         Customer customer2 = new Customer(3L, location3, 40);
@@ -61,24 +61,9 @@ class VehicleRoutingConstraintProviderTest
         connect(vehicleA, customer1, customer2);
 
         constraintVerifier.verifyThat(
-                VehicleRoutingConstraintProvider::distanceToPreviousStandstill)
+                VehicleRoutingConstraintProvider::distanceToPreviousStandstillPossiblyWithReturnToDepot)
                 .given(vehicleA, customer1, customer2)
-                .penalizesBy(9L);
-    }
-
-    @ConstraintProviderTest
-    void distanceFromLastCustomerToDepot(
-            ConstraintVerifier<VehicleRoutingConstraintProvider, VehicleRoutingSolution> constraintVerifier) {
-        Customer customer1 = new Customer(2L, location2, 80);
-        Customer customer2 = new Customer(3L, location3, 40);
-        Vehicle vehicleA = new Vehicle(1L, 100, new Depot(1L, location1));
-
-        connect(vehicleA, customer1, customer2);
-
-        constraintVerifier.verifyThat(
-                VehicleRoutingConstraintProvider::distanceFromLastCustomerToDepot)
-                .given(vehicleA, customer1, customer2)
-                .penalizesBy(3L);
+                .penalizesBy(12L); // Includes return to depot.
     }
 
     @ConstraintProviderTest

@@ -3,6 +3,7 @@ package ai.timefold.solver.benchmarks.competitive.cvrplib;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 
 import ai.timefold.solver.benchmarks.competitive.AbstractCompetitiveBenchmark;
@@ -17,7 +18,10 @@ public class Main
 
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
         var benchmark = new Main();
-        benchmark.run(CVRPLIBConfiguration.COMMUNITY_EDITION, CVRPLIBConfiguration.ENTERPRISE_EDITION, CVRPLIBDataset.values());
+        benchmark.run(CVRPLIBConfiguration.COMMUNITY_EDITION, CVRPLIBConfiguration.ENTERPRISE_EDITION,
+                Arrays.stream(CVRPLIBDataset.values())
+                        .filter(CVRPLIBDataset::isTimeWindowed)
+                        .toArray(CVRPLIBDataset[]::new));
     }
 
     @Override
@@ -36,7 +40,7 @@ public class Main
             return BigDecimal.valueOf(-score.softScore());
         }
         return BigDecimal.valueOf(-score.softScore())
-                .divide(BigDecimal.valueOf(TimeWindowedAirLocation.MULTIPLIER), RoundingMode.HALF_EVEN);
+                .divide(BigDecimal.valueOf(TimeWindowedAirLocation.MULTIPLIER), 1, RoundingMode.HALF_EVEN);
     }
 
     @Override

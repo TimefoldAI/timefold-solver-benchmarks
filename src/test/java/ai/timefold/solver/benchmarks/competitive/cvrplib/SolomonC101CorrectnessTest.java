@@ -2,8 +2,6 @@ package ai.timefold.solver.benchmarks.competitive.cvrplib;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -17,12 +15,13 @@ import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedVehicleRoutingSolution;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.persistence.VehicleRoutingImporter;
 import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
+import ai.timefold.solver.core.api.score.stream.DefaultConstraintJustification;
 import ai.timefold.solver.core.api.solver.ScoreAnalysisFetchPolicy;
 import ai.timefold.solver.core.api.solver.SolutionManager;
 import ai.timefold.solver.core.api.solver.SolverFactory;
 
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
-import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.Test;
 
 class SolomonC101CorrectnessTest {
@@ -47,8 +46,8 @@ class SolomonC101CorrectnessTest {
             softly.assertThat(customers).hasSize(100);
         });
 
+        var depot = (TimeWindowedDepot) solution.getDepotList().get(0);
         SoftAssertions.assertSoftly(softly -> {
-            var depot = (TimeWindowedDepot) solution.getDepotList().get(0);
             softly.assertThat(depot.getLocation().getLatitude()).isEqualTo(40);
             softly.assertThat(depot.getLocation().getLongitude()).isEqualTo(50);
             softly.assertThat(depot.getMinStartTime()).isEqualTo(0);
@@ -183,16 +182,28 @@ class SolomonC101CorrectnessTest {
         var config = CVRPLIBConfiguration.ENTERPRISE_EDITION.getSolverConfig(dataset);
         var solutionManager = SolutionManager.<VehicleRoutingSolution, HardSoftLongScore> create(SolverFactory.create(config));
         var analysis = solutionManager.analyze(solution, ScoreAnalysisFetchPolicy.FETCH_ALL);
+        var softConstraintAnalysis = analysis.getConstraintAnalysis("distanceToPreviousStandstillPossiblyWithReturnToDepot");
+        softConstraintAnalysis.matches().forEach(match -> {
+            var justification = (DefaultConstraintJustification) match.justification();
+            var customer = (TimeWindowedCustomer) justification.getFacts().get(0);
+            var penalty = -((HardSoftLongScore) justification.getImpact()).softScore();
+            var previousCustomer = customer.getPreviousCustomer() == null ? depot : customer.getPreviousCustomer();
+            var source = previousCustomer.getLocation();
+            var destination = customer.getLocation();
+            var distance = source.getDistanceTo(destination);
+            if (customer.getNextCustomer() == null) {
+                distance += destination.getDistanceTo(depot.getLocation());
+            }
+            Assertions.assertThat(penalty)
+                    .as("Distance from " + previousCustomer + " to " + customer)
+                    .isEqualTo(distance);
+        });
         var score = analysis.score();
-        System.out.println("Score: " + score);
-
-        assertThat(score.isFeasible()).isTrue();
-        assertThat(convertScore(-score.softScore()))
-                .isEqualTo(827.3, Offset.offset(0.1));
+        assertThat(score).isEqualTo(HardSoftLongScore.of(0, -8273));
     }
 
     private void verifyCustomer(List<TimeWindowedCustomer> customers, int customerId, int x, int y, int demand, int readyTime,
-                                int dueDate, int serviceTime) {
+            int dueDate, int serviceTime) {
         var customer = customers.get(customerId - 1);
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(customer.getLocation().getLatitude()).isEqualTo(x);
@@ -200,14 +211,9 @@ class SolomonC101CorrectnessTest {
             softly.assertThat(customer.getDemand()).isEqualTo(demand);
             softly.assertThat(customer.getMinStartTime()).isEqualTo(Math.round(readyTime * TimeWindowedAirLocation.MULTIPLIER));
             softly.assertThat(customer.getMaxEndTime()).isEqualTo(Math.round(dueDate * TimeWindowedAirLocation.MULTIPLIER));
-            softly.assertThat(customer.getServiceDuration()).isEqualTo(Math.round(serviceTime * TimeWindowedAirLocation.MULTIPLIER));
+            softly.assertThat(customer.getServiceDuration())
+                    .isEqualTo(Math.round(serviceTime * TimeWindowedAirLocation.MULTIPLIER));
         });
-    }
-
-    private double convertScore(long score) {
-        return BigDecimal.valueOf(score)
-                .divide(BigDecimal.valueOf(TimeWindowedAirLocation.MULTIPLIER), 1, RoundingMode.HALF_EVEN)
-                .doubleValue();
     }
 
     private List<Customer> assembleCustomers(VehicleRoutingSolution solution, int... customerIds) {

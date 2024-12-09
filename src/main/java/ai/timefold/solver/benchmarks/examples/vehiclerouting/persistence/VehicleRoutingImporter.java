@@ -407,13 +407,18 @@ public class VehicleRoutingImporter extends
                     first = false;
                 } else {
                     // Score constraint arrivalAfterMaxEndTimeAtDepot is a built-in hard constraint in VehicleRoutingImporter
-                    long maximumAllowedMaxEndTime = Math.round(depot.getMaxEndTime() * TimeWindowedAirLocation.MULTIPLIER)
-                            - location.getDistanceTo(depot.getLocation());
+                    long maximumAllowedMaxEndTime =
+                            depot.getMaxEndTime() - serviceDuration - location.getDistanceTo(depot.getLocation());
                     if (maxEndTime > maximumAllowedMaxEndTime) {
                         logger.warn("The customer ({})'s maxEndTime ({}) was automatically reduced" +
-                                        " to maximumAllowedMaxEndTime ({}) because of the depot's maxEndTime ({}).",
+                                " to maximumAllowedMaxEndTime ({}) because of the depot's maxEndTime ({}).",
                                 id, maxEndTime, maximumAllowedMaxEndTime, depot.getMaxEndTime());
                         maxEndTime = maximumAllowedMaxEndTime;
+                    }
+                    if (maximumAllowedMaxEndTime < minStartTime) { // Just to be safe.
+                        throw new IllegalArgumentException("The customer (" + id
+                                + ")'s maximumAllowedMaxEndTime (" + maximumAllowedMaxEndTime
+                                + ") is lower than the minStartTime (" + minStartTime + ").");
                     }
 
                     // Do not add a customer that has no demand

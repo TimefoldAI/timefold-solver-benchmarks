@@ -17,7 +17,7 @@ public class TimeWindowedAirLocation extends Location {
     @Override
     public long getDistanceTo(Location location) {
         double distance = getAirDistanceDoubleTo(location);
-        return Math.round(MULTIPLIER * distance);
+        return (long) (MULTIPLIER * distance); // Truncate, do not round!
     }
 
 }

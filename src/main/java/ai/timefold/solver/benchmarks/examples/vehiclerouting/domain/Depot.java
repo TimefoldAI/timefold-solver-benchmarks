@@ -2,6 +2,7 @@ package ai.timefold.solver.benchmarks.examples.vehiclerouting.domain;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
 import ai.timefold.solver.benchmarks.examples.common.domain.location.Location;
+import ai.timefold.solver.benchmarks.examples.common.domain.location.LocationAware;
 import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.JacksonUniqueIdGenerator;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedDepot;
 
@@ -16,7 +17,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 })
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonIdentityInfo(generator = JacksonUniqueIdGenerator.class)
-public class Depot extends AbstractPersistable {
+public class Depot extends AbstractPersistable
+        implements LocationAware {
 
     protected Location location;
 
@@ -28,6 +30,7 @@ public class Depot extends AbstractPersistable {
         this.location = location;
     }
 
+    @Override
     public Location getLocation() {
         return location;
     }
