@@ -1,7 +1,7 @@
 package ai.timefold.solver.benchmarks.examples.tsp.domain;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
-import ai.timefold.solver.benchmarks.examples.common.domain.location.Location;
+import ai.timefold.solver.benchmarks.examples.tsp.domain.location.Location;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.solver.DomicileAngleVisitDifficultyWeightFactory;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.solver.DomicileDistanceStandstillStrengthWeightFactory;
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;

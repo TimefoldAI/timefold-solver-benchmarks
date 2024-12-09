@@ -1,8 +1,8 @@
-package ai.timefold.solver.benchmarks.examples.common.domain.location;
+package ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
 import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.JacksonUniqueIdGenerator;
-import ai.timefold.solver.benchmarks.examples.tsp.domain.TspSolution;
+import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -65,7 +65,7 @@ public abstract class Location extends AbstractPersistable {
     // ************************************************************************
 
     /**
-     * The distance's unit of measurement depends on the {@link TspSolution}'s {@link DistanceType}.
+     * The distance's unit of measurement depends on the {@link VehicleRoutingSolution}'s {@link DistanceType}.
      * It can be in miles or km, but for most cases it's in the TSPLIB's unit of measurement.
      *
      * @param location never null

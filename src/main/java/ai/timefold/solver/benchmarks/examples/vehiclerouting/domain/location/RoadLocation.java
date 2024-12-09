@@ -1,4 +1,4 @@
-package ai.timefold.solver.benchmarks.examples.common.domain.location;
+package ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location;
 
 import java.util.Map;
 

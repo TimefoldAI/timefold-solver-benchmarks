@@ -1,7 +1,7 @@
 package ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed;
 
-import ai.timefold.solver.benchmarks.examples.common.domain.location.Location;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Depot;
+import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.Location;
 
 public class TimeWindowedDepot extends Depot {
 

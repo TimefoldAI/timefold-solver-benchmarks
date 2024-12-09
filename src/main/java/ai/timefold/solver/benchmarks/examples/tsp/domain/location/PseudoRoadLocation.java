@@ -1,4 +1,4 @@
-package ai.timefold.solver.benchmarks.examples.common.domain.location;
+package ai.timefold.solver.benchmarks.examples.tsp.domain.location;
 
 public class PseudoRoadLocation extends Location {
 

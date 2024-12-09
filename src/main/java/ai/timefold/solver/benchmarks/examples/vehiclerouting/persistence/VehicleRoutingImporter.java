@@ -9,16 +9,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import ai.timefold.solver.benchmarks.examples.common.domain.location.AirLocation;
-import ai.timefold.solver.benchmarks.examples.common.domain.location.DistanceType;
-import ai.timefold.solver.benchmarks.examples.common.domain.location.Location;
-import ai.timefold.solver.benchmarks.examples.common.domain.location.RoadLocation;
-import ai.timefold.solver.benchmarks.examples.common.domain.location.TimeWindowedAirLocation;
 import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractTxtSolutionImporter;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Customer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Depot;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Vehicle;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
+import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.AirLocation;
+import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.DistanceType;
+import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.Location;
+import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.RoadLocation;
+import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.TimeWindowedAirLocation;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedCustomer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedDepot;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedVehicleRoutingSolution;
@@ -221,7 +221,6 @@ public class VehicleRoutingImporter extends
                 Location location = switch (distanceType) {
                     case AIR_DISTANCE -> new AirLocation(id, latitude, longitude);
                     case ROAD_DISTANCE -> new RoadLocation(id, latitude, longitude);
-                    default -> throw new IllegalStateException("The distanceType (" + distanceType + ") is not supported.");
                 };
                 if (lineTokens.length >= 4) {
                     location.setName(lineTokens[3]);
@@ -277,10 +276,8 @@ public class VehicleRoutingImporter extends
                             throw new IllegalArgumentException("The depot with id (" + id
                                     + ") has a serviceDuration (" + serviceDuration + ") that is not 0.");
                         }
-                        depotList.add(
-                                new TimeWindowedDepot(
-                                        id, location, Long.parseLong(lineTokens[2]),
-                                        Long.parseLong(lineTokens[3])));
+                        depotList.add(new TimeWindowedDepot(id, location, Long.parseLong(lineTokens[2]),
+                                Long.parseLong(lineTokens[3])));
                     } else {
                         depotList.add(new Depot(id, location));
                     }

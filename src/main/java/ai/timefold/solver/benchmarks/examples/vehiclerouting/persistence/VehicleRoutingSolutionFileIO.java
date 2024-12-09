@@ -4,10 +4,10 @@ import java.io.File;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import ai.timefold.solver.benchmarks.examples.common.domain.location.DistanceType;
-import ai.timefold.solver.benchmarks.examples.common.domain.location.RoadLocation;
 import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractJsonSolutionFileIO;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
+import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.DistanceType;
+import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.RoadLocation;
 
 public class VehicleRoutingSolutionFileIO extends
         AbstractJsonSolutionFileIO<VehicleRoutingSolution> {

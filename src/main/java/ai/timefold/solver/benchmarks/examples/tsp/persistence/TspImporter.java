@@ -9,9 +9,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import ai.timefold.solver.benchmarks.examples.common.domain.location.DistanceType;
-import ai.timefold.solver.benchmarks.examples.common.domain.location.Location;
-import ai.timefold.solver.benchmarks.examples.common.domain.location.RoadLocation;
 import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractTxtSolutionImporter;
 import ai.timefold.solver.benchmarks.examples.common.persistence.SolutionConverter;
 import ai.timefold.solver.benchmarks.examples.tsp.app.TspApp;
@@ -19,6 +16,9 @@ import ai.timefold.solver.benchmarks.examples.tsp.domain.Domicile;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.Standstill;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.TspSolution;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.Visit;
+import ai.timefold.solver.benchmarks.examples.tsp.domain.location.DistanceType;
+import ai.timefold.solver.benchmarks.examples.tsp.domain.location.Location;
+import ai.timefold.solver.benchmarks.examples.tsp.domain.location.RoadLocation;
 
 /**
  * Supports the Coursera format and the parts of the TSPLIB format relevant to supporting the TSPLIB95 datasets.

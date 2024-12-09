@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import ai.timefold.solver.benchmarks.examples.common.domain.location.TimeWindowedAirLocation;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Customer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Vehicle;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
+import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.TimeWindowedAirLocation;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedCustomer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedDepot;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedVehicleRoutingSolution;

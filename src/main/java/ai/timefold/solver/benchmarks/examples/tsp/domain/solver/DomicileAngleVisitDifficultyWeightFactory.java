@@ -14,13 +14,11 @@ import ai.timefold.solver.core.impl.heuristic.selector.common.decorator.Selectio
  * On large datasets, the constructed solution looks like pizza slices.
  */
 public class DomicileAngleVisitDifficultyWeightFactory
-        implements
-        SelectionSorterWeightFactory<TspSolution, Visit> {
+        implements SelectionSorterWeightFactory<TspSolution, Visit> {
 
     @Override
-    public DomicileAngleVisitDifficultyWeight createSorterWeight(TspSolution vehicleRoutingSolution,
-            Visit visit) {
-        Domicile domicile = vehicleRoutingSolution.getDomicile();
+    public DomicileAngleVisitDifficultyWeight createSorterWeight(TspSolution tspSolution, Visit visit) {
+        Domicile domicile = tspSolution.getDomicile();
         return new DomicileAngleVisitDifficultyWeight(visit,
                 visit.getLocation().getAngle(domicile.getLocation()),
                 visit.getLocation().getDistanceTo(domicile.getLocation())

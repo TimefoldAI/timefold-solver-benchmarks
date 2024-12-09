@@ -5,10 +5,10 @@ import java.math.RoundingMode;
 
 import ai.timefold.solver.benchmarks.competitive.AbstractCompetitiveBenchmark;
 import ai.timefold.solver.benchmarks.competitive.Configuration;
-import ai.timefold.solver.benchmarks.examples.common.domain.location.TimeWindowedAirLocation;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Customer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Vehicle;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
+import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.TimeWindowedAirLocation;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.solver.nearby.CustomerNearbyDistanceMeter;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedCustomer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.score.VehicleRoutingConstraintProvider;

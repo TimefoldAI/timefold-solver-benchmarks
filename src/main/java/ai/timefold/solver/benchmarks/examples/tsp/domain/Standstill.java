@@ -1,7 +1,7 @@
 package ai.timefold.solver.benchmarks.examples.tsp.domain;
 
-import ai.timefold.solver.benchmarks.examples.common.domain.location.LocationAware;
 import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.JacksonUniqueIdGenerator;
+import ai.timefold.solver.benchmarks.examples.tsp.domain.location.LocationAware;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;

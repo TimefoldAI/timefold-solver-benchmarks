@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
-import ai.timefold.solver.benchmarks.examples.common.domain.location.Location;
-import ai.timefold.solver.benchmarks.examples.common.domain.location.LocationAware;
 import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.JacksonUniqueIdGenerator;
+import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.Location;
+import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.LocationAware;
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
 import ai.timefold.solver.core.api.domain.entity.PlanningPin;
 import ai.timefold.solver.core.api.domain.entity.PlanningPinToIndex;

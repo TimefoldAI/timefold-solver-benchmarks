@@ -1,7 +1,7 @@
 package ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed;
 
-import ai.timefold.solver.benchmarks.examples.common.domain.location.Location;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Customer;
+import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.Location;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.solver.ArrivalTimeUpdatingVariableListener;
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
 import ai.timefold.solver.core.api.domain.variable.ShadowVariable;

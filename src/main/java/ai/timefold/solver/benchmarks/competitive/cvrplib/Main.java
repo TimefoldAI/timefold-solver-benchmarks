@@ -6,9 +6,9 @@ import java.math.RoundingMode;
 import java.util.concurrent.ExecutionException;
 
 import ai.timefold.solver.benchmarks.competitive.AbstractCompetitiveBenchmark;
-import ai.timefold.solver.benchmarks.examples.common.domain.location.TimeWindowedAirLocation;
 import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutionImporter;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
+import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.TimeWindowedAirLocation;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.persistence.VehicleRoutingImporter;
 import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
 

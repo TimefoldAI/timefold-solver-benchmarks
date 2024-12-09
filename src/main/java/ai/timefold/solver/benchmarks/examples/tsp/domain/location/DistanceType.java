@@ -1,4 +1,4 @@
-package ai.timefold.solver.benchmarks.examples.common.domain.location;
+package ai.timefold.solver.benchmarks.examples.tsp.domain.location;
 
 public enum DistanceType {
     AIR_DISTANCE(AirLocation::new),

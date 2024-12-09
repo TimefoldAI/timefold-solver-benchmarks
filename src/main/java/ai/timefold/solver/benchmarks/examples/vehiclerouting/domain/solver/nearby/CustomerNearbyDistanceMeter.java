@@ -1,7 +1,7 @@
 package ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.solver.nearby;
 
-import ai.timefold.solver.benchmarks.examples.common.domain.location.LocationAware;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Customer;
+import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.LocationAware;
 import ai.timefold.solver.core.impl.heuristic.selector.common.nearby.NearbyDistanceMeter;
 
 public class CustomerNearbyDistanceMeter

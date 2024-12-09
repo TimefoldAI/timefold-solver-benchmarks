@@ -1,4 +1,4 @@
-package ai.timefold.solver.benchmarks.examples.common.domain.location;
+package ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location;
 
 /**
  * CVRPTW datasets operate with precision, whereas CVRP are defined without it and should use {@link AirLocation}.
