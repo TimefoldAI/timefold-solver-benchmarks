@@ -12,7 +12,6 @@ import ai.timefold.solver.benchmarks.competitive.Dataset;
  * Out of that, roughly 100 datasets were excluded because there was no easy way to get the expected number of vehicles:
  * <ul>
  * <li>Golden et al.</li>
- * <li>Li et al.</li>
  * <li>Rochat and Taillard</li>
  * <li>Christofides, Mingozzi and Toth (1979)</li>
  * </ul>
@@ -93,6 +92,18 @@ public enum CVRPLIBDataset implements Dataset<CVRPLIBDataset> {
     F_N45_K4("F-n45-k4.vrp", 724),
     F_N72_K4("F-n72-k4.vrp", 237),
     F_N135_K7("F-n135-k7.vrp", 1162),
+    LI_21("Li_21-n560-k10.vrp", 16212.83, false),
+    LI_22("Li_22-n600-k15.vrp", 14499.04, false),
+    LI_23("Li_23-n640-k10.vrp", 18801.13, false),
+    LI_24("Li_24-n720-k10.vrp", 21389.43, false),
+    LI_25("Li_25-n760-k19.vrp", 16665.7, false),
+    LI_26("Li_26-n800-k10.vrp", 23977.73, false),
+    LI_27("Li_27-n840-k20.vrp", 17320, false),
+    LI_28("Li_28-n880-k10.vrp", 26566.03, false),
+    LI_29("Li_29-n960-k10.vrp", 29154.34, false),
+    LI_30("Li_30-n1040-k10.vrp", 31742.64, false),
+    LI_31("Li_31-n1120-k10.vrp", 34330.94, false),
+    LI_32("Li_32-n1200-k11.vrp", 37159.41, false),
     LOGGI_N401_K23("Loggi-n401-k23.vrp", 336903, false),
     LOGGI_N501_K24("Loggi-n501-k24.vrp", 177176, false),
     LOGGI_N601_K19("Loggi-n601-k19.vrp", 113155, false),
