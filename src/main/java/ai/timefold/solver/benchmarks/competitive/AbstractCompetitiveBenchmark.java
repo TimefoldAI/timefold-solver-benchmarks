@@ -140,11 +140,14 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         var bestKnownDistance = dataset.getBestKnownDistance();
         var actualDistance = extractDistance(dataset, actual);
         return actualDistance.subtract(bestKnownDistance)
-                .multiply(BigDecimal.valueOf(100))
-                .divide(bestKnownDistance, 2, RoundingMode.HALF_EVEN);
+                .divide(bestKnownDistance, 4, RoundingMode.HALF_EVEN);
     }
 
     private String determineHealth(Dataset_ dataset, Score_ actual, Duration runTime) {
+        return determineHealth(dataset, actual, runTime, false);
+    }
+
+    private String determineHealth(Dataset_ dataset, Score_ actual, Duration runTime, boolean addGap) {
         if (!actual.isSolutionInitialized()) {
             return "Uninitialized.";
         } else if (!actual.isFeasible()) {
@@ -160,13 +163,19 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                     .formatted(roundToOneDecimal(bestKnownDistance.subtract(actualDistance).doubleValue()));
         } else {
             var cutoff = MAX_SECONDS * 1000 - 100; // Give some leeway before declaring flat line.
+            var gapString = addGap ? (" " + getGapString(dataset, actual)) : "";
             if (runTime.toMillis() < cutoff) {
                 var actualRunTime = (int) Math.round((runTime.toMillis() - (UNIMPROVED_SECONDS_TERMINATION * 1000)) / 1000.0);
-                return "Flatlined after ~" + actualRunTime + " s.";
+                return "Flatlined after ~" + actualRunTime + " s." + gapString;
             } else {
-                return "Healthy.";
+                return "Healthy." + gapString;
             }
         }
+    }
+
+    private String getGapString(Dataset_ dataset, Score_ actual) {
+        var gap = computeGap(dataset, actual);
+        return "(Gap: %.1f %%)".formatted(gap.doubleValue() * 100);
     }
 
     private Result<Dataset_, Score_> solveDataset(Configuration_ configuration, Dataset_ dataset, SolverConfig solverConfig,
@@ -186,7 +195,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         var bestSolution = solver.solve(solution);
         var runtime = Duration.ofNanos(System.nanoTime() - nanotime);
         var actualDistance = extractScore(bestSolution);
-        var health = determineHealth(dataset, actualDistance, runtime);
+        var health = determineHealth(dataset, actualDistance, runtime, true);
         LOGGER.info("Solved {} in {} ms with a distance of {}; verdict: {}", dataset.name(), runtime.toMillis(),
                 roundToOneDecimal(extractDistance(dataset, actualDistance)), health);
         return new Result<>(dataset, actualDistance, countLocations(bestSolution) + 1, countVehicles(bestSolution), runtime);
