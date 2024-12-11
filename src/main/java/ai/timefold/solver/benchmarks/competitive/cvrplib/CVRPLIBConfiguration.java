@@ -49,14 +49,14 @@ public enum CVRPLIBConfiguration implements Configuration<CVRPLIBDataset> {
     }
 
     private static SolverConfig getCommunityEditionSolverConfig(CVRPLIBDataset dataset) {
-        var source = dataset.getBestKnownDistance().negate();
-        var threshold =
-                dataset.isTimeWindowed() ? source.multiply(BigDecimal.valueOf(AirLocation.MULTIPLIER)) : source;
-        var roundedThreshold = threshold.setScale(0, RoundingMode.HALF_EVEN);
+        var threshold = dataset.getBestKnownDistance()
+                .multiply(BigDecimal.valueOf(AirLocation.MULTIPLIER))
+                .setScale(0, RoundingMode.HALF_EVEN)
+                .negate();
         var terminationConfig = new TerminationConfig()
                 .withSecondsSpentLimit(AbstractCompetitiveBenchmark.MAX_SECONDS)
                 .withUnimprovedSecondsSpentLimit(AbstractCompetitiveBenchmark.UNIMPROVED_SECONDS_TERMINATION)
-                .withBestScoreLimit(HardSoftLongScore.ofSoft(roundedThreshold.longValue()).toString());
+                .withBestScoreLimit(HardSoftLongScore.ofSoft(threshold.longValue()).toString());
         return new SolverConfig()
                 .withSolutionClass(VehicleRoutingSolution.class)
                 .withEntityClasses(Vehicle.class, Customer.class, TimeWindowedCustomer.class)
