@@ -74,7 +74,7 @@ jobs:
         run: |
           echo "forks=15" > scoredirector-benchmark.properties
           echo "warmup_iterations=5" >> scoredirector-benchmark.properties
-          echo "measurement_iterations=10" >> scoredirector-benchmark.properties
+          echo "measurement_iterations=5" >> scoredirector-benchmark.properties
           echo "relative_score_error_threshold=0.02" >> scoredirector-benchmark.properties
           echo "score_director_type=cs" >> scoredirector-benchmark.properties
           echo "example=${{ matrix.example }}" >> scoredirector-benchmark.properties
