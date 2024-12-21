@@ -163,10 +163,11 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
 
     Constraint talkMutuallyExclusiveTalksTags(ConstraintFactory factory) {
         return factory.forEachUniquePair(Talk.class,
-                overlapping(t -> t.getTimeslot().getStartDateTime(), t -> t.getTimeslot().getEndDateTime()),
-                filtering((talk1, talk2) -> talk2.overlappingMutuallyExclusiveTalksTagCount(talk1) > 0))
-                .penalize(HardSoftScore.ofHard(1), (talk1, talk2) -> talk1.overlappingMutuallyExclusiveTalksTagCount(talk2) *
-                        talk1.overlappingDurationInMinutes(talk2))
+                overlapping(t -> t.getTimeslot().getStartDateTime(), t -> t.getTimeslot().getEndDateTime()))
+                .expand((talk1, talk2) -> talk2.overlappingMutuallyExclusiveTalksTagCount(talk1))
+                .filter((talk1, talk2, overlappingTagCount) -> overlappingTagCount > 0)
+                .penalize(HardSoftScore.ofHard(1),
+                        (talk1, talk2, overlappingTagCount) -> overlappingTagCount * talk1.overlappingDurationInMinutes(talk2))
                 .asConstraint(TALK_MUTUALLY_EXCLUSIVE_TALKS_TAGS);
     }
 
@@ -227,7 +228,6 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
                 .filter((talk, prohibitedTagCount) -> prohibitedTagCount > 0)
                 .penalize(HardSoftScore.ofHard(1),
                         (talk, prohibitedTagCount) -> prohibitedTagCount * talk.getDurationInMinutes())
-                .indictWith((talk, prohibitedTagCount) -> Collections.singleton(talk))
                 .asConstraint(TALK_PROHIBITED_TIMESLOT_TAGS);
     }
 
@@ -236,7 +236,6 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
                 .expand(Talk::missingSpeakerRequiredRoomTagCount)
                 .filter((talk, missingTagCount) -> missingTagCount > 0)
                 .penalize(HardSoftScore.ofHard(1), (talk, missingTagCount) -> missingTagCount * talk.getDurationInMinutes())
-                .indictWith((talk, missingTagCount) -> Collections.singleton(talk))
                 .asConstraint(SPEAKER_REQUIRED_ROOM_TAGS);
     }
 
@@ -246,7 +245,6 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
                 .filter((talk, prohibitedTagCount) -> prohibitedTagCount > 0)
                 .penalize(HardSoftScore.ofHard(1),
                         (talk, prohibitedTagCount) -> prohibitedTagCount * talk.getDurationInMinutes())
-                .indictWith((talk, prohibitedTagCount) -> Collections.singleton(talk))
                 .asConstraint(SPEAKER_PROHIBITED_ROOM_TAGS);
     }
 
@@ -255,7 +253,6 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
                 .expand(Talk::missingRequiredRoomTagCount)
                 .filter((talk, missingTagCount) -> missingTagCount > 0)
                 .penalize(HardSoftScore.ofHard(1), (talk, missingTagCount) -> missingTagCount * talk.getDurationInMinutes())
-                .indictWith((talk, missingTagCount) -> Collections.singleton(talk))
                 .asConstraint(TALK_REQUIRED_ROOM_TAGS);
     }
 
@@ -265,7 +262,6 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
                 .filter((talk, prohibitedTagCount) -> prohibitedTagCount > 0)
                 .penalize(HardSoftScore.ofHard(1),
                         (talk, prohibitedTagCount) -> prohibitedTagCount * talk.getDurationInMinutes())
-                .indictWith((talk, prohibitedTagCount) -> Collections.singleton(talk))
                 .asConstraint(TALK_PROHIBITED_ROOM_TAGS);
     }
 
@@ -275,49 +271,60 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
 
     Constraint themeTrackConflict(ConstraintFactory factory) {
         return factory.forEachUniquePair(Talk.class,
-                overlapping(t -> t.getTimeslot().getStartDateTime(), t -> t.getTimeslot().getEndDateTime()),
-                filtering((talk1, talk2) -> talk2.overlappingThemeTrackCount(talk1) > 0))
-                .penalize(HardSoftScore.ofSoft(10), (talk1, talk2) -> talk1.overlappingThemeTrackCount(talk2) *
-                        talk1.overlappingDurationInMinutes(talk2))
+                overlapping(t -> t.getTimeslot().getStartDateTime(), t -> t.getTimeslot().getEndDateTime()))
+                .expand((talk1, talk2) -> talk2.overlappingThemeTrackCount(talk1))
+                .filter((talk1, talk2, overlappingTrackCount) -> overlappingTrackCount > 0)
+                .penalize(HardSoftScore.ofSoft(10),
+                        (talk1, talk2, overlappingTrackCount) -> overlappingTrackCount
+                                * talk1.overlappingDurationInMinutes(talk2))
                 .asConstraint(THEME_TRACK_CONFLICT);
     }
 
     Constraint themeTrackRoomStability(ConstraintFactory factory) {
         return factory.forEachUniquePair(Talk.class,
-                equal(talk -> talk.getTimeslot().getStartDateTime().toLocalDate()),
-                filtering((talk1, talk2) -> talk2.overlappingThemeTrackCount(talk1) > 0))
-                .filter((talk1, talk2) -> !talk1.getRoom().equals(talk2.getRoom()))
-                .penalize(HardSoftScore.ofSoft(10), (talk1, talk2) -> talk1.overlappingThemeTrackCount(talk2) *
-                        talk1.combinedDurationInMinutes(talk2))
+                equal(talk -> talk.getTimeslot().getStartDateTime().toLocalDate()))
+                .expand((talk1, talk2) -> talk2.overlappingThemeTrackCount(talk1))
+                .filter((talk1, talk2, overlappingTrackCount) -> overlappingTrackCount > 0
+                        && !talk1.getRoom().equals(talk2.getRoom()))
+                .penalize(HardSoftScore.ofSoft(10),
+                        (talk1, talk2, overlappingTrackCount) -> overlappingTrackCount * talk1.combinedDurationInMinutes(talk2))
                 .asConstraint(THEME_TRACK_ROOM_STABILITY);
     }
 
     Constraint sectorConflict(ConstraintFactory factory) {
         return factory.forEachUniquePair(Talk.class,
-                overlapping(t -> t.getTimeslot().getStartDateTime(), t -> t.getTimeslot().getEndDateTime()),
-                filtering((talk1, talk2) -> talk2.overlappingSectorCount(talk1) > 0))
-                .penalize(HardSoftScore.ofSoft(10), (talk1, talk2) -> talk1.overlappingSectorCount(talk2)
-                        * talk1.overlappingDurationInMinutes(talk2))
+                overlapping(t -> t.getTimeslot().getStartDateTime(), t -> t.getTimeslot().getEndDateTime()))
+                .expand((talk1, talk2) -> talk2.overlappingSectorCount(talk1))
+                .filter((talk1, talk2, overlappingSectorCount) -> overlappingSectorCount > 0)
+                .penalize(HardSoftScore.ofSoft(10),
+                        (talk1, talk2, overlappingSectorCount) -> overlappingSectorCount
+                                * talk1.overlappingDurationInMinutes(talk2))
                 .asConstraint(SECTOR_CONFLICT);
     }
 
     Constraint audienceTypeDiversity(ConstraintFactory factory) {
         return factory.forEachUniquePair(Talk.class,
-                equal(Talk::getTimeslot),
-                filtering((talk1, talk2) -> talk2.overlappingAudienceTypeCount(talk1) > 0))
-                .reward(HardSoftScore.ofSoft(1), (talk1, talk2) -> talk1.overlappingAudienceTypeCount(talk2)
-                        * talk1.getTimeslot().getDurationInMinutes())
+                equal(Talk::getTimeslot))
+                .expand((talk1, talk2) -> talk2.overlappingAudienceTypeCount(talk1))
+                .filter((talk1, talk2, overlappingAudienceTypeCount) -> overlappingAudienceTypeCount > 0)
+                .reward(HardSoftScore.ofSoft(1),
+                        (talk1, talk2, overlappingAudienceTypeCount) -> overlappingAudienceTypeCount
+                                * talk1.getTimeslot().getDurationInMinutes())
                 .asConstraint(AUDIENCE_TYPE_DIVERSITY);
     }
 
     Constraint audienceTypeThemeTrackConflict(ConstraintFactory factory) {
         return factory.forEachUniquePair(Talk.class,
-                overlapping(t -> t.getTimeslot().getStartDateTime(), t -> t.getTimeslot().getEndDateTime()),
-                filtering((talk1, talk2) -> talk2.overlappingThemeTrackCount(talk1) > 0),
-                filtering((talk1, talk2) -> talk2.overlappingAudienceTypeCount(talk1) > 0))
-                .penalize(HardSoftScore.ofSoft(1), (talk1, talk2) -> talk1.overlappingThemeTrackCount(talk2)
-                        * talk1.overlappingAudienceTypeCount(talk2)
-                        * talk1.overlappingDurationInMinutes(talk2))
+                overlapping(t -> t.getTimeslot().getStartDateTime(), t -> t.getTimeslot().getEndDateTime()))
+                .map((talk1, talk2) -> talk1,
+                        (talk1, talk2) -> talk2,
+                        Talk::overlappingThemeTrackCount,
+                        Talk::overlappingAudienceTypeCount)
+                .filter((talk1, talk2, overlappingTrackCount, overlappingTypeCount) -> overlappingTrackCount > 0
+                        && overlappingTypeCount > 0)
+                .penalize(HardSoftScore.ofSoft(1),
+                        (talk1, talk2, overlappingTrackCount, overlappingTypeCount) -> overlappingTrackCount
+                                * overlappingTypeCount * talk1.overlappingDurationInMinutes(talk2))
                 .asConstraint(AUDIENCE_TYPE_THEME_TRACK_CONFLICT);
     }
 
@@ -334,19 +341,23 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
                 .join(Talk.class,
                         lessThan(Talk::getAudienceLevel),
                         greaterThan(talk1 -> talk1.getTimeslot().getEndDateTime(),
-                                talk2 -> talk2.getTimeslot().getStartDateTime()),
-                        filtering((talk1, talk2) -> talk2.overlappingContentCount(talk1) > 0))
-                .penalize(HardSoftScore.ofSoft(10), (talk1, talk2) -> talk1.overlappingContentCount(talk2)
-                        * talk1.combinedDurationInMinutes(talk2))
+                                talk2 -> talk2.getTimeslot().getStartDateTime()))
+                .expand((talk1, talk2) -> talk2.overlappingContentCount(talk1))
+                .filter((talk1, talk2, overlappingContentCount) -> overlappingContentCount > 0)
+                .penalize(HardSoftScore.ofSoft(10),
+                        (talk1, talk2, overlappingContentCount) -> overlappingContentCount
+                                * talk1.combinedDurationInMinutes(talk2))
                 .asConstraint(CONTENT_AUDIENCE_LEVEL_FLOW_VIOLATION);
     }
 
     Constraint contentConflict(ConstraintFactory factory) {
         return factory.forEachUniquePair(Talk.class,
-                overlapping(t -> t.getTimeslot().getStartDateTime(), t -> t.getTimeslot().getEndDateTime()),
-                filtering((talk1, talk2) -> talk2.overlappingContentCount(talk1) > 0))
-                .penalize(HardSoftScore.ofSoft(100), (talk1, talk2) -> talk1.overlappingContentCount(talk2)
-                        * talk1.overlappingDurationInMinutes(talk2))
+                overlapping(t -> t.getTimeslot().getStartDateTime(), t -> t.getTimeslot().getEndDateTime()))
+                .expand((talk1, talk2) -> talk2.overlappingContentCount(talk1))
+                .filter((talk1, talk2, overlappingContentCount) -> overlappingContentCount > 0)
+                .penalize(HardSoftScore.ofSoft(100),
+                        (talk1, talk2, overlappingContentCount) -> overlappingContentCount
+                                * talk1.overlappingDurationInMinutes(talk2))
                 .asConstraint(CONTENT_CONFLICT);
     }
 
@@ -360,11 +371,17 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
 
     Constraint sameDayTalks(ConstraintFactory factory) {
         return factory.forEachUniquePair(Talk.class)
-                .filter((talk1, talk2) -> !talk1.getTimeslot().isOnSameDayAs(talk2.getTimeslot()) &&
-                        (talk1.overlappingContentCount(talk2) > 0 || talk1.overlappingThemeTrackCount(talk2) > 0))
+                .filter((talk1, talk2) -> !talk1.getTimeslot().isOnSameDayAs(talk2.getTimeslot()))
+                .map((talk1, talk2) -> talk1,
+                        (talk1, talk2) -> talk2,
+                        Talk::overlappingContentCount,
+                        Talk::overlappingThemeTrackCount)
+                .filter((talk1, talk2, overlappingContentCount, overlappingThemeTrackCount) -> overlappingContentCount > 0
+                        || overlappingThemeTrackCount > 0)
                 .penalize(HardSoftScore.ofSoft(10),
-                        (talk1, talk2) -> (talk2.overlappingThemeTrackCount(talk1) + talk2.overlappingContentCount(talk1))
-                                * talk1.combinedDurationInMinutes(talk2))
+                        (talk1, talk2, overlappingContentCount,
+                                overlappingThemeTrackCount) -> (overlappingContentCount + overlappingThemeTrackCount)
+                                        * talk1.combinedDurationInMinutes(talk2))
                 .asConstraint(SAME_DAY_TALKS);
     }
 
@@ -382,7 +399,6 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
                 .expand(Talk::missingSpeakerPreferredTimeslotTagCount)
                 .filter((talk, missingTagCount) -> missingTagCount > 0)
                 .penalize(HardSoftScore.ofSoft(20), (talk, missingTagCount) -> missingTagCount * talk.getDurationInMinutes())
-                .indictWith((talk, missingTagCount) -> Collections.singleton(talk))
                 .asConstraint(SPEAKER_PREFERRED_TIMESLOT_TAGS);
     }
 
@@ -392,7 +408,6 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
                 .filter((talk, undesiredTagCount) -> undesiredTagCount > 0)
                 .penalize(HardSoftScore.ofSoft(20),
                         (talk, undesiredTagCount) -> undesiredTagCount * talk.getDurationInMinutes())
-                .indictWith((talk, undesiredTagCount) -> Collections.singleton(talk))
                 .asConstraint(SPEAKER_UNDESIRED_TIMESLOT_TAGS);
     }
 
@@ -401,7 +416,6 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
                 .expand(Talk::missingPreferredTimeslotTagCount)
                 .filter((talk, missingTagCount) -> missingTagCount > 0)
                 .penalize(HardSoftScore.ofSoft(20), (talk, missingTagCount) -> missingTagCount * talk.getDurationInMinutes())
-                .indictWith((talk, missingTagCount) -> Collections.singleton(talk))
                 .asConstraint(TALK_PREFERRED_TIMESLOT_TAGS);
     }
 
@@ -411,7 +425,6 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
                 .filter((talk, undesiredTagCount) -> undesiredTagCount > 0)
                 .penalize(HardSoftScore.ofSoft(20),
                         (talk, undesiredTagCount) -> undesiredTagCount * talk.getDurationInMinutes())
-                .indictWith((talk, undesiredTagCount) -> Collections.singleton(talk))
                 .asConstraint(TALK_UNDESIRED_TIMESLOT_TAGS);
     }
 
@@ -420,7 +433,6 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
                 .expand(Talk::missingSpeakerPreferredRoomTagCount)
                 .filter((talk, missingTagCount) -> missingTagCount > 0)
                 .penalize(HardSoftScore.ofSoft(20), (talk, missingTagCount) -> missingTagCount * talk.getDurationInMinutes())
-                .indictWith((talk, missingTagCount) -> Collections.singleton(talk))
                 .asConstraint(SPEAKER_PREFERRED_ROOM_TAGS);
     }
 
@@ -430,7 +442,6 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
                 .filter((talk, undesiredTagCount) -> undesiredTagCount > 0)
                 .penalize(HardSoftScore.ofSoft(20),
                         (talk, undesiredTagCount) -> undesiredTagCount * talk.getDurationInMinutes())
-                .indictWith((talk, undesiredTagCount) -> Collections.singleton(talk))
                 .asConstraint(SPEAKER_UNDESIRED_ROOM_TAGS);
     }
 
@@ -439,7 +450,6 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
                 .expand(Talk::missingPreferredRoomTagCount)
                 .filter((talk, missingTagCount) -> missingTagCount > 0)
                 .penalize(HardSoftScore.ofSoft(20), (talk, missingTagCount) -> missingTagCount * talk.getDurationInMinutes())
-                .indictWith((talk, missingTagCount) -> Collections.singleton(talk))
                 .asConstraint(TALK_PREFERRED_ROOM_TAGS);
     }
 
@@ -449,7 +459,6 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
                 .filter((talk, undesiredTagCount) -> undesiredTagCount > 0)
                 .penalize(HardSoftScore.ofSoft(20),
                         (talk, undesiredTagCount) -> undesiredTagCount * talk.getDurationInMinutes())
-                .indictWith((talk, undesiredTagCount) -> Collections.singleton(talk))
                 .asConstraint(TALK_UNDESIRED_ROOM_TAGS);
     }
 
@@ -469,7 +478,6 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
                 .filter((speaker, daysBetweenTalks) -> daysBetweenTalks > 1)
                 // Each such day counts for 8 hours.
                 .penalize(HardSoftScore.ofSoft(20), (speaker, daysBetweenTalks) -> (daysBetweenTalks - 1) * 8 * 60)
-                .indictWith((speaker, daysBetweenTalks) -> Collections.singleton(speaker))
                 .asConstraint(SPEAKER_MAKESPAN);
     }
 
