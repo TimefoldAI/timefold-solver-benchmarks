@@ -282,10 +282,9 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
 
     Constraint themeTrackRoomStability(ConstraintFactory factory) {
         return factory.forEachUniquePair(Talk.class,
-                equal(talk -> talk.getTimeslot().getStartDateTime().toLocalDate()))
+                equal(talk -> talk.getTimeslot().getStartDateTime().toLocalDate()), 
+                        filtering((talk1, talk2) -> !talk1.getRoom().equals(talk2.getRoom())))
                 .expand((talk1, talk2) -> talk2.overlappingThemeTrackCount(talk1))
-                .filter((talk1, talk2, overlappingTrackCount) -> overlappingTrackCount > 0
-                        && !talk1.getRoom().equals(talk2.getRoom()))
                 .penalize(HardSoftScore.ofSoft(10),
                         (talk1, talk2, overlappingTrackCount) -> overlappingTrackCount * talk1.combinedDurationInMinutes(talk2))
                 .asConstraint(THEME_TRACK_ROOM_STABILITY);
@@ -316,15 +315,17 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
     Constraint audienceTypeThemeTrackConflict(ConstraintFactory factory) {
         return factory.forEachUniquePair(Talk.class,
                 overlapping(t -> t.getTimeslot().getStartDateTime(), t -> t.getTimeslot().getEndDateTime()))
-                .map((talk1, talk2) -> talk1,
-                        (talk1, talk2) -> talk2,
-                        Talk::overlappingThemeTrackCount,
-                        Talk::overlappingAudienceTypeCount)
-                .filter((talk1, talk2, overlappingTrackCount, overlappingTypeCount) -> overlappingTrackCount > 0
-                        && overlappingTypeCount > 0)
+                .expand((talk1, talk2) -> {
+                    var overlappingThemeTrackCount = talk2.overlappingThemeTrackCount(talk1);
+                    if (overlappingThemeTrackCount == 0) {
+                        return 0;
+                    }
+                    var overlappingAudienceTypeCount = talk2.overlappingAudienceTypeCount(talk1);
+                    return overlappingAudienceTypeCount * overlappingThemeTrackCount;
+                })
+                .filter((talk1, talk2, overlap) -> overlap > 0)
                 .penalize(HardSoftScore.ofSoft(1),
-                        (talk1, talk2, overlappingTrackCount, overlappingTypeCount) -> overlappingTrackCount
-                                * overlappingTypeCount * talk1.overlappingDurationInMinutes(talk2))
+                        (talk1, talk2, overlap) -> overlap * talk1.overlappingDurationInMinutes(talk2))
                 .asConstraint(AUDIENCE_TYPE_THEME_TRACK_CONFLICT);
     }
 
@@ -372,16 +373,14 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
     Constraint sameDayTalks(ConstraintFactory factory) {
         return factory.forEachUniquePair(Talk.class)
                 .filter((talk1, talk2) -> !talk1.getTimeslot().isOnSameDayAs(talk2.getTimeslot()))
-                .map((talk1, talk2) -> talk1,
-                        (talk1, talk2) -> talk2,
-                        Talk::overlappingContentCount,
-                        Talk::overlappingThemeTrackCount)
-                .filter((talk1, talk2, overlappingContentCount, overlappingThemeTrackCount) -> overlappingContentCount > 0
-                        || overlappingThemeTrackCount > 0)
+                .expand((talk1, talk2) -> {
+                    var overlappingContentCount = talk2.overlappingContentCount(talk1);
+                    var overlappingThemeTrackCount = talk2.overlappingThemeTrackCount(talk1);
+                    return overlappingContentCount + overlappingThemeTrackCount;
+                })
+                .filter((talk1, talk2, overlap) -> overlap > 0)
                 .penalize(HardSoftScore.ofSoft(10),
-                        (talk1, talk2, overlappingContentCount,
-                                overlappingThemeTrackCount) -> (overlappingContentCount + overlappingThemeTrackCount)
-                                        * talk1.combinedDurationInMinutes(talk2))
+                        (talk1, talk2, overlap) -> overlap * talk1.combinedDurationInMinutes(talk2))
                 .asConstraint(SAME_DAY_TALKS);
     }
 
