@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
@@ -47,48 +48,51 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
 
     protected abstract AbstractSolutionImporter<Solution_> createImporter();
 
-    public void run(Configuration_ communityEdition, Configuration_ enterpriseEdition,
-            Dataset_... datasets)
+    public void run(List<Configuration_> configurations, Dataset_... datasets)
             throws ExecutionException, InterruptedException, IOException {
-        var communityResultList = run(communityEdition, datasets);
-        var enterpriseResultList = run(enterpriseEdition, datasets);
 
+        var resultList = new ArrayList<Map<Dataset_, Result<Dataset_, Score_>>>(configurations.size());
+        for (Configuration_ configuration : configurations) {
+            resultList.add(run(configuration, datasets));
+        }
         var result = new StringBuilder();
         try {
-            String line = """
-                    %s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s
-                    """;
-            String header = line.formatted("Dataset", "Location count", "Vehicle count", "Best known score",
-                    "CE Achieved score", "CE run time (ms)", "CE gap to best (%)", "CE Health",
-                    "EE Achieved score", "EE run time (ms)", "EE gap to best (%)", "EE Health");
-            result.append(header);
+            StringBuilder header = new StringBuilder("Dataset;Location count;Vehicle count;Best known score;");
+            for (Configuration_ configuration : configurations) {
+                header.append("%s Achieved score; %s run time (ms); %s gap to best (%%); %s Health;"
+                        .formatted(configuration.name(), configuration.name(), configuration.name(), configuration.name()));
+            }
+            result.append(header)
+                    .append("\n");
 
             for (var dataset : datasets) {
-                var communityResult = communityResultList.get(dataset);
-                var enterpriseResult = enterpriseResultList.get(dataset);
-
                 var datasetName = dataset.name();
-                var communityScore = communityResult.score();
-                var communityRuntime = communityResult.runtime().toMillis();
-                var communityGap = computeGap(dataset, communityScore);
-                var communityHealth = determineHealth(dataset, communityScore, communityResult.runtime());
-                var enterpriseScore = enterpriseResult.score();
-                var enterpriseRuntime = enterpriseResult.runtime().toMillis();
-                var enterpriseTweakedGap = computeGap(dataset, enterpriseScore);
-                var enterpriseHealth = determineHealth(dataset, enterpriseScore, enterpriseResult.runtime());
-                result.append(line.formatted(
-                        quote(datasetName),
-                        communityResult.locationCount(),
-                        communityResult.vehicleCount(),
-                        roundToOneDecimal(dataset.getBestKnownDistance()),
-                        roundToOneDecimal(extractDistance(dataset, communityScore)),
-                        communityRuntime,
-                        communityGap,
-                        quote(communityHealth),
-                        roundToOneDecimal(extractDistance(dataset, enterpriseScore)),
-                        enterpriseRuntime,
-                        enterpriseTweakedGap,
-                        quote(enterpriseHealth)));
+                StringBuilder line = new StringBuilder();
+                line.append(quote(datasetName))
+                        .append(";")
+                        .append(resultList.get(0).get(dataset).locationCount())
+                        .append(";")
+                        .append(resultList.get(0).get(dataset).vehicleCount())
+                        .append(";")
+                        .append(roundToOneDecimal(dataset.getBestKnownDistance()))
+                        .append(";");
+                for (var configurationResult : resultList) {
+                    var singleResult = configurationResult.get(dataset);
+                    var score = singleResult.score();
+                    var runtime = singleResult.runtime().toMillis();
+                    var gap = computeGap(dataset, score);
+                    var health = determineHealth(dataset, score, singleResult.runtime());
+                    line.append(roundToOneDecimal(extractDistance(dataset, score)))
+                            .append(";")
+                            .append(runtime)
+                            .append(";")
+                            .append(gap)
+                            .append(";")
+                            .append(quote(health))
+                            .append(";");
+                }
+                line.append("\n");
+                result.append(line);
             }
         } finally { // Do everything possible to not lose the results.
             var filename = "%s-%s.csv"
