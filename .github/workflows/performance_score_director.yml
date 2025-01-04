@@ -67,26 +67,13 @@ jobs:
           tar -xzf $FILENAME 
           ls -l
 
-      # Fine-tuned for stability on GHA.
-      - name: Phase 0 - (Baseline) Configure the benchmark
-        working-directory: ./timefold-solver-benchmarks
-        shell: bash
-        run: |
-          echo "forks=15" > scoredirector-benchmark.properties
-          echo "warmup_iterations=5" >> scoredirector-benchmark.properties
-          echo "measurement_iterations=5" >> scoredirector-benchmark.properties
-          echo "relative_score_error_threshold=0.02" >> scoredirector-benchmark.properties
-          echo "score_director_type=cs" >> scoredirector-benchmark.properties
-          echo "example=${{ matrix.example }}" >> scoredirector-benchmark.properties
-          cat scoredirector-benchmark.properties
-          chmod +x run-scoredirector.sh
-
       - name: Phase 1 - (Baseline) Compile the benchmark
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
           mvn clean install -B -Dquickly -Dversion.ai.timefold.solver=${{ github.event.inputs.baseline }} -Dversion.tools.provider="${{ github.event.inputs.async_profiler_version }}"
           mv target/benchmarks.jar target/benchmarks-baseline.jar
+          ls -l target
 
       - name: Phase 1 - (SUT) Checkout timefold-solver
         uses: actions/checkout@v4
@@ -130,8 +117,23 @@ jobs:
         run: |
           mvn clean install -B -Dquickly -Dversion.tools.provider="${{ github.event.inputs.async_profiler_version }}"
           mv target/benchmarks.jar target/benchmarks-sut.jar
+          ls -l target
 
-      - name: Phase 2 - Benchmark the baseline
+      # Fine-tuned for stability on GHA.
+      - name: Phase 2 - Configure the benchmark
+        working-directory: ./timefold-solver-benchmarks
+        shell: bash
+        run: |
+          echo "forks=15" > scoredirector-benchmark.properties
+          echo "warmup_iterations=5" >> scoredirector-benchmark.properties
+          echo "measurement_iterations=5" >> scoredirector-benchmark.properties
+          echo "relative_score_error_threshold=0.02" >> scoredirector-benchmark.properties
+          echo "score_director_type=cs" >> scoredirector-benchmark.properties
+          echo "example=${{ matrix.example }}" >> scoredirector-benchmark.properties
+          cat scoredirector-benchmark.properties
+          chmod +x run-scoredirector.sh
+
+      - name: Phase 2 - (Baseline) Run the benchmark
         working-directory: ./timefold-solver-benchmarks
         id: benchmark_baseline
         env:
@@ -144,7 +146,7 @@ jobs:
           echo "RANGE_END=$(jq '.[0].primaryMetric.scoreConfidence[1]|round' results/scoredirector/${{ github.event.inputs.baseline }}/results.json)" >> "$GITHUB_OUTPUT"
           echo "RANGE_MID=$(jq '.[0].primaryMetric.score|round' results/scoredirector/${{ github.event.inputs.baseline }}/results.json)" >> "$GITHUB_OUTPUT"
 
-      - name: Phase 3 - Benchmark the SUT
+      - name: Phase 2 - (SUT) Run the benchmark
         id: benchmark_new
         working-directory: ./timefold-solver-benchmarks
         env:
@@ -158,7 +160,7 @@ jobs:
           echo "RANGE_END=$(jq '.[0].primaryMetric.scoreConfidence[1]|round' results/scoredirector/${{ github.event.inputs.branch }}/results.json)" >> "$GITHUB_OUTPUT"
           echo "RANGE_MID=$(jq '.[0].primaryMetric.score|round' results/scoredirector/${{ github.event.inputs.branch }}/results.json)" >> "$GITHUB_OUTPUT"
 
-      - name: Phase 4 - Archive benchmark data
+      - name: Phase 3 - Archive benchmark data
         uses: actions/upload-artifact@v4
         with:
           name: results-${{ matrix.example }}-${{ github.event.inputs.baseline }}_vs_${{ github.event.inputs.branch }}
@@ -167,7 +169,7 @@ jobs:
             ./timefold-solver-benchmarks/target/benchmarks-sut.jar
             ./timefold-solver-benchmarks/results/scoredirector
 
-      - name: Phase 4 - Report results
+      - name: Phase 3 - Report results
         working-directory: ./timefold-solver-benchmarks
         env:
           OLD_RANGE_START: ${{ steps.benchmark_baseline.outputs.RANGE_START }}
