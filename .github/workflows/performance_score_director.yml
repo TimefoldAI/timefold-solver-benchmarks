@@ -72,8 +72,7 @@ jobs:
         shell: bash
         run: |
           mvn clean install -B -Dquickly -Dversion.ai.timefold.solver=${{ github.event.inputs.baseline }} -Dversion.tools.provider="${{ github.event.inputs.async_profiler_version }}"
-          mv target/benchmarks.jar target/benchmarks-baseline.jar
-          ls -l target
+          mv target/benchmarks.jar benchmarks-baseline.jar
 
       - name: Phase 1 - (SUT) Checkout timefold-solver
         uses: actions/checkout@v4
@@ -116,8 +115,7 @@ jobs:
         shell: bash
         run: |
           mvn clean install -B -Dquickly -Dversion.tools.provider="${{ github.event.inputs.async_profiler_version }}"
-          mv target/benchmarks.jar target/benchmarks-sut.jar
-          ls -l target
+          mv target/benchmarks.jar benchmarks-sut.jar
 
       # Fine-tuned for stability on GHA.
       - name: Phase 2 - Configure the benchmark
@@ -140,7 +138,7 @@ jobs:
           RUN_ID: ${{ github.event.inputs.baseline }}
         shell: bash
         run: |
-          cp target/benchmarks-baseline.jar target/benchmarks.jar
+          cp benchmarks-baseline.jar target/benchmarks.jar
           ./run-scoredirector.sh
           echo "RANGE_START=$(jq '.[0].primaryMetric.scoreConfidence[0]|round' results/scoredirector/${{ github.event.inputs.baseline }}/results.json)" >> "$GITHUB_OUTPUT"
           echo "RANGE_END=$(jq '.[0].primaryMetric.scoreConfidence[1]|round' results/scoredirector/${{ github.event.inputs.baseline }}/results.json)" >> "$GITHUB_OUTPUT"
@@ -154,7 +152,7 @@ jobs:
         shell: bash
         run: |
           rm target/benchmarks.jar
-          cp target/benchmarks-sut.jar target/benchmarks.jar
+          cp benchmarks-sut.jar target/benchmarks.jar
           ./run-scoredirector.sh
           echo "RANGE_START=$(jq '.[0].primaryMetric.scoreConfidence[0]|round' results/scoredirector/${{ github.event.inputs.branch }}/results.json)" >> "$GITHUB_OUTPUT"
           echo "RANGE_END=$(jq '.[0].primaryMetric.scoreConfidence[1]|round' results/scoredirector/${{ github.event.inputs.branch }}/results.json)" >> "$GITHUB_OUTPUT"
@@ -165,8 +163,9 @@ jobs:
         with:
           name: results-${{ matrix.example }}-${{ github.event.inputs.baseline }}_vs_${{ github.event.inputs.branch }}
           path: |
-            ./timefold-solver-benchmarks/target/benchmarks-baseline.jar
-            ./timefold-solver-benchmarks/target/benchmarks-sut.jar
+            ./timefold-solver-benchmarks/benchmarks-baseline.jar
+            ./timefold-solver-benchmarks/benchmarks-sut.jar
+            ./timefold-solver-benchmarks/scoredirector-benchmark.properties
             ./timefold-solver-benchmarks/results/scoredirector
 
       - name: Phase 3 - Report results
