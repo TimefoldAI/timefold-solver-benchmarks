@@ -186,6 +186,18 @@ jobs:
           server-username: 'MVN_USERNAME'
           server-password: 'MVN_PASSWORD'
 
+      - name: (Baseline) Download the benchmark binary
+        uses: actions/download-artifact@v4
+        with:
+          name: binary-${{ matrix.example }}-${{ github.event.inputs.baseline }}
+          path: ./timefold-solver-benchmarks/
+
+      - name: (SUT) Download the benchmark binary
+        uses: actions/download-artifact@v4
+        with:
+          name: binary-${{ matrix.example }}-${{ github.event.inputs.branch }}
+          path: ./timefold-solver-benchmarks/
+
       - name: Setup Async Profiler
         working-directory: ./timefold-solver-benchmarks
         run: |
@@ -193,18 +205,6 @@ jobs:
           wget https://github.com/async-profiler/async-profiler/releases/download/v${{ github.event.inputs.async_profiler_version }}/$FILENAME
           tar -xzf $FILENAME 
           ls -l
-
-      - name: (Baseline) Download the benchmark
-        uses: actions/download-artifact@v4
-        with:
-          name: binary-${{ matrix.example }}-${{ github.event.inputs.baseline }}
-          path: ./timefold-solver-benchmarks/
-
-      - name: (SUT) Download the benchmark
-        uses: actions/download-artifact@v4
-        with:
-          name: binary-${{ matrix.example }}-${{ github.event.inputs.branch }}
-          path: ./timefold-solver-benchmarks/
 
       # Fine-tuned for stability on GHA.
       - name: Configure the benchmark
