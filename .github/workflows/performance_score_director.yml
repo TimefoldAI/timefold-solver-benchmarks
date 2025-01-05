@@ -53,7 +53,7 @@ jobs:
       - name: Setup JDK and Maven
         uses: actions/setup-java@v4
         with:
-          java-version: ${{ github.event.inputs.jdk }}
+          java-version: 17 # Always build with the least recent supported JDK.
           distribution: 'temurin'
           cache: 'maven'
           server-id: 'timefold-solver-enterprise'
@@ -141,7 +141,7 @@ jobs:
       - name: Setup JDK and Maven
         uses: actions/setup-java@v4
         with:
-          java-version: ${{ github.event.inputs.jdk }}
+          java-version: ${{ github.event.inputs.jdk }} # Use the JDK version specified by the user.
           distribution: 'temurin'
           cache: 'maven'
           server-id: 'timefold-solver-enterprise'
