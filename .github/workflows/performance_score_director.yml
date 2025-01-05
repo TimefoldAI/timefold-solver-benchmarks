@@ -136,6 +136,17 @@ jobs:
       MVN_USERNAME: '${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_USERNAME }}'
       MVN_PASSWORD: '${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_TOKEN }}'
     steps:
+      - name: Clean results of previous runs
+        shell: bash
+        run: |
+          rm -rf timefold-solver-benchmarks
+
+      - name: Checkout timefold-solver-benchmarks
+        uses: actions/checkout@v4
+        with:
+          repository: TimefoldAI/timefold-solver-benchmarks
+          path: ./timefold-solver-benchmarks
+
       - name: Setup JDK and Maven
         uses: actions/setup-java@v4
         with:
@@ -155,6 +166,7 @@ jobs:
           export FILENAME=async-profiler-${{ github.event.inputs.async_profiler_version }}-linux-x64.tar.gz
           wget https://github.com/async-profiler/async-profiler/releases/download/v${{ github.event.inputs.async_profiler_version }}/$FILENAME
           tar -xzf $FILENAME 
+          mkdir target
           ls -l
 
       # Fine-tuned for stability on GHA.
