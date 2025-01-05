@@ -31,8 +31,9 @@ on:
         default: '3.0'
         required: true
 
-jobs:
+run-name: "Timefold Solver v${{ github.event.inputs.baseline }} vs. ${{ github.event.inputs.branch_owner }}/${{ github.event.inputs.branch }} on Java ${{ github.event.inputs.jdk }}"
 
+jobs:
   build_baseline:
     runs-on: ubuntu-latest # Leverage massive parallelization of Github-hosted runners.
     strategy:
