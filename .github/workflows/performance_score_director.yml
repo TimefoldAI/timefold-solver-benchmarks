@@ -34,7 +34,7 @@ on:
 jobs:
 
   build_baseline:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest # Leverage massive parallelization of Github-hosted runners.
     strategy:
       fail-fast: true # If one compilation fails, abort everything.
       matrix:
@@ -82,7 +82,7 @@ jobs:
           if-no-files-found: error
 
   build_sut:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest # Leverage massive parallelization of Github-hosted runners.
     strategy:
       fail-fast: true # If one compilation fails, abort everything.
       matrix:
@@ -167,7 +167,7 @@ jobs:
 
   benchmark:
     needs: [build_baseline, build_sut]
-    runs-on: self-hosted
+    runs-on: self-hosted # We need a stable machine to actually run the benchmarks.
     strategy:
       fail-fast: false # Jobs fail if the benchmark error is over predefined thresholds; other benchmarks continue.
       matrix:
