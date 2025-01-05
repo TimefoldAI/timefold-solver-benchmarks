@@ -50,7 +50,7 @@ Having acquired that, build and run any of the benchmarks:
 
 [source,shell]
 ----
-mvn clean install -DskipJMH
+mvn clean install
 ./run-tsplib95.sh
 ./run-cvrplib.sh
 ----

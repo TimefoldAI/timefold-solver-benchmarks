@@ -20,7 +20,6 @@
         <version.org.junit>5.10.2</version.org.junit>
         <version.org.mockito>5.11.0</version.org.mockito>
         <version.spotless.plugin>2.43.0</version.spotless.plugin>
-        <version.tools.profiler>3.0</version.tools.profiler>
         <spotless.skip>false</spotless.skip>
         <spotless.goal>apply</spotless.goal>
         <java.module.name>ai.timefold.solver.benchmarks</java.module.name>
@@ -28,7 +27,8 @@
         <jmh.version>1.37</jmh.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <uberjar.name>benchmarks</uberjar.name>
-        <async.profiler.directory>async-profiler-${version.tools.profiler}-linux-x64</async.profiler.directory>
+        <!-- Used to set a property in buildtime.properties, that will later be read by the JMH benchmark. -->
+        <version.tools.profiler>3.0</version.tools.profiler>
     </properties>
 
     <dependencyManagement>
@@ -258,23 +258,6 @@
                 <spotless.skip>true</spotless.skip>
                 <skipTests>true</skipTests>
             </properties>
-        </profile>
-        <profile>
-            <id>jmh</id>
-            <activation>
-                <property>
-                    <name>!skipJMH</name>
-                </property>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>tools.profiler</groupId>
-                    <artifactId>async-profiler-converter</artifactId>
-                    <version>${version.tools.profiler}</version>
-                    <scope>system</scope>
-                    <systemPath>${project.basedir}/${async.profiler.directory}/lib/converter.jar</systemPath>
-                </dependency>
-            </dependencies>
         </profile>
     </profiles>
 

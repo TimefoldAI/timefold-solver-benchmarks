@@ -60,14 +60,6 @@ jobs:
           server-username: 'MVN_USERNAME'
           server-password: 'MVN_PASSWORD'
 
-      - name: Setup Async Profiler
-        working-directory: ./timefold-solver-benchmarks
-        run: |
-          export FILENAME=async-profiler-${{ github.event.inputs.async_profiler_version }}-linux-x64.tar.gz
-          wget https://github.com/async-profiler/async-profiler/releases/download/v${{ github.event.inputs.async_profiler_version }}/$FILENAME
-          tar -xzf $FILENAME 
-          ls -l
-
       - name: (Baseline) Compile the benchmark
         working-directory: ./timefold-solver-benchmarks
         shell: bash
