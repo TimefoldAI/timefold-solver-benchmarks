@@ -219,29 +219,19 @@ jobs:
         run: |
           export BASELINE_DEV=$(echo "scale=2; ($BASELINE_RANGE_MID / $BASELINE_RANGE_START) * 100 - 100" | bc)
           export SUT_DEV=$(echo "scale=2; ($SUT_RANGE_MID / $SUT_RANGE_START) * 100 - 100" | bc)
-          export DIFF_START=$(echo "scale=2; ($BASELINE_RANGE_START / $SUT_RANGE_START) * 100" | bc)
           export DIFF_MID=$(echo "scale=2; ($BASELINE_RANGE_MID / $SUT_RANGE_MID) * 100" | bc)
-          export DIFF_END=$(echo "scale=2; ($BASELINE_RANGE_END / $SUT_RANGE_END) * 100" | bc)
           export FAIL=false
           
           if (( $(echo "$DIFF_MID >= 98.00" | bc -l) && $(echo "$DIFF_MID <= 102.00"|bc -l) )); then
             # Ignore differences of up to 2 %; we can't expect that level of precision anyway.
             exit 0
+          elif [ "$SUT_RANGE_START" -gt "$BASELINE_RANGE_END" ]; then
+            echo "### 🚀🚀🚀 Statistically significant improvement 🚀🚀🚀" >> $GITHUB_STEP_SUMMARY
+          elif [ "$SUT_BASELINE_START" -gt "$SUT_RANGE_END" ]; then
+            echo "### ‼️‼️‼️ Statistically significant regression ‼️‼️‼️" >> $GITHUB_STEP_SUMMARY
+            export FAIL=true
           else
-            if [ "$SUT_RANGE_START" -le "$BASELINE_RANGE_END" ] && [ "$SUT_RANGE_END" -ge "$BASELINE_RANGE_START" ]; then
-              if [ "$SUT_RANGE_START" -ge "$BASELINE_RANGE_MID" ]; then
-                echo "### 🍀 Possible improvement 🍀" >> $GITHUB_STEP_SUMMARY
-              elif [ "$BASELINE_RANGE_END" -le "$SUT_RANGE_MID" ]; then
-                echo "### ⚠️ Possible regression ⚠️" >> $GITHUB_STEP_SUMMARY
-              else
-                exit 0
-              fi          
-            elif [ "$SUT_RANGE_START" -gt "$BASELINE_RANGE_END" ]; then
-              echo "### 🚀🚀🚀 Statistically significant improvement 🚀🚀🚀" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "### ‼️‼️‼️ Statistically significant regression ‼️‼️‼️" >> $GITHUB_STEP_SUMMARY
-              export FAIL=true
-            fi
+            exit 0
           fi          
           
           echo "|        |   **Ref**   |      **Mean**     |" >> $GITHUB_STEP_SUMMARY
