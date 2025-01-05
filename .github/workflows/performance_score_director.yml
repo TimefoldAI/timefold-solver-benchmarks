@@ -1,10 +1,16 @@
-# - Runs entirely on a single machine, a self-hosted runner on Github Actions.
-# - Both baseline and SUT (Software Under Test) are built from source first,
-#   as it is wasteful to run the baseline only to find out that the SUT does not build.
-# - The baseline is established first, then the SUT is measured.
-# - Each benchmark gives a 99.9 % confidence interval.
-# - The confidence intervals are compared to determine if the branch under test is a regression or an improvement.
-# - The error threshold is expected to be below +/- 2.0 %.
+# Both baseline and SUT (Software Under Test) are built from source first,
+# with their binaries uploaded as artifacts.
+# This is done on GitHub infrastructure, to achieve maximum parallelization.
+#
+# The benchmark job downloads the binaries and runs them.
+# The baseline is established first, then the SUT is measured.
+# They both run in the same job,
+# to guarantee they ran on the same machine with the same performance characteristics.
+# This is done on a self-hosted runner which we completely control.
+#
+# Each benchmark gives a 99.9 % confidence interval.
+# The confidence intervals are compared to determine if the branch under test is a regression or an improvement.
+# The error threshold is expected to be below +/- 2.0 %.
 name: Performance Regression Test - Score Director
 
 on:
@@ -135,10 +141,7 @@ jobs:
         with:
           java-version: ${{ github.event.inputs.jdk }} # Use the JDK version specified by the user.
           distribution: 'temurin'
-          cache: 'maven'
-          server-id: 'timefold-solver-enterprise'
-          server-username: 'MVN_USERNAME'
-          server-password: 'MVN_PASSWORD'
+          check-latest: true
 
       - name: Download the benchmark binaries
         uses: actions/download-artifact@v4
@@ -182,7 +185,7 @@ jobs:
           echo "RANGE_MID=$(jq '.[0].primaryMetric.score|round' results/scoredirector/${{ github.event.inputs.baseline }}/results.json)" >> "$GITHUB_OUTPUT"
 
       - name: (SUT) Run the benchmark
-        id: benchmark_new
+        id: benchmark_sut
         working-directory: ./timefold-solver-benchmarks
         env:
           RUN_ID: ${{ github.event.inputs.branch }}
@@ -206,34 +209,34 @@ jobs:
       - name: Report results
         working-directory: ./timefold-solver-benchmarks
         env:
-          OLD_RANGE_START: ${{ steps.benchmark_baseline.outputs.RANGE_START }}
-          OLD_RANGE_MID:   ${{ steps.benchmark_baseline.outputs.RANGE_MID }}
-          OLD_RANGE_END:   ${{ steps.benchmark_baseline.outputs.RANGE_END }}
-          NEW_RANGE_START: ${{ steps.benchmark_new.outputs.RANGE_START }}
-          NEW_RANGE_MID:   ${{ steps.benchmark_new.outputs.RANGE_MID }}
-          NEW_RANGE_END:   ${{ steps.benchmark_new.outputs.RANGE_END }}
+          BASELINE_RANGE_START: ${{ steps.benchmark_baseline.outputs.RANGE_START }}
+          BASELINE_RANGE_MID:   ${{ steps.benchmark_baseline.outputs.RANGE_MID }}
+          BASELINE_RANGE_END:   ${{ steps.benchmark_baseline.outputs.RANGE_END }}
+          SUT_RANGE_START: ${{ steps.benchmark_sut.outputs.RANGE_START }}
+          SUT_RANGE_MID:   ${{ steps.benchmark_sut.outputs.RANGE_MID }}
+          SUT_RANGE_END:   ${{ steps.benchmark_sut.outputs.RANGE_END }}
         shell: bash
         run: |
-          export OLD_DEV=$(echo "scale=2; ($OLD_RANGE_MID / $OLD_RANGE_START) * 100 - 100" | bc)
-          export NEW_DEV=$(echo "scale=2; ($NEW_RANGE_MID / $NEW_RANGE_START) * 100 - 100" | bc)
-          export DIFF_START=$(echo "scale=2; ($OLD_RANGE_START / $NEW_RANGE_START) * 100" | bc)
-          export DIFF_MID=$(echo "scale=2; ($OLD_RANGE_MID / $NEW_RANGE_MID) * 100" | bc)
-          export DIFF_END=$(echo "scale=2; ($OLD_RANGE_END / $NEW_RANGE_END) * 100" | bc)
+          export BASELINE_DEV=$(echo "scale=2; ($BASELINE_RANGE_MID / $BASELINE_RANGE_START) * 100 - 100" | bc)
+          export SUT_DEV=$(echo "scale=2; ($SUT_RANGE_MID / $SUT_RANGE_START) * 100 - 100" | bc)
+          export DIFF_START=$(echo "scale=2; ($BASELINE_RANGE_START / $SUT_RANGE_START) * 100" | bc)
+          export DIFF_MID=$(echo "scale=2; ($BASELINE_RANGE_MID / $SUT_RANGE_MID) * 100" | bc)
+          export DIFF_END=$(echo "scale=2; ($BASELINE_RANGE_END / $SUT_RANGE_END) * 100" | bc)
           export FAIL=false
           
           if (( $(echo "$DIFF_MID >= 98.00" | bc -l) && $(echo "$DIFF_MID <= 102.00"|bc -l) )); then
             # Ignore differences of up to 2 %; we can't expect that level of precision anyway.
             exit 0
           else
-            if [ "$NEW_RANGE_START" -le "$OLD_RANGE_END" ] && [ "$NEW_RANGE_END" -ge "$OLD_RANGE_START" ]; then
-              if [ "$NEW_RANGE_START" -ge "$OLD_RANGE_MID" ]; then
+            if [ "$SUT_RANGE_START" -le "$BASELINE_RANGE_END" ] && [ "$SUT_RANGE_END" -ge "$BASELINE_RANGE_START" ]; then
+              if [ "$SUT_RANGE_START" -ge "$BASELINE_RANGE_MID" ]; then
                 echo "### 🍀 Possible improvement 🍀" >> $GITHUB_STEP_SUMMARY
-              elif [ "$OLD_RANGE_END" -le "$NEW_RANGE_MID" ]; then
+              elif [ "$BASELINE_RANGE_END" -le "$SUT_RANGE_MID" ]; then
                 echo "### ⚠️ Possible regression ⚠️" >> $GITHUB_STEP_SUMMARY
               else
                 exit 0
               fi          
-            elif [ "$NEW_RANGE_START" -gt "$OLD_RANGE_END" ]; then
+            elif [ "$SUT_RANGE_START" -gt "$BASELINE_RANGE_END" ]; then
               echo "### 🚀🚀🚀 Statistically significant improvement 🚀🚀🚀" >> $GITHUB_STEP_SUMMARY
             else
               echo "### ‼️‼️‼️ Statistically significant regression ‼️‼️‼️" >> $GITHUB_STEP_SUMMARY
@@ -243,8 +246,8 @@ jobs:
           
           echo "|        |   **Ref**   |      **Mean**     |" >> $GITHUB_STEP_SUMMARY
           echo "|:------:|:-----------:|:-----------------:|" >> $GITHUB_STEP_SUMMARY
-          echo "|  _Old_ | [v${{ github.event.inputs.baseline }}](https://github.com/TimefoldAI/timefold-solver/releases/tag/v${{ github.event.inputs.baseline }}) | ${OLD_RANGE_MID} ± ${OLD_DEV} % |" >> $GITHUB_STEP_SUMMARY
-          echo "|  _New_ | [${{ github.event.inputs.branch_owner }}'s ${{ github.event.inputs.branch }}](https://github.com/${{ github.event.inputs.branch_owner }}/timefold-solver/tree/${{ github.event.inputs.branch }}) | ${NEW_RANGE_MID} ± ${NEW_DEV} % |" >> $GITHUB_STEP_SUMMARY
+          echo "|  _Old_ | [v${{ github.event.inputs.baseline }}](https://github.com/TimefoldAI/timefold-solver/releases/tag/v${{ github.event.inputs.baseline }}) | ${BASELINE_RANGE_MID} ± ${BASELINE_DEV} % |" >> $GITHUB_STEP_SUMMARY
+          echo "|  _New_ | [${{ github.event.inputs.branch_owner }}'s ${{ github.event.inputs.branch }}](https://github.com/${{ github.event.inputs.branch_owner }}/timefold-solver/tree/${{ github.event.inputs.branch }}) | ${SUT_RANGE_MID} ± ${SUT_DEV} % |" >> $GITHUB_STEP_SUMMARY
           echo "| _Diff_ |             |   ${DIFF_MID} %   |" >> $GITHUB_STEP_SUMMARY
           
           echo "" >> $GITHUB_STEP_SUMMARY
