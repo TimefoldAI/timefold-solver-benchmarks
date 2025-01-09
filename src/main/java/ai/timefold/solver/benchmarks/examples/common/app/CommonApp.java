@@ -59,7 +59,6 @@ public abstract class CommonApp<Solution_> extends LoggingMain {
     protected final String dataDirName;
     protected final File importDataDir;
     protected final File unsolvedDataDir;
-    protected final File solvedDataDir;
 
     protected CommonApp(String name, String description, String solverConfigResource, String dataDirName) {
         this.name = name;
@@ -76,12 +75,6 @@ public abstract class CommonApp<Solution_> extends LoggingMain {
             throw new IllegalStateException("The directory unsolvedDataDir (" + unsolvedDataDir.getAbsolutePath()
                     + ") does not exist.");
         }
-        this.solvedDataDir = new File(determineDataDir(dataDirName), "solved");
-        if (!solvedDataDir.exists() && !solvedDataDir.mkdir()) {
-            throw new IllegalStateException("The directory solvedDataDir (" + solvedDataDir.getAbsolutePath()
-                    + ") does not exist and could not be created.");
-        }
-
     }
 
     public String getName() {
@@ -106,10 +99,6 @@ public abstract class CommonApp<Solution_> extends LoggingMain {
 
     public File getUnsolvedDataDir() {
         return unsolvedDataDir;
-    }
-
-    public File getSolvedDataDir() {
-        return solvedDataDir;
     }
 
     /**

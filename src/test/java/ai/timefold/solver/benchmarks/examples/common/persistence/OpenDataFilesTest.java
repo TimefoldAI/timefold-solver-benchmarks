@@ -40,12 +40,6 @@ public abstract class OpenDataFilesTest<Solution_> extends LoggingTest {
         String inputFileExtension = solutionFileIO.getInputFileExtension();
         List<File> fileList = new ArrayList<>(
                 getAllFilesRecursivelyAndSorted(unsolvedDataDir, file -> file.getName().endsWith(inputFileExtension)));
-        File solvedDataDir = commonApp.getSolvedDataDir();
-        if (solvedDataDir.exists()) {
-            String outputFileExtension = solutionFileIO.getOutputFileExtension();
-            fileList.addAll(
-                    getAllFilesRecursivelyAndSorted(solvedDataDir, file -> file.getName().endsWith(outputFileExtension)));
-        }
         fileList.sort(new ProblemFileComparator());
         return fileList;
     }
