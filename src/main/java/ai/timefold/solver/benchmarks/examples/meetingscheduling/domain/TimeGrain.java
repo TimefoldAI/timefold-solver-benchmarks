@@ -7,7 +7,12 @@ import java.util.Comparator;
 import java.util.Objects;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
+import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.JacksonUniqueIdGenerator;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+@JsonIdentityInfo(generator = JacksonUniqueIdGenerator.class)
 public class TimeGrain extends AbstractPersistable
         implements Comparable<TimeGrain> {
 
@@ -57,18 +62,22 @@ public class TimeGrain extends AbstractPersistable
         this.startingMinuteOfDay = startingMinuteOfDay;
     }
 
+    @JsonIgnore
     public LocalDate getDate() {
         return day.toDate();
     }
 
+    @JsonIgnore
     public LocalTime getTime() {
         return LocalTime.of(startingMinuteOfDay / 60, startingMinuteOfDay % 60);
     }
 
+    @JsonIgnore
     public LocalDateTime getDateTime() {
         return LocalDateTime.of(getDate(), getTime());
     }
 
+    @JsonIgnore
     public String getTimeString() {
         int hourOfDay = startingMinuteOfDay / 60;
         int minuteOfHour = startingMinuteOfDay % 60;
@@ -76,6 +85,7 @@ public class TimeGrain extends AbstractPersistable
                 + ":" + (minuteOfHour < 10 ? "0" : "") + minuteOfHour;
     }
 
+    @JsonIgnore
     public String getDateTimeString() {
         return day.getDateString() + " " + getTimeString();
     }
