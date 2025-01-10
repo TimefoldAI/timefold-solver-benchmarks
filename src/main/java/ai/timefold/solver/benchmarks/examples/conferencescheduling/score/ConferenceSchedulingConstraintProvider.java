@@ -10,7 +10,6 @@ import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.LANGUAGE_DIVERSITY;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.POPULAR_TALKS;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.ROOM_CONFLICT;
-import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.ROOM_UNAVAILABLE_TIMESLOT;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.SAME_DAY_TALKS;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.SECTOR_CONFLICT;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.SPEAKER_CONFLICT;
@@ -18,22 +17,16 @@ import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.SPEAKER_PREFERRED_ROOM_TAGS;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.SPEAKER_PREFERRED_TIMESLOT_TAGS;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.SPEAKER_PROHIBITED_ROOM_TAGS;
-import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.SPEAKER_PROHIBITED_TIMESLOT_TAGS;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.SPEAKER_REQUIRED_ROOM_TAGS;
-import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.SPEAKER_REQUIRED_TIMESLOT_TAGS;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.SPEAKER_UNAVAILABLE_TIMESLOT;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.SPEAKER_UNDESIRED_ROOM_TAGS;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.SPEAKER_UNDESIRED_TIMESLOT_TAGS;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.TALK_MUTUALLY_EXCLUSIVE_TALKS_TAGS;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.TALK_PREFERRED_ROOM_TAGS;
-import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.TALK_PREFERRED_TIMESLOT_TAGS;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.TALK_PREREQUISITE_TALKS;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.TALK_PROHIBITED_ROOM_TAGS;
-import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.TALK_PROHIBITED_TIMESLOT_TAGS;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.TALK_REQUIRED_ROOM_TAGS;
-import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.TALK_REQUIRED_TIMESLOT_TAGS;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.TALK_UNDESIRED_ROOM_TAGS;
-import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.TALK_UNDESIRED_TIMESLOT_TAGS;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.THEME_TRACK_CONFLICT;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.THEME_TRACK_ROOM_STABILITY;
 import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.compose;
@@ -48,7 +41,6 @@ import static ai.timefold.solver.core.api.score.stream.Joiners.overlapping;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
 import java.util.Objects;
 
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties;
@@ -74,7 +66,6 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
     public Constraint[] defineConstraints(ConstraintFactory factory) {
         return new Constraint[] {
                 // Hard constraints
-                roomUnavailableTimeslot(factory),
                 roomConflict(factory),
                 speakerUnavailableTimeslot(factory),
                 speakerConflict(factory),
@@ -82,10 +73,6 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
                 talkMutuallyExclusiveTalksTags(factory),
                 consecutiveTalksPause(factory),
                 crowdControl(factory),
-                speakerRequiredTimeslotTags(factory),
-                speakerProhibitedTimeslotTags(factory),
-                talkRequiredTimeslotTags(factory),
-                talkProhibitedTimeslotTags(factory),
                 speakerRequiredRoomTags(factory),
                 speakerProhibitedRoomTags(factory),
                 talkRequiredRoomTags(factory),
@@ -104,8 +91,6 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
                 popularTalks(factory),
                 speakerPreferredTimeslotTags(factory),
                 speakerUndesiredTimeslotTags(factory),
-                talkPreferredTimeslotTags(factory),
-                talkUndesiredTimeslotTags(factory),
                 speakerPreferredRoomTags(factory),
                 speakerUndesiredRoomTags(factory),
                 talkPreferredRoomTags(factory),
@@ -117,13 +102,6 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
     // ************************************************************************
     // Hard constraints
     // ************************************************************************
-
-    Constraint roomUnavailableTimeslot(ConstraintFactory factory) {
-        return factory.forEach(Talk.class)
-                .filter(Talk::hasUnavailableRoom)
-                .penalize(HardSoftScore.ofHard(100_000), Talk::getDurationInMinutes)
-                .asConstraint(ROOM_UNAVAILABLE_TIMESLOT);
-    }
 
     Constraint roomConflict(ConstraintFactory factory) {
         return factory.forEachUniquePair(Talk.class,
@@ -192,43 +170,6 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
                 .filter((talk, count) -> count != 1)
                 .penalize(HardSoftScore.ofHard(1), (talk, count) -> talk.getDurationInMinutes())
                 .asConstraint(CROWD_CONTROL);
-    }
-
-    Constraint speakerRequiredTimeslotTags(ConstraintFactory factory) {
-        return factory.forEach(Talk.class)
-                .expand(Talk::missingSpeakerRequiredTimeslotTagCount)
-                .filter((talk, missingTagCount) -> missingTagCount > 0)
-                .penalize(HardSoftScore.ofHard(1), (talk, missingTagCount) -> missingTagCount * talk.getDurationInMinutes())
-                .indictWith((talk, missingTagCount) -> Collections.singleton(talk))
-                .asConstraint(SPEAKER_REQUIRED_TIMESLOT_TAGS);
-    }
-
-    Constraint speakerProhibitedTimeslotTags(ConstraintFactory factory) {
-        return factory.forEach(Talk.class)
-                .expand(Talk::prevailingSpeakerProhibitedTimeslotTagCount)
-                .filter((talk, prohibitedTagCount) -> prohibitedTagCount > 0)
-                .penalize(HardSoftScore.ofHard(1),
-                        (talk, prohibitedTagCount) -> prohibitedTagCount * talk.getDurationInMinutes())
-                .indictWith((talk, prohibitedTagCount) -> Collections.singleton(talk))
-                .asConstraint(SPEAKER_PROHIBITED_TIMESLOT_TAGS);
-    }
-
-    Constraint talkRequiredTimeslotTags(ConstraintFactory factory) {
-        return factory.forEach(Talk.class)
-                .expand(Talk::missingRequiredTimeslotTagCount)
-                .filter((talk, missingTagCount) -> missingTagCount > 0)
-                .penalize(HardSoftScore.ofHard(1), (talk, missingTagCount) -> missingTagCount * talk.getDurationInMinutes())
-                .indictWith((talk, missingTagCount) -> Collections.singleton(talk))
-                .asConstraint(TALK_REQUIRED_TIMESLOT_TAGS);
-    }
-
-    Constraint talkProhibitedTimeslotTags(ConstraintFactory factory) {
-        return factory.forEach(Talk.class)
-                .expand(Talk::prevailingProhibitedTimeslotTagCount)
-                .filter((talk, prohibitedTagCount) -> prohibitedTagCount > 0)
-                .penalize(HardSoftScore.ofHard(1),
-                        (talk, prohibitedTagCount) -> prohibitedTagCount * talk.getDurationInMinutes())
-                .asConstraint(TALK_PROHIBITED_TIMESLOT_TAGS);
     }
 
     Constraint speakerRequiredRoomTags(ConstraintFactory factory) {
@@ -408,23 +349,6 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
                 .penalize(HardSoftScore.ofSoft(20),
                         (talk, undesiredTagCount) -> undesiredTagCount * talk.getDurationInMinutes())
                 .asConstraint(SPEAKER_UNDESIRED_TIMESLOT_TAGS);
-    }
-
-    Constraint talkPreferredTimeslotTags(ConstraintFactory factory) {
-        return factory.forEach(Talk.class)
-                .expand(Talk::missingPreferredTimeslotTagCount)
-                .filter((talk, missingTagCount) -> missingTagCount > 0)
-                .penalize(HardSoftScore.ofSoft(20), (talk, missingTagCount) -> missingTagCount * talk.getDurationInMinutes())
-                .asConstraint(TALK_PREFERRED_TIMESLOT_TAGS);
-    }
-
-    Constraint talkUndesiredTimeslotTags(ConstraintFactory factory) {
-        return factory.forEach(Talk.class)
-                .expand(Talk::prevailingUndesiredTimeslotTagCount)
-                .filter((talk, undesiredTagCount) -> undesiredTagCount > 0)
-                .penalize(HardSoftScore.ofSoft(20),
-                        (talk, undesiredTagCount) -> undesiredTagCount * talk.getDurationInMinutes())
-                .asConstraint(TALK_UNDESIRED_TIMESLOT_TAGS);
     }
 
     Constraint speakerPreferredRoomTags(ConstraintFactory factory) {

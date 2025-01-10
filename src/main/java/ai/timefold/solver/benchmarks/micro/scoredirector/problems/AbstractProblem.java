@@ -52,8 +52,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
         this.solutionDescriptor = buildSolutionDescriptor();
         var scoreDirectorFactoryConfig = buildScoreDirectorFactoryConfig(scoreDirectorType);
         this.scoreDirectorFactory = ScoreDirectorType.buildScoreDirectorFactory(scoreDirectorFactoryConfig, solutionDescriptor);
-        this.originalSolution = ProblemInitializer.getSolution(example, solutionDescriptor,
-                this::buildScoreDirectorFactoryConfig, this::readOriginalSolution); // Expensive.
+        this.originalSolution = readOriginalSolution();
     }
 
     protected final ScoreDirectorFactoryConfig buildInitialScoreDirectorFactoryConfig() {

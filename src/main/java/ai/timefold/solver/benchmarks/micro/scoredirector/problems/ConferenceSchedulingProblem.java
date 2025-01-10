@@ -5,7 +5,7 @@ import java.util.Objects;
 
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceSolution;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Talk;
-import ai.timefold.solver.benchmarks.examples.conferencescheduling.persistence.ConferenceSchedulingXlsxFileIO;
+import ai.timefold.solver.benchmarks.examples.conferencescheduling.persistence.ConferenceSchedulingSolutionFileIO;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.score.ConferenceSchedulingConstraintProvider;
 import ai.timefold.solver.benchmarks.micro.scoredirector.Example;
 import ai.timefold.solver.benchmarks.micro.scoredirector.ScoreDirectorType;
@@ -39,8 +39,8 @@ public final class ConferenceSchedulingProblem extends AbstractProblem<Conferenc
 
     @Override
     protected ConferenceSolution readOriginalSolution() {
-        return new ConferenceSchedulingXlsxFileIO()
-                .read(new File("data/conferencescheduling/conferencescheduling-216-18-20.xlsx"));
+        return new ConferenceSchedulingSolutionFileIO()
+                .read(new File("data/conferencescheduling/conferencescheduling-216-18-20.json"));
     }
 
 }

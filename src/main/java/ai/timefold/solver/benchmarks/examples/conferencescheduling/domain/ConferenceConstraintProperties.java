@@ -2,7 +2,11 @@
 package ai.timefold.solver.benchmarks.examples.conferencescheduling.domain;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
+import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.JacksonUniqueIdGenerator;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+
+@JsonIdentityInfo(generator = JacksonUniqueIdGenerator.class)
 public class ConferenceConstraintProperties extends AbstractPersistable {
 
     public static final String ROOM_UNAVAILABLE_TIMESLOT = "Room unavailable timeslot";

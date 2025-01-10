@@ -9,7 +9,7 @@ import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
 
 class ConferenceSchedulingSmokeTest extends SolverSmokeTest<ConferenceSolution, HardSoftScore> {
 
-    private static final String UNSOLVED_DATA_FILE = "data/conferencescheduling/unsolved/72talks-12timeslots-10rooms.xlsx";
+    private static final String UNSOLVED_DATA_FILE = "data/conferencescheduling/unsolved/72talks-12timeslots-10rooms.json";
 
     @Override
     protected ConferenceSchedulingApp createCommonApp() {

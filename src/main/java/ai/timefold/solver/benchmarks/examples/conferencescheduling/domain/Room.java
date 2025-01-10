@@ -3,7 +3,11 @@ package ai.timefold.solver.benchmarks.examples.conferencescheduling.domain;
 import java.util.Set;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
+import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.JacksonUniqueIdGenerator;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+
+@JsonIdentityInfo(generator = JacksonUniqueIdGenerator.class)
 public class Room extends AbstractPersistable {
 
     private String name;
@@ -53,14 +57,6 @@ public class Room extends AbstractPersistable {
         this.talkTypeSet = talkTypeSet;
     }
 
-    public Set<Timeslot> getUnavailableTimeslotSet() {
-        return unavailableTimeslotSet;
-    }
-
-    public void setUnavailableTimeslotSet(Set<Timeslot> unavailableTimeslotSet) {
-        this.unavailableTimeslotSet = unavailableTimeslotSet;
-    }
-
     public Set<String> getTagSet() {
         return tagSet;
     }
@@ -80,11 +76,6 @@ public class Room extends AbstractPersistable {
 
     public Room withTalkTypeSet(Set<TalkType> talkTypeSet) {
         this.talkTypeSet = talkTypeSet;
-        return this;
-    }
-
-    public Room withUnavailableTimeslotSet(Set<Timeslot> unavailableTimeslotTest) {
-        this.unavailableTimeslotSet = unavailableTimeslotTest;
         return this;
     }
 

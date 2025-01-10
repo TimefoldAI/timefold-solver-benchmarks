@@ -1,9 +1,11 @@
 
 package ai.timefold.solver.benchmarks.examples.conferencescheduling.app;
 
+import java.io.File;
+
 import ai.timefold.solver.benchmarks.examples.common.app.CommonApp;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceSolution;
-import ai.timefold.solver.benchmarks.examples.conferencescheduling.persistence.ConferenceSchedulingXlsxFileIO;
+import ai.timefold.solver.benchmarks.examples.conferencescheduling.persistence.ConferenceSchedulingSolutionFileIO;
 import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
 
 public class ConferenceSchedulingApp
@@ -15,7 +17,9 @@ public class ConferenceSchedulingApp
     public static final String DATA_DIR_NAME = "conferencescheduling";
 
     public static void main(String[] args) {
-        var solution = new ConferenceSchedulingApp().solve("216talks-18timeslots-20rooms.xlsx");
+        var app = new ConferenceSchedulingApp();
+        var solution = app.solve("216talks-18timeslots-20rooms.json");
+        app.createSolutionFileIO().write(solution, new File("conferencescheduling-216-18-20.json"));
         System.out.println("Done: " + solution);
     }
 
@@ -27,7 +31,7 @@ public class ConferenceSchedulingApp
 
     @Override
     public SolutionFileIO<ConferenceSolution> createSolutionFileIO() {
-        return new ConferenceSchedulingXlsxFileIO();
+        return new ConferenceSchedulingSolutionFileIO();
     }
 
 }

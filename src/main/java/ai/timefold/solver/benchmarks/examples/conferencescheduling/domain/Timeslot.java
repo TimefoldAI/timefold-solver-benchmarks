@@ -6,7 +6,12 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
+import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.JacksonUniqueIdGenerator;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+@JsonIdentityInfo(generator = JacksonUniqueIdGenerator.class)
 public class Timeslot extends AbstractPersistable {
 
     private LocalDateTime startDateTime;
@@ -25,6 +30,7 @@ public class Timeslot extends AbstractPersistable {
         super(id);
     }
 
+    @JsonIgnore
     public LocalDate getDate() {
         return startDateTime.toLocalDate();
     }

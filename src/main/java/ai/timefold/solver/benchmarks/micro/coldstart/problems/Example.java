@@ -4,7 +4,7 @@ import java.io.File;
 
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceSolution;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Talk;
-import ai.timefold.solver.benchmarks.examples.conferencescheduling.persistence.ConferenceSchedulingXlsxFileIO;
+import ai.timefold.solver.benchmarks.examples.conferencescheduling.persistence.ConferenceSchedulingSolutionFileIO;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.score.ConferenceSchedulingConstraintProvider;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.TspSolution;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.Visit;
@@ -27,8 +27,8 @@ public enum Example {
     CONFERENCE_SCHEDULING(ConferenceSchedulingConstraintProvider.class, ConferenceSolution.class, Talk.class) {
         @Override
         <Solution_> Solution_ loadDataset() {
-            var io = new ConferenceSchedulingXlsxFileIO();
-            return (Solution_) io.read(new File("data/conferencescheduling/conferencescheduling-216-18-20.xlsx"));
+            var io = new ConferenceSchedulingSolutionFileIO();
+            return (Solution_) io.read(new File("data/conferencescheduling/conferencescheduling-216-18-20.json"));
         }
     },
     TSP(TspConstraintProvider.class, TspSolution.class, Visit.class) {

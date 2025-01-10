@@ -201,7 +201,7 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
     protected Random random;
 
     public ConferenceSchedulingGenerator() {
-        solutionFileIO = new ConferenceSchedulingXlsxFileIO();
+        solutionFileIO = new ConferenceSchedulingSolutionFileIO();
         outputDir = new File(CommonApp.determineDataDir(ConferenceSchedulingApp.DATA_DIR_NAME), "unsolved");
     }
 
@@ -226,6 +226,7 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
             int speakerListSize, int talkListSize) {
         random = new Random(37);
         var solution = new ConferenceSolution(0L);
+        solution.setConstraintWeightOverrides(ConstraintWeightOverrides.none());
         solution.setConferenceName(conferenceNameGenerator.generateNextValue());
 
         var constraintProperties = new ConferenceConstraintProperties(0L);
@@ -250,9 +251,8 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
         return solution;
     }
 
-    private void
-            createTalkTypeList(ConferenceSolution solution) {
-        List<TalkType> talkTypeList = new ArrayList<>(2);
+    private void createTalkTypeList(ConferenceSolution solution) {
+        var talkTypeList = new ArrayList<TalkType>(2);
         breakoutTalkType = new TalkType(0L);
         breakoutTalkType.setName(BREAKOUT_TALK_TYPE);
         breakoutTalkType.setCompatibleTimeslotSet(new LinkedHashSet<>());
@@ -266,16 +266,12 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
         solution.setTalkTypeList(talkTypeList);
     }
 
-    private void createTimeslotList(
-            ConferenceSolution solution,
-            int timeslotListSize) {
-        List<Timeslot> timeslotList =
-                new ArrayList<>(timeslotListSize);
+    private void createTimeslotList(ConferenceSolution solution, int timeslotListSize) {
+        var timeslotList = new ArrayList<Timeslot>(timeslotListSize);
         var timeslotOptionsIndex = 0;
         var day = timeslotFirstDay;
         for (var i = 0; i < timeslotListSize; i++) {
-            var timeslot =
-                    new Timeslot(i);
+            var timeslot = new Timeslot(i);
             if (timeslotOptionsIndex >= timeslotOptions.size()) {
                 timeslotOptionsIndex = 0;
                 day = day.plusDays(1);
@@ -283,27 +279,24 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
             var pair = timeslotOptions.get(timeslotOptionsIndex);
             timeslot.setStartDateTime(LocalDateTime.of(day, pair.key()));
             timeslot.setEndDateTime(LocalDateTime.of(day, pair.value()));
-            var talkType =
-                    timeslot.getDurationInMinutes() >= 120 ? labTalkType : breakoutTalkType;
+            var talkType = timeslot.getDurationInMinutes() >= 120 ? labTalkType : breakoutTalkType;
             talkType.getCompatibleTimeslotSet().add(timeslot);
             timeslot.setTalkTypeSet(Collections.singleton(talkType));
             timeslotOptionsIndex++;
-            Set<String> tagSet = new LinkedHashSet<>(2);
+            var tagSet = new LinkedHashSet<String>(2);
             if (timeslot.getStartDateTime().getHour() == 13) {
                 tagSet.add(TIMESLOT_AFTER_LUNCH_TAG);
             }
             timeslot.setTagSet(tagSet);
-            logger.trace("Created timeslot ({}) with tags ({}).",
-                    timeslot, tagSet);
+            logger.trace("Created timeslot ({}) with tags ({}).", timeslot, tagSet);
             timeslotList.add(timeslot);
         }
         solution.setTimeslotList(timeslotList);
     }
 
-    private void createRoomList(ConferenceSolution solution,
-            int roomListSize) {
-        final var roomsPerFloor = 12;
-        List<Room> roomList = new ArrayList<>(roomListSize);
+    private void createRoomList(ConferenceSolution solution, int roomListSize) {
+        var roomsPerFloor = 12;
+        var roomList = new ArrayList<Room>(roomListSize);
         for (var i = 0; i < roomListSize; i++) {
             var room = new Room(i);
             room.setName("R " + ((i / roomsPerFloor * 100) + (i % roomsPerFloor) + 1));
@@ -315,9 +308,8 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
                 talkType = breakoutTalkType;
             }
             talkType.getCompatibleRoomSet().add(room);
-            room.setTalkTypeSet(Collections.singleton(talkType));
-            room.setUnavailableTimeslotSet(new LinkedHashSet<>());
-            Set<String> tagSet = new LinkedHashSet<>(roomTagProbabilityList.size());
+            room.withTalkTypeSet(Collections.singleton(talkType));
+            var tagSet = new LinkedHashSet<String>(roomTagProbabilityList.size());
             for (var roomTagProbability : roomTagProbabilityList) {
                 if ((i == 0 || i == 4 || random.nextDouble() < roomTagProbability.value())
                         && roomTagProbability.key().equals("Recorded")) {
@@ -335,19 +327,15 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
         solution.setRoomList(roomList);
     }
 
-    private void createSpeakerList(
-            ConferenceSolution solution,
-            int speakerListSize) {
-        List<Speaker> speakerList =
-                new ArrayList<>(speakerListSize);
+    private void createSpeakerList(ConferenceSolution solution, int speakerListSize) {
+        var speakerList = new ArrayList<Speaker>(speakerListSize);
         speakerNameGenerator.predictMaximumSizeAndReset(speakerListSize);
         for (var i = 0; i < speakerListSize; i++) {
-            var speaker =
-                    new Speaker(i);
+            var speaker = new Speaker(i);
             speaker.setName(speakerNameGenerator.generateNextValue());
             Set<Timeslot> unavailableTimeslotSet;
-            Set<String> preferredTimeslotTagSet = new LinkedHashSet<>();
-            Set<String> undesiredTimeslotTagSet = new LinkedHashSet<>();
+            var preferredTimeslotTagSet = new LinkedHashSet<String>();
+            var undesiredTimeslotTagSet = new LinkedHashSet<String>();
             var timeslotList = solution.getTimeslotList();
             if (random.nextDouble() < 0.10) {
                 var segmentRandom = random.nextDouble();
@@ -378,58 +366,54 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
                 unavailableTimeslotSet = new LinkedHashSet<>(timeslotList.size());
             }
             speaker.setUnavailableTimeslotSet(unavailableTimeslotSet);
-            speaker.setRequiredTimeslotTagSet(new LinkedHashSet<>()); // TODO: choose random required/prohibited tags that don't result in an infeasible solution
             speaker.setPreferredTimeslotTagSet(preferredTimeslotTagSet);
-            speaker.setProhibitedTimeslotTagSet(new LinkedHashSet<>());
             speaker.setUndesiredTimeslotTagSet(undesiredTimeslotTagSet);
-            Set<String> requiredRoomTagSet = new LinkedHashSet<>();
-            Set<String> preferredRoomTagSet = new LinkedHashSet<>();
-            Set<String> prohibitedRoomTagSet = new LinkedHashSet<>();
-            Set<String> undesiredRoomTagSet = new LinkedHashSet<>();
+            var requiredRoomTagSet = new LinkedHashSet<String>();
+            var preferredRoomTagSet = new LinkedHashSet<String>();
+            var prohibitedRoomTagSet = new LinkedHashSet<String>();
+            var undesiredRoomTagSet = new LinkedHashSet<String>();
             initializeRoomTagSets(requiredRoomTagSet, preferredRoomTagSet, prohibitedRoomTagSet, undesiredRoomTagSet);
             speaker.setRequiredRoomTagSet(requiredRoomTagSet);
             speaker.setPreferredRoomTagSet(preferredRoomTagSet);
             speaker.setProhibitedRoomTagSet(prohibitedRoomTagSet);
             speaker.setUndesiredRoomTagSet(undesiredRoomTagSet);
-            logger.trace("Created speaker with name ({}).",
-                    speaker.getName());
+            logger.trace("Created speaker with name ({}).", speaker.getName());
             speakerList.add(speaker);
         }
         solution.setSpeakerList(speakerList);
     }
 
     private void createTalkList(ConferenceSolution solution, int talkListSize) {
-        List<Talk> talkList = new ArrayList<>(talkListSize);
+        var talkList = new ArrayList<Talk>(talkListSize);
         talkTitleGenerator.predictMaximumSizeAndReset(talkListSize);
         var speakerListIndex = 0;
         for (var i = 0; i < talkListSize; i++) {
-            var talk =
-                    new Talk(i);
+            var talk = new Talk(i);
             talk.setCode(String.format("S%0" + ((String.valueOf(talkListSize).length()) + "d"), i));
             talk.setTitle(talkTitleGenerator.generateNextValue());
             var speakerRandomDouble = random.nextDouble();
             talk.setTalkType(i < labTalkCount ? labTalkType : breakoutTalkType);
             var speakerCount = (speakerRandomDouble < 0.01) ? 4
                     : (speakerRandomDouble < 0.03) ? 3 : (speakerRandomDouble < 0.40) ? 2 : 1;
-            List<Speaker> speakerList = new ArrayList<>(speakerCount);
+            var speakerList = new ArrayList<Speaker>(speakerCount);
             for (var j = 0; j < speakerCount; j++) {
                 speakerList.add(solution.getSpeakerList().get(speakerListIndex));
                 speakerListIndex = (speakerListIndex + 1) % solution.getSpeakerList().size();
             }
             talk.setSpeakerList(speakerList);
-            Set<String> themeTagSet = new LinkedHashSet<>();
+            var themeTagSet = new LinkedHashSet<String>();
             themeTagSet.add(themeTagOptions.get(random.nextInt(themeTagOptions.size())));
             if (random.nextDouble() < 0.20) {
                 themeTagSet.add(themeTagOptions.get(random.nextInt(themeTagOptions.size())));
             }
             talk.setThemeTrackTagSet(themeTagSet);
-            Set<String> sectorTagSet = new LinkedHashSet<>();
+            var sectorTagSet = new LinkedHashSet<String>();
             if (random.nextDouble() < 0.20) {
                 sectorTagSet.add(sectorTagOptions.get(random.nextInt(sectorTagOptions.size())));
             }
             talk.setAudienceTypeSet(Collections.singleton(audienceTypeOptions.get(random.nextInt(audienceTypeOptions.size()))));
             talk.setAudienceLevel(1 + random.nextInt(3));
-            Set<String> contentTagSet = new LinkedHashSet<>();
+            var contentTagSet = new LinkedHashSet<String>();
             for (var contentTagOption : contentTagOptions) {
                 if (talk.getTitle().contains(contentTagOption)) {
                     contentTagSet.add(contentTagOption);
@@ -443,29 +427,24 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
             talk.setContentTagSet(contentTagSet);
             talk.setSectorTagSet(sectorTagSet);
             talk.setLanguage("en");
-            talk.setRequiredTimeslotTagSet(new LinkedHashSet<>());
-            talk.setPreferredTimeslotTagSet(new LinkedHashSet<>());
-            talk.setProhibitedTimeslotTagSet(new LinkedHashSet<>());
-            talk.setUndesiredTimeslotTagSet(new LinkedHashSet<>());
 
-            Set<String> requiredRoomTagSet = new LinkedHashSet<>();
-            Set<String> preferredRoomTagSet = new LinkedHashSet<>();
-            Set<String> prohibitedRoomTagSet = new LinkedHashSet<>();
-            Set<String> undesiredRoomTagSet = new LinkedHashSet<>();
+            var requiredRoomTagSet = new LinkedHashSet<String>();
+            var preferredRoomTagSet = new LinkedHashSet<String>();
+            var prohibitedRoomTagSet = new LinkedHashSet<String>();
+            var undesiredRoomTagSet = new LinkedHashSet<String>();
             initializeRoomTagSets(requiredRoomTagSet, preferredRoomTagSet, prohibitedRoomTagSet, undesiredRoomTagSet);
             talk.setRequiredRoomTagSet(requiredRoomTagSet);
             talk.setPreferredRoomTagSet(preferredRoomTagSet);
             talk.setProhibitedRoomTagSet(prohibitedRoomTagSet);
             talk.setUndesiredRoomTagSet(undesiredRoomTagSet);
 
-            Set<String> mutuallyExclusiveTagSet = new LinkedHashSet<>();
+            var mutuallyExclusiveTagSet = new LinkedHashSet<String>();
             if (random.nextDouble() < 0.025) {
                 mutuallyExclusiveTagSet.add(mutuallyExclusiveTagList.get(random.nextInt(mutuallyExclusiveTagList.size())));
             }
             talk.setMutuallyExclusiveTalksTagSet(mutuallyExclusiveTagSet);
 
-            Set<Talk> prerequisiteTalkCodeSet =
-                    new LinkedHashSet<>();
+            var prerequisiteTalkCodeSet = new LinkedHashSet<Talk>();
             if (random.nextDouble() < 0.025) {
                 prerequisiteTalkCodeSet.add(talkList.get(random.nextInt(talkList.size())));
             }
@@ -475,8 +454,7 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
             if (random.nextDouble() < 0.02) {
                 talk.setCrowdControlRisk(1);
                 // Need an even number of talks with crowd control > 1 for a feasible solution
-                var pairedTalk =
-                        talkList.get(random.nextInt(talkList.size()));
+                var pairedTalk = talkList.get(random.nextInt(talkList.size()));
                 while (pairedTalk.getCrowdControlRisk() != 0 || !pairedTalk.getTalkType().equals(talk.getTalkType())) {
                     pairedTalk = talkList.get(random.nextInt(talkList.size()));
                 }
@@ -488,27 +466,13 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
             talkList.add(talk);
         }
 
-        var pinnedTalk =
-                talkList.get(labTalkCount + random.nextInt(talkListSize - labTalkCount));
+        var pinnedTalk = talkList.get(labTalkCount + random.nextInt(talkListSize - labTalkCount));
         pinnedTalk.setPinnedByUser(true);
         pinnedTalk.setTimeslot(solution.getTimeslotList().stream()
                 .filter(timeslot -> timeslot.getTalkTypeSet().contains(breakoutTalkType))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("There is no breakout timeslot.")));
         pinnedTalk.setRoom(solution.getRoomList().get(0));
-
-        var publishedTalk = talkList.get(random.nextInt(labTalkCount));
-        publishedTalk.setTimeslot(solution.getTimeslotList().stream()
-                .filter(timeslot -> timeslot.getTalkTypeSet().contains(labTalkType))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("There is no lab timeslot.")));
-        publishedTalk.setRoom(solution.getRoomList().stream()
-                .filter(room -> room.getTalkTypeSet().contains(labTalkType))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("There is no lab."))); // In this data set rooms has only one talkType
-        publishedTalk.setPublishedTimeslot(publishedTalk.getTimeslot());
-        publishedTalk.setPublishedRoom(publishedTalk.getRoom());
-
         solution.setTalkList(talkList);
     }
 

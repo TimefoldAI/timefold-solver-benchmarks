@@ -3,6 +3,7 @@ package ai.timefold.solver.benchmarks.examples.conferencescheduling.domain;
 import java.util.List;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
+import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.JacksonUniqueIdGenerator;
 import ai.timefold.solver.core.api.domain.solution.ConstraintWeightOverrides;
 import ai.timefold.solver.core.api.domain.solution.PlanningEntityCollectionProperty;
 import ai.timefold.solver.core.api.domain.solution.PlanningScore;
@@ -11,7 +12,10 @@ import ai.timefold.solver.core.api.domain.solution.ProblemFactCollectionProperty
 import ai.timefold.solver.core.api.domain.solution.ProblemFactProperty;
 import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+
 @PlanningSolution
+@JsonIdentityInfo(generator = JacksonUniqueIdGenerator.class)
 public class ConferenceSolution extends AbstractPersistable {
 
     private String conferenceName;

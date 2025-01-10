@@ -4,12 +4,17 @@ import java.util.List;
 import java.util.Set;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
+import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.JacksonUniqueIdGenerator;
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
 import ai.timefold.solver.core.api.domain.entity.PlanningPin;
 import ai.timefold.solver.core.api.domain.valuerange.ValueRangeProvider;
 import ai.timefold.solver.core.api.domain.variable.PlanningVariable;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @PlanningEntity
+@JsonIdentityInfo(generator = JacksonUniqueIdGenerator.class)
 public class Talk extends AbstractPersistable {
 
     private String code;
@@ -22,10 +27,6 @@ public class Talk extends AbstractPersistable {
     private int audienceLevel;
     private Set<String> contentTagSet;
     private String language;
-    private Set<String> requiredTimeslotTagSet;
-    private Set<String> preferredTimeslotTagSet;
-    private Set<String> prohibitedTimeslotTagSet;
-    private Set<String> undesiredTimeslotTagSet;
     private Set<String> requiredRoomTagSet;
     private Set<String> preferredRoomTagSet;
     private Set<String> prohibitedRoomTagSet;
@@ -34,8 +35,6 @@ public class Talk extends AbstractPersistable {
     private Set<Talk> prerequisiteTalkSet;
     private int favoriteCount;
     private int crowdControlRisk;
-    private Timeslot publishedTimeslot;
-    private Room publishedRoom;
 
     @PlanningPin
     private boolean pinnedByUser = false;
@@ -95,14 +94,6 @@ public class Talk extends AbstractPersistable {
 
     }
 
-    public int missingRequiredTimeslotTagCount() {
-        if (timeslot == null) {
-            return 0;
-        }
-        return missingCount(requiredTimeslotTagSet, timeslot.getTagSet());
-
-    }
-
     private static <Item_> int missingCount(Set<Item_> required, Set<Item_> available) {
         int requiredCount = required.size();
         if (requiredCount == 0) {
@@ -119,27 +110,6 @@ public class Talk extends AbstractPersistable {
             }
         }
         return missingCount;
-    }
-
-    public int missingPreferredTimeslotTagCount() {
-        if (timeslot == null) {
-            return 0;
-        }
-        return missingCount(preferredTimeslotTagSet, timeslot.getTagSet());
-    }
-
-    public int prevailingProhibitedTimeslotTagCount() {
-        if (timeslot == null) {
-            return 0;
-        }
-        return overlappingCount(prohibitedTimeslotTagSet, timeslot.getTagSet());
-    }
-
-    public int prevailingUndesiredTimeslotTagCount() {
-        if (timeslot == null) {
-            return 0;
-        }
-        return overlappingCount(undesiredTimeslotTagSet, timeslot.getTagSet());
     }
 
     public int missingRequiredRoomTagCount() {
@@ -172,17 +142,6 @@ public class Talk extends AbstractPersistable {
         return overlappingCount(undesiredRoomTagSet, room.getTagSet());
     }
 
-    public int missingSpeakerRequiredTimeslotTagCount() {
-        if (timeslot == null) {
-            return 0;
-        }
-        int count = 0;
-        for (Speaker speaker : speakerList) {
-            count += missingCount(speaker.getRequiredTimeslotTagSet(), timeslot.getTagSet());
-        }
-        return count;
-    }
-
     public int missingSpeakerPreferredTimeslotTagCount() {
         if (timeslot == null) {
             return 0;
@@ -190,17 +149,6 @@ public class Talk extends AbstractPersistable {
         int count = 0;
         for (Speaker speaker : speakerList) {
             count += missingCount(speaker.getPreferredTimeslotTagSet(), timeslot.getTagSet());
-        }
-        return count;
-    }
-
-    public int prevailingSpeakerProhibitedTimeslotTagCount() {
-        if (timeslot == null) {
-            return 0;
-        }
-        int count = 0;
-        for (Speaker speaker : speakerList) {
-            count += overlappingCount(speaker.getProhibitedTimeslotTagSet(), timeslot.getTagSet());
         }
         return count;
     }
@@ -260,13 +208,6 @@ public class Talk extends AbstractPersistable {
         return count;
     }
 
-    public boolean hasUnavailableRoom() {
-        if (timeslot == null || room == null) {
-            return false;
-        }
-        return room.getUnavailableTimeslotSet().contains(timeslot);
-    }
-
     public int overlappingMutuallyExclusiveTalksTagCount(Talk other) {
         return overlappingCount(mutuallyExclusiveTalksTagSet, other.mutuallyExclusiveTalksTagSet);
     }
@@ -280,6 +221,7 @@ public class Talk extends AbstractPersistable {
         return false;
     }
 
+    @JsonIgnore
     public Integer getDurationInMinutes() {
         return timeslot == null ? null : timeslot.getDurationInMinutes();
     }
@@ -407,38 +349,6 @@ public class Talk extends AbstractPersistable {
         this.speakerList = speakerList;
     }
 
-    public Set<String> getRequiredTimeslotTagSet() {
-        return requiredTimeslotTagSet;
-    }
-
-    public void setRequiredTimeslotTagSet(Set<String> requiredTimeslotTagSet) {
-        this.requiredTimeslotTagSet = requiredTimeslotTagSet;
-    }
-
-    public Set<String> getPreferredTimeslotTagSet() {
-        return preferredTimeslotTagSet;
-    }
-
-    public void setPreferredTimeslotTagSet(Set<String> preferredTimeslotTagSet) {
-        this.preferredTimeslotTagSet = preferredTimeslotTagSet;
-    }
-
-    public Set<String> getProhibitedTimeslotTagSet() {
-        return prohibitedTimeslotTagSet;
-    }
-
-    public void setProhibitedTimeslotTagSet(Set<String> prohibitedTimeslotTagSet) {
-        this.prohibitedTimeslotTagSet = prohibitedTimeslotTagSet;
-    }
-
-    public Set<String> getUndesiredTimeslotTagSet() {
-        return undesiredTimeslotTagSet;
-    }
-
-    public void setUndesiredTimeslotTagSet(Set<String> undesiredTimeslotTagSet) {
-        this.undesiredTimeslotTagSet = undesiredTimeslotTagSet;
-    }
-
     public Set<String> getRequiredRoomTagSet() {
         return requiredRoomTagSet;
     }
@@ -527,22 +437,6 @@ public class Talk extends AbstractPersistable {
         this.crowdControlRisk = crowdControlRisk;
     }
 
-    public Timeslot getPublishedTimeslot() {
-        return publishedTimeslot;
-    }
-
-    public void setPublishedTimeslot(Timeslot publishedTimeslot) {
-        this.publishedTimeslot = publishedTimeslot;
-    }
-
-    public Room getPublishedRoom() {
-        return publishedRoom;
-    }
-
-    public void setPublishedRoom(Room publishedRoom) {
-        this.publishedRoom = publishedRoom;
-    }
-
     // ************************************************************************
     // With methods
     // ************************************************************************
@@ -604,26 +498,6 @@ public class Talk extends AbstractPersistable {
 
     public Talk withUndesiredRoomTagSet(Set<String> undesiredRoomTagSet) {
         this.undesiredRoomTagSet = undesiredRoomTagSet;
-        return this;
-    }
-
-    public Talk withRequiredTimeslotTagSet(Set<String> requiredTimeslotTagSet) {
-        this.requiredTimeslotTagSet = requiredTimeslotTagSet;
-        return this;
-    }
-
-    public Talk withProhibitedTimeslotTagSet(Set<String> prohibitedTimeslotTagSet) {
-        this.prohibitedTimeslotTagSet = prohibitedTimeslotTagSet;
-        return this;
-    }
-
-    public Talk withPreferredTimeslotTagSet(Set<String> preferredTimslotTagSet) {
-        this.preferredTimeslotTagSet = preferredTimslotTagSet;
-        return this;
-    }
-
-    public Talk withUndesiredTimeslotTagSet(Set<String> undesiredTimeslotTagSet) {
-        this.undesiredTimeslotTagSet = undesiredTimeslotTagSet;
         return this;
     }
 
