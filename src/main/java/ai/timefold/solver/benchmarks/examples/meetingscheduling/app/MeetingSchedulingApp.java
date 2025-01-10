@@ -2,7 +2,7 @@ package ai.timefold.solver.benchmarks.examples.meetingscheduling.app;
 
 import ai.timefold.solver.benchmarks.examples.common.app.CommonApp;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.MeetingSchedule;
-import ai.timefold.solver.benchmarks.examples.meetingscheduling.persistence.MeetingSchedulingXlsxFileIO;
+import ai.timefold.solver.benchmarks.examples.meetingscheduling.persistence.MeetingSchedulingSolutionFileIO;
 import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
 
 public class MeetingSchedulingApp extends CommonApp<MeetingSchedule> {
@@ -13,7 +13,7 @@ public class MeetingSchedulingApp extends CommonApp<MeetingSchedule> {
     public static final String DATA_DIR_NAME = "meetingscheduling";
 
     public static void main(String[] args) {
-        var solution = new MeetingSchedulingApp().solve("100meetings-320timegrains-5rooms.xlsx");
+        var solution = new MeetingSchedulingApp().solve("100meetings-320timegrains-5rooms.json");
         System.out.println("Done: " + solution);
     }
 
@@ -25,7 +25,7 @@ public class MeetingSchedulingApp extends CommonApp<MeetingSchedule> {
 
     @Override
     public SolutionFileIO<MeetingSchedule> createSolutionFileIO() {
-        return new MeetingSchedulingXlsxFileIO();
+        return new MeetingSchedulingSolutionFileIO();
     }
 
 }

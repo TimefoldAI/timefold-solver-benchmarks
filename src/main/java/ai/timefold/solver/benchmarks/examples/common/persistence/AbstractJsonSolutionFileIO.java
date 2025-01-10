@@ -1,6 +1,5 @@
 package ai.timefold.solver.benchmarks.examples.common.persistence;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -56,11 +55,6 @@ public class AbstractJsonSolutionFileIO<Solution_> extends JacksonSolutionFileIO
         Map<Key_, Value_> newMap = new LinkedHashMap<>(originalMap.size());
         originalMap.forEach((key, value) -> newMap.put(index.get(idFunction.apply(key)), value));
         return newMap;
-    }
-
-    @Override
-    public final void write(Solution_ solution, File outputSolutionFile) {
-        throw new UnsupportedOperationException();
     }
 
 }

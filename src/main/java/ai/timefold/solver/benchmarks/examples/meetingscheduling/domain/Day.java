@@ -5,7 +5,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
+import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.JacksonUniqueIdGenerator;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+@JsonIdentityInfo(generator = JacksonUniqueIdGenerator.class)
 public class Day extends AbstractPersistable
         implements Comparable<Day> {
 
@@ -29,10 +34,12 @@ public class Day extends AbstractPersistable
         this.dayOfYear = dayOfYear;
     }
 
+    @JsonIgnore
     public String getDateString() {
         return DAY_FORMATTER.format(toDate());
     }
 
+    @JsonIgnore
     public LocalDate toDate() {
         return LocalDate.ofYearDay(LocalDate.now().getYear(), dayOfYear);
     }

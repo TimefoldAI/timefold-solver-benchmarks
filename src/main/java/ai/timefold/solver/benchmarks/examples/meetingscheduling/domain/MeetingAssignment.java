@@ -1,11 +1,16 @@
 package ai.timefold.solver.benchmarks.examples.meetingscheduling.domain;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
+import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.JacksonUniqueIdGenerator;
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
 import ai.timefold.solver.core.api.domain.entity.PlanningPin;
 import ai.timefold.solver.core.api.domain.variable.PlanningVariable;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @PlanningEntity
+@JsonIdentityInfo(generator = JacksonUniqueIdGenerator.class)
 public class MeetingAssignment extends AbstractPersistable {
 
     private Meeting meeting;
@@ -90,6 +95,7 @@ public class MeetingAssignment extends AbstractPersistable {
         return Math.min(end, otherEnd) - Math.max(start, otherStart);
     }
 
+    @JsonIgnore
     public Integer getLastTimeGrainIndex() {
         if (startingTimeGrain == null) {
             return null;
@@ -97,6 +103,7 @@ public class MeetingAssignment extends AbstractPersistable {
         return startingTimeGrain.getGrainIndex() + meeting.getDurationInGrains() - 1;
     }
 
+    @JsonIgnore
     public String getStartingDateTimeString() {
         if (startingTimeGrain == null) {
             return null;
@@ -104,6 +111,7 @@ public class MeetingAssignment extends AbstractPersistable {
         return startingTimeGrain.getDateTimeString();
     }
 
+    @JsonIgnore
     public int getRoomCapacity() {
         if (room == null) {
             return 0;
@@ -111,6 +119,7 @@ public class MeetingAssignment extends AbstractPersistable {
         return room.getCapacity();
     }
 
+    @JsonIgnore
     public int getRequiredCapacity() {
         return meeting.getRequiredCapacity();
     }
