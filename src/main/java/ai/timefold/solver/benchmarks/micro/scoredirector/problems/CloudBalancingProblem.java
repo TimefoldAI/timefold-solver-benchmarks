@@ -1,7 +1,5 @@
 package ai.timefold.solver.benchmarks.micro.scoredirector.problems;
 
-import java.io.File;
-
 import ai.timefold.solver.benchmarks.examples.cloudbalancing.domain.CloudBalance;
 import ai.timefold.solver.benchmarks.examples.cloudbalancing.domain.CloudProcess;
 import ai.timefold.solver.benchmarks.examples.cloudbalancing.optional.score.CloudBalancingIncrementalScoreCalculator;
@@ -10,7 +8,6 @@ import ai.timefold.solver.benchmarks.examples.cloudbalancing.persistence.CloudBa
 import ai.timefold.solver.benchmarks.examples.cloudbalancing.score.CloudBalancingConstraintProvider;
 import ai.timefold.solver.benchmarks.micro.scoredirector.Example;
 import ai.timefold.solver.benchmarks.micro.scoredirector.ScoreDirectorType;
-import ai.timefold.solver.core.api.score.stream.ConstraintStreamImplType;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
 import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
 import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
@@ -25,13 +22,12 @@ public final class CloudBalancingProblem extends AbstractProblem<CloudBalance> {
     protected ScoreDirectorFactoryConfig buildScoreDirectorFactoryConfig(ScoreDirectorType scoreDirectorType) {
         var scoreDirectorFactoryConfig = buildInitialScoreDirectorFactoryConfig();
         return switch (scoreDirectorType) {
-            case CONSTRAINT_STREAMS, CONSTRAINT_STREAMS_JUSTIFIED -> scoreDirectorFactoryConfig
-                    .withConstraintProviderClass(CloudBalancingConstraintProvider.class)
-                    .withConstraintStreamImplType(ConstraintStreamImplType.BAVET);
-            case EASY -> scoreDirectorFactoryConfig
-                    .withEasyScoreCalculatorClass(CloudBalancingMapBasedEasyScoreCalculator.class);
-            case INCREMENTAL -> scoreDirectorFactoryConfig
-                    .withIncrementalScoreCalculatorClass(CloudBalancingIncrementalScoreCalculator.class);
+            case CONSTRAINT_STREAMS, CONSTRAINT_STREAMS_JUSTIFIED ->
+                scoreDirectorFactoryConfig.withConstraintProviderClass(CloudBalancingConstraintProvider.class);
+            case EASY ->
+                scoreDirectorFactoryConfig.withEasyScoreCalculatorClass(CloudBalancingMapBasedEasyScoreCalculator.class);
+            case INCREMENTAL ->
+                scoreDirectorFactoryConfig.withIncrementalScoreCalculatorClass(CloudBalancingIncrementalScoreCalculator.class);
         };
     }
 
@@ -41,9 +37,13 @@ public final class CloudBalancingProblem extends AbstractProblem<CloudBalance> {
     }
 
     @Override
-    protected CloudBalance readOriginalSolution() {
-        final SolutionFileIO<CloudBalance> solutionFileIO = new CloudBalanceSolutionFileIO();
-        return solutionFileIO.read(new File("data/cloudbalancing/cloudbalancing-1600-4800.json"));
+    protected SolutionFileIO<CloudBalance> createSolutionFileIO() {
+        return new CloudBalanceSolutionFileIO();
+    }
+
+    @Override
+    protected String getDatasetName() {
+        return "1600-4800";
     }
 
 }

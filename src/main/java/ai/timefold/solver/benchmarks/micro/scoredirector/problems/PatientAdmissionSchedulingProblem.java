@@ -1,6 +1,5 @@
 package ai.timefold.solver.benchmarks.micro.scoredirector.problems;
 
-import java.io.File;
 import java.util.Objects;
 
 import ai.timefold.solver.benchmarks.examples.pas.domain.BedDesignation;
@@ -9,7 +8,6 @@ import ai.timefold.solver.benchmarks.examples.pas.persistence.PatientAdmissionSc
 import ai.timefold.solver.benchmarks.examples.pas.score.PatientAdmissionScheduleConstraintProvider;
 import ai.timefold.solver.benchmarks.micro.scoredirector.Example;
 import ai.timefold.solver.benchmarks.micro.scoredirector.ScoreDirectorType;
-import ai.timefold.solver.core.api.score.stream.ConstraintStreamImplType;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
 import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
 import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
@@ -27,9 +25,7 @@ public final class PatientAdmissionSchedulingProblem
         var nonNullScoreDirectorType = Objects.requireNonNull(scoreDirectorType);
         if (nonNullScoreDirectorType == ScoreDirectorType.CONSTRAINT_STREAMS
                 || nonNullScoreDirectorType == ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED) {
-            return scoreDirectorFactoryConfig
-                    .withConstraintProviderClass(PatientAdmissionScheduleConstraintProvider.class)
-                    .withConstraintStreamImplType(ConstraintStreamImplType.BAVET);
+            return scoreDirectorFactoryConfig.withConstraintProviderClass(PatientAdmissionScheduleConstraintProvider.class);
         }
         throw new UnsupportedOperationException("Score director: " + scoreDirectorType);
     }
@@ -40,9 +36,13 @@ public final class PatientAdmissionSchedulingProblem
     }
 
     @Override
-    protected PatientAdmissionSchedule readOriginalSolution() {
-        final SolutionFileIO<PatientAdmissionSchedule> solutionFileIO = new PatientAdmissionScheduleSolutionFileIO();
-        return solutionFileIO.read(new File("data/pas/pas-12.json"));
+    protected SolutionFileIO<PatientAdmissionSchedule> createSolutionFileIO() {
+        return new PatientAdmissionScheduleSolutionFileIO();
+    }
+
+    @Override
+    protected String getDatasetName() {
+        return "12";
     }
 
 }

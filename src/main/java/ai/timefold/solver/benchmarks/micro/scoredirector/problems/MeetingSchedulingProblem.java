@@ -1,6 +1,5 @@
 package ai.timefold.solver.benchmarks.micro.scoredirector.problems;
 
-import java.io.File;
 import java.util.Objects;
 
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.MeetingAssignment;
@@ -9,9 +8,9 @@ import ai.timefold.solver.benchmarks.examples.meetingscheduling.persistence.Meet
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.score.MeetingSchedulingConstraintProvider;
 import ai.timefold.solver.benchmarks.micro.scoredirector.Example;
 import ai.timefold.solver.benchmarks.micro.scoredirector.ScoreDirectorType;
-import ai.timefold.solver.core.api.score.stream.ConstraintStreamImplType;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
 import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
+import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
 
 public final class MeetingSchedulingProblem extends AbstractProblem<MeetingSchedule> {
 
@@ -25,9 +24,7 @@ public final class MeetingSchedulingProblem extends AbstractProblem<MeetingSched
         var nonNullScoreDirectorType = Objects.requireNonNull(scoreDirectorType);
         if (nonNullScoreDirectorType == ScoreDirectorType.CONSTRAINT_STREAMS
                 || nonNullScoreDirectorType == ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED) {
-            return scoreDirectorFactoryConfig
-                    .withConstraintProviderClass(MeetingSchedulingConstraintProvider.class)
-                    .withConstraintStreamImplType(ConstraintStreamImplType.BAVET);
+            return scoreDirectorFactoryConfig.withConstraintProviderClass(MeetingSchedulingConstraintProvider.class);
         }
         throw new UnsupportedOperationException("Score director: " + scoreDirectorType);
     }
@@ -38,9 +35,13 @@ public final class MeetingSchedulingProblem extends AbstractProblem<MeetingSched
     }
 
     @Override
-    protected MeetingSchedule readOriginalSolution() {
-        return new MeetingSchedulingSolutionFileIO()
-                .read(new File("data/meetingscheduling/meetingscheduling-100-320-5.json"));
+    protected SolutionFileIO<MeetingSchedule> createSolutionFileIO() {
+        return new MeetingSchedulingSolutionFileIO();
+    }
+
+    @Override
+    protected String getDatasetName() {
+        return "100-320-5";
     }
 
 }

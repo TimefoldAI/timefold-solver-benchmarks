@@ -82,4 +82,11 @@ public enum Example {
         return problemFactory.apply(scoreDirectorType);
     }
 
+    public String getDirectoryName() {
+        if (this == PATIENT_ADMISSION_SCHEDULING) {
+            return "pas";
+        }
+        return name().toLowerCase().replace("_", "");
+    }
+
 }

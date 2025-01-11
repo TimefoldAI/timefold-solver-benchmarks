@@ -1,6 +1,5 @@
 package ai.timefold.solver.benchmarks.micro.scoredirector.problems;
 
-import java.io.File;
 import java.util.Objects;
 
 import ai.timefold.solver.benchmarks.examples.examination.domain.Exam;
@@ -11,7 +10,6 @@ import ai.timefold.solver.benchmarks.examples.examination.persistence.Examinatio
 import ai.timefold.solver.benchmarks.examples.examination.score.ExaminationConstraintProvider;
 import ai.timefold.solver.benchmarks.micro.scoredirector.Example;
 import ai.timefold.solver.benchmarks.micro.scoredirector.ScoreDirectorType;
-import ai.timefold.solver.core.api.score.stream.ConstraintStreamImplType;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
 import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
 import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
@@ -28,9 +26,7 @@ public final class ExaminationProblem extends AbstractProblem<Examination> {
         var nonNullScoreDirectorType = Objects.requireNonNull(scoreDirectorType);
         if (nonNullScoreDirectorType == ScoreDirectorType.CONSTRAINT_STREAMS
                 || nonNullScoreDirectorType == ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED) {
-            return scoreDirectorFactoryConfig
-                    .withConstraintProviderClass(ExaminationConstraintProvider.class)
-                    .withConstraintStreamImplType(ConstraintStreamImplType.BAVET);
+            return scoreDirectorFactoryConfig.withConstraintProviderClass(ExaminationConstraintProvider.class);
         }
         throw new UnsupportedOperationException("Score director: " + scoreDirectorType);
     }
@@ -42,9 +38,13 @@ public final class ExaminationProblem extends AbstractProblem<Examination> {
     }
 
     @Override
-    protected Examination readOriginalSolution() {
-        final SolutionFileIO<Examination> solutionFileIO = new ExaminationSolutionFileIO();
-        return solutionFileIO.read(new File("data/examination/examination-comp_set8.json"));
+    protected SolutionFileIO<Examination> createSolutionFileIO() {
+        return new ExaminationSolutionFileIO();
+    }
+
+    @Override
+    protected String getDatasetName() {
+        return "comp_set8";
     }
 
 }

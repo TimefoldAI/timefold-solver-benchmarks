@@ -1,6 +1,5 @@
 package ai.timefold.solver.benchmarks.micro.scoredirector.problems;
 
-import java.io.File;
 import java.util.Objects;
 
 import ai.timefold.solver.benchmarks.examples.travelingtournament.domain.Match;
@@ -9,7 +8,6 @@ import ai.timefold.solver.benchmarks.examples.travelingtournament.persistence.Tr
 import ai.timefold.solver.benchmarks.examples.travelingtournament.score.TravelingTournamentConstraintProvider;
 import ai.timefold.solver.benchmarks.micro.scoredirector.Example;
 import ai.timefold.solver.benchmarks.micro.scoredirector.ScoreDirectorType;
-import ai.timefold.solver.core.api.score.stream.ConstraintStreamImplType;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
 import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
 import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
@@ -26,9 +24,7 @@ public final class TravelingTournamentProblem extends AbstractProblem<TravelingT
         var nonNullScoreDirectorType = Objects.requireNonNull(scoreDirectorType);
         if (nonNullScoreDirectorType == ScoreDirectorType.CONSTRAINT_STREAMS
                 || nonNullScoreDirectorType == ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED) {
-            return scoreDirectorFactoryConfig
-                    .withConstraintProviderClass(TravelingTournamentConstraintProvider.class)
-                    .withConstraintStreamImplType(ConstraintStreamImplType.BAVET);
+            return scoreDirectorFactoryConfig.withConstraintProviderClass(TravelingTournamentConstraintProvider.class);
         }
         throw new UnsupportedOperationException("Score director: " + scoreDirectorType);
     }
@@ -39,9 +35,13 @@ public final class TravelingTournamentProblem extends AbstractProblem<TravelingT
     }
 
     @Override
-    protected TravelingTournament readOriginalSolution() {
-        final SolutionFileIO<TravelingTournament> solutionFileIO = new TravelingTournamentSolutionFileIO();
-        return solutionFileIO.read(new File("data/travelingtournament/travelingtournament-4-super14.json"));
+    protected SolutionFileIO<TravelingTournament> createSolutionFileIO() {
+        return new TravelingTournamentSolutionFileIO();
+    }
+
+    @Override
+    protected String getDatasetName() {
+        return "4-super14";
     }
 
 }

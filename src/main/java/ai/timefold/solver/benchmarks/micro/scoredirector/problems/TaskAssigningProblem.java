@@ -1,6 +1,5 @@
 package ai.timefold.solver.benchmarks.micro.scoredirector.problems;
 
-import java.io.File;
 import java.util.Objects;
 
 import ai.timefold.solver.benchmarks.examples.taskassigning.domain.Employee;
@@ -10,7 +9,6 @@ import ai.timefold.solver.benchmarks.examples.taskassigning.persistence.TaskAssi
 import ai.timefold.solver.benchmarks.examples.taskassigning.score.TaskAssigningConstraintProvider;
 import ai.timefold.solver.benchmarks.micro.scoredirector.Example;
 import ai.timefold.solver.benchmarks.micro.scoredirector.ScoreDirectorType;
-import ai.timefold.solver.core.api.score.stream.ConstraintStreamImplType;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
 import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
 import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
@@ -27,9 +25,7 @@ public final class TaskAssigningProblem extends AbstractProblem<TaskAssigningSol
         var nonNullScoreDirectorType = Objects.requireNonNull(scoreDirectorType);
         if (nonNullScoreDirectorType == ScoreDirectorType.CONSTRAINT_STREAMS
                 || nonNullScoreDirectorType == ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED) {
-            return scoreDirectorFactoryConfig
-                    .withConstraintProviderClass(TaskAssigningConstraintProvider.class)
-                    .withConstraintStreamImplType(ConstraintStreamImplType.BAVET);
+            return scoreDirectorFactoryConfig.withConstraintProviderClass(TaskAssigningConstraintProvider.class);
         }
         throw new UnsupportedOperationException("Score director: " + scoreDirectorType);
     }
@@ -40,9 +36,13 @@ public final class TaskAssigningProblem extends AbstractProblem<TaskAssigningSol
     }
 
     @Override
-    protected TaskAssigningSolution readOriginalSolution() {
-        final SolutionFileIO<TaskAssigningSolution> solutionFileIO = new TaskAssigningSolutionFileIO();
-        return solutionFileIO.read(new File("data/taskassigning/taskassigning-500-20.json"));
+    protected SolutionFileIO<TaskAssigningSolution> createSolutionFileIO() {
+        return new TaskAssigningSolutionFileIO();
+    }
+
+    @Override
+    protected String getDatasetName() {
+        return "500-20";
     }
 
 }

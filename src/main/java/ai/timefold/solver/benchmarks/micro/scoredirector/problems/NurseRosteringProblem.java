@@ -1,6 +1,5 @@
 package ai.timefold.solver.benchmarks.micro.scoredirector.problems;
 
-import java.io.File;
 import java.util.Objects;
 
 import ai.timefold.solver.benchmarks.examples.nurserostering.domain.NurseRoster;
@@ -9,9 +8,9 @@ import ai.timefold.solver.benchmarks.examples.nurserostering.persistence.NurseRo
 import ai.timefold.solver.benchmarks.examples.nurserostering.score.NurseRosteringConstraintProvider;
 import ai.timefold.solver.benchmarks.micro.scoredirector.Example;
 import ai.timefold.solver.benchmarks.micro.scoredirector.ScoreDirectorType;
-import ai.timefold.solver.core.api.score.stream.ConstraintStreamImplType;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
 import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
+import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
 
 public final class NurseRosteringProblem extends AbstractProblem<NurseRoster> {
 
@@ -25,9 +24,7 @@ public final class NurseRosteringProblem extends AbstractProblem<NurseRoster> {
         var nonNullScoreDirectorType = Objects.requireNonNull(scoreDirectorType);
         if (nonNullScoreDirectorType == ScoreDirectorType.CONSTRAINT_STREAMS
                 || nonNullScoreDirectorType == ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED) {
-            return scoreDirectorFactoryConfig
-                    .withConstraintProviderClass(NurseRosteringConstraintProvider.class)
-                    .withConstraintStreamImplType(ConstraintStreamImplType.BAVET);
+            return scoreDirectorFactoryConfig.withConstraintProviderClass(NurseRosteringConstraintProvider.class);
         }
         throw new UnsupportedOperationException("Score director: " + scoreDirectorType);
     }
@@ -38,9 +35,13 @@ public final class NurseRosteringProblem extends AbstractProblem<NurseRoster> {
     }
 
     @Override
-    protected NurseRoster readOriginalSolution() {
-        return new NurseRosterSolutionFileIO()
-                .read(new File("data/nurserostering/nurserostering-medium_late01.json"));
+    protected SolutionFileIO<NurseRoster> createSolutionFileIO() {
+        return new NurseRosterSolutionFileIO();
+    }
+
+    @Override
+    protected String getDatasetName() {
+        return "medium_late01";
     }
 
 }

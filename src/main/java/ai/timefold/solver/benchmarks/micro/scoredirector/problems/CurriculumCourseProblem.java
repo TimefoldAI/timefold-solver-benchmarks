@@ -1,6 +1,5 @@
 package ai.timefold.solver.benchmarks.micro.scoredirector.problems;
 
-import java.io.File;
 import java.util.Objects;
 
 import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.CourseSchedule;
@@ -9,7 +8,6 @@ import ai.timefold.solver.benchmarks.examples.curriculumcourse.persistence.Curri
 import ai.timefold.solver.benchmarks.examples.curriculumcourse.score.CurriculumCourseConstraintProvider;
 import ai.timefold.solver.benchmarks.micro.scoredirector.Example;
 import ai.timefold.solver.benchmarks.micro.scoredirector.ScoreDirectorType;
-import ai.timefold.solver.core.api.score.stream.ConstraintStreamImplType;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
 import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
 import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
@@ -26,9 +24,7 @@ public final class CurriculumCourseProblem extends AbstractProblem<CourseSchedul
         var nonNullScoreDirectorType = Objects.requireNonNull(scoreDirectorType);
         if (nonNullScoreDirectorType == ScoreDirectorType.CONSTRAINT_STREAMS
                 || nonNullScoreDirectorType == ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED) {
-            return scoreDirectorFactoryConfig
-                    .withConstraintProviderClass(CurriculumCourseConstraintProvider.class)
-                    .withConstraintStreamImplType(ConstraintStreamImplType.BAVET);
+            return scoreDirectorFactoryConfig.withConstraintProviderClass(CurriculumCourseConstraintProvider.class);
         }
         throw new UnsupportedOperationException("Score director: " + scoreDirectorType);
     }
@@ -39,9 +35,13 @@ public final class CurriculumCourseProblem extends AbstractProblem<CourseSchedul
     }
 
     @Override
-    protected CourseSchedule readOriginalSolution() {
-        final SolutionFileIO<CourseSchedule> solutionFileIO = new CurriculumCourseSolutionFileIO();
-        return solutionFileIO.read(new File("data/curriculumcourse/curriculumcourse-comp07.json"));
+    protected SolutionFileIO<CourseSchedule> createSolutionFileIO() {
+        return new CurriculumCourseSolutionFileIO();
+    }
+
+    @Override
+    protected String getDatasetName() {
+        return "comp07";
     }
 
 }

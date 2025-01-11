@@ -1,5 +1,6 @@
 package ai.timefold.solver.benchmarks.micro.scoredirector.problems;
 
+import java.io.File;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Random;
@@ -26,8 +27,14 @@ import ai.timefold.solver.core.impl.score.director.InnerScoreDirector;
 import ai.timefold.solver.core.impl.score.director.InnerScoreDirectorFactory;
 import ai.timefold.solver.core.impl.solver.DefaultSolver;
 import ai.timefold.solver.core.impl.solver.scope.SolverScope;
+import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 abstract class AbstractProblem<Solution_> implements Problem {
+
+    protected final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
     private static final double PROBABILITY_OF_UNDO = 0.9;
 
@@ -37,8 +44,8 @@ abstract class AbstractProblem<Solution_> implements Problem {
     private final InnerScoreDirectorFactory<Solution_, ?> scoreDirectorFactory;
     private final Solution_ originalSolution;
 
-    private MoveDirector<Solution_> moveDirector;
     private InnerScoreDirector<Solution_, ?> scoreDirector;
+    private MoveDirector<Solution_> moveDirector;
     private MoveSelector<Solution_> moveSelector;
     private Iterator<Move<Solution_>> moveIterator;
     private LocalSearchPhaseScope<Solution_> phaseScope;
@@ -67,7 +74,26 @@ abstract class AbstractProblem<Solution_> implements Problem {
 
     abstract protected SolutionDescriptor<Solution_> buildSolutionDescriptor();
 
-    abstract protected Solution_ readOriginalSolution();
+    private Solution_ readOriginalSolution() {
+        var directoryName = this.example.getDirectoryName();
+        var solutionFilename = "data/%s/%s-%s.json".formatted(directoryName, directoryName, getDatasetName());
+        var solutionFile = new File(solutionFilename);
+        if (!solutionFile.exists()) {
+            throw new IllegalStateException("Solution file not found: " + solutionFile.getAbsolutePath());
+        }
+        var solutionFileIO = createSolutionFileIO();
+        while (true) {
+            try {
+                return solutionFileIO.read(solutionFile);
+            } catch (StackOverflowError error) { // For some reason, TSP deserialization overflows here *once in a while*.
+                LOGGER.debug("Jackson's thrown stack overflow, retrying.");
+            }
+        }
+    }
+
+    abstract protected SolutionFileIO<Solution_> createSolutionFileIO();
+
+    abstract protected String getDatasetName();
 
     protected MoveSelector<Solution_> buildMoveSelector(SolutionDescriptor<Solution_> solutionDescriptor) {
         // Build the top-level local search move selector as the solver would've built it.
@@ -95,25 +121,26 @@ abstract class AbstractProblem<Solution_> implements Problem {
 
     @Override
     public final void setupTrial() {
+        var constraintMatchPolicy =
+                scoreDirectorType == ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED ? ConstraintMatchPolicy.ENABLED
+                        : ConstraintMatchPolicy.DISABLED;
+        scoreDirector = scoreDirectorFactory.buildScoreDirector(false, constraintMatchPolicy);
+        moveDirector = new MoveDirector<>(scoreDirector);
         moveSelector = buildMoveSelector(solutionDescriptor);
     }
 
     @Override
     public final void setupIteration() {
         // We only care about incremental performance; therefore calculate the entire solution outside of invocation.
-        scoreDirector = scoreDirectorFactory.buildScoreDirector(false,
-                scoreDirectorType == ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED ? ConstraintMatchPolicy.ENABLED
-                        : ConstraintMatchPolicy.DISABLED);
         scoreDirector.setWorkingSolution(scoreDirector.cloneSolution(originalSolution)); // Use fresh solution again.
         scoreDirector.triggerVariableListeners();
         scoreDirector.calculateScore();
-        moveDirector = new MoveDirector<>(scoreDirector);
         // Prepare the lifecycle.
         var solverScope = new SolverScope<Solution_>();
         solverScope.setScoreDirector(scoreDirector);
         solverScope.setWorkingRandom(new Random(0)); // Fully reproducible random selection.
-        phaseScope = new LocalSearchPhaseScope<>(solverScope, 0);
         moveSelector.solvingStarted(solverScope);
+        phaseScope = new LocalSearchPhaseScope<>(solverScope, 0);
         moveSelector.phaseStarted(phaseScope);
     }
 
@@ -124,7 +151,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
             moveSelector.stepStarted(stepScope);
             moveIterator = moveSelector.iterator();
         }
-        willUndo = Math.random() <= PROBABILITY_OF_UNDO;
+        willUndo = stepScope.getWorkingRandom().nextDouble() <= PROBABILITY_OF_UNDO; // Fully reproducible undo order.
         move = moveIterator.next();
     }
 
@@ -175,7 +202,6 @@ abstract class AbstractProblem<Solution_> implements Problem {
 
     @Override
     public final void tearDownIteration() {
-        scoreDirector.close();
         if (stepScope != null) { // Clean up in case the last move was undone.
             endStep();
         }
@@ -183,6 +209,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
 
     @Override
     public final void teardownTrial() {
+        scoreDirector.close();
         // No need to do anything.
     }
 

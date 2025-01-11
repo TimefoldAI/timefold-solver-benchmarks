@@ -7,7 +7,6 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import java.util.stream.Stream;
 
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
-import ai.timefold.solver.core.api.score.stream.ConstraintStreamImplType;
 import ai.timefold.solver.test.api.score.stream.ConstraintVerifier;
 
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -21,8 +20,7 @@ import org.junit.jupiter.params.provider.Arguments;
 @DisplayNameGeneration(SimplifiedTestNameGenerator.class)
 public abstract class AbstractConstraintProviderTest<ConstraintProvider_ extends ConstraintProvider, Solution_> {
 
-    private final ConstraintVerifier<ConstraintProvider_, Solution_> bavetConstraintVerifier = createConstraintVerifier()
-            .withConstraintStreamImplType(ConstraintStreamImplType.BAVET);
+    private final ConstraintVerifier<ConstraintProvider_, Solution_> bavetConstraintVerifier = createConstraintVerifier();
 
     protected abstract ConstraintVerifier<ConstraintProvider_, Solution_> createConstraintVerifier();
 
