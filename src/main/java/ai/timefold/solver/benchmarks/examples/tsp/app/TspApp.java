@@ -17,7 +17,7 @@ public class TspApp extends CommonApp<TspSolution> {
     public static final String DATA_DIR_NAME = "tsp";
 
     public static void main(String[] args) {
-        var solution = new TspApp().solve("lu980.json");
+        var solution = new TspApp().solve("europe40.json");
         System.out.println("Done: " + solution);
     }
 

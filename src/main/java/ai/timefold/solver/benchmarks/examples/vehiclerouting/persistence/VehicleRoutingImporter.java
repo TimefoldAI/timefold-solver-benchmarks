@@ -237,9 +237,6 @@ public class VehicleRoutingImporter extends
                     case AIR_DISTANCE -> new AirLocation(id, latitude, longitude, doublePrecisionRequired);
                     case ROAD_DISTANCE -> new RoadLocation(id, latitude, longitude);
                 };
-                if (lineTokens.length >= 4) {
-                    location.setName(lineTokens[3]);
-                }
                 customerLocationList.add(location);
                 locationMap.put(location.getId(), location);
             }

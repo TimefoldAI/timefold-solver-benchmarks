@@ -7,182 +7,156 @@
     "@type" : "air",
     "@id" : "AirLocation#0",
     "id" : 0,
-    "name" : null,
     "latitude" : 40.0,
     "longitude" : 50.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#1",
     "id" : 1,
-    "name" : null,
     "latitude" : 45.0,
     "longitude" : 68.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#2",
     "id" : 2,
-    "name" : null,
     "latitude" : 45.0,
     "longitude" : 70.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#3",
     "id" : 3,
-    "name" : null,
     "latitude" : 42.0,
     "longitude" : 66.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#4",
     "id" : 4,
-    "name" : null,
     "latitude" : 42.0,
     "longitude" : 68.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#5",
     "id" : 5,
-    "name" : null,
     "latitude" : 42.0,
     "longitude" : 65.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#6",
     "id" : 6,
-    "name" : null,
     "latitude" : 40.0,
     "longitude" : 69.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#7",
     "id" : 7,
-    "name" : null,
     "latitude" : 40.0,
     "longitude" : 66.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#8",
     "id" : 8,
-    "name" : null,
     "latitude" : 38.0,
     "longitude" : 68.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#9",
     "id" : 9,
-    "name" : null,
     "latitude" : 38.0,
     "longitude" : 70.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#10",
     "id" : 10,
-    "name" : null,
     "latitude" : 35.0,
     "longitude" : 66.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#11",
     "id" : 11,
-    "name" : null,
     "latitude" : 35.0,
     "longitude" : 69.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#12",
     "id" : 12,
-    "name" : null,
     "latitude" : 25.0,
     "longitude" : 85.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#13",
     "id" : 13,
-    "name" : null,
     "latitude" : 22.0,
     "longitude" : 75.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#14",
     "id" : 14,
-    "name" : null,
     "latitude" : 22.0,
     "longitude" : 85.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#15",
     "id" : 15,
-    "name" : null,
     "latitude" : 20.0,
     "longitude" : 80.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#16",
     "id" : 16,
-    "name" : null,
     "latitude" : 20.0,
     "longitude" : 85.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#17",
     "id" : 17,
-    "name" : null,
     "latitude" : 18.0,
     "longitude" : 75.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#18",
     "id" : 18,
-    "name" : null,
     "latitude" : 15.0,
     "longitude" : 75.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#19",
     "id" : 19,
-    "name" : null,
     "latitude" : 15.0,
     "longitude" : 80.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#20",
     "id" : 20,
-    "name" : null,
     "latitude" : 30.0,
     "longitude" : 50.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#21",
     "id" : 21,
-    "name" : null,
     "latitude" : 30.0,
     "longitude" : 52.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#22",
     "id" : 22,
-    "name" : null,
     "latitude" : 28.0,
     "longitude" : 52.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#23",
     "id" : 23,
-    "name" : null,
     "latitude" : 28.0,
     "longitude" : 55.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#24",
     "id" : 24,
-    "name" : null,
     "latitude" : 25.0,
     "longitude" : 50.0
   }, {
     "@type" : "air",
     "@id" : "AirLocation#25",
     "id" : 25,
-    "name" : null,
     "latitude" : 25.0,
     "longitude" : 52.0
   } ],

@@ -108,12 +108,4 @@ public class Customer extends AbstractPersistable implements LocationAware {
         return location.getDistanceTo(vehicle.getLocation());
     }
 
-    @Override
-    public String toString() {
-        if (location.getName() == null) {
-            return super.toString();
-        }
-        return location.getName();
-    }
-
 }

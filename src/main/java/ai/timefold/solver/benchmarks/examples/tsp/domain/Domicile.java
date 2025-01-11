@@ -41,12 +41,4 @@ public class Domicile extends AbstractPersistable implements Standstill {
         return location.getDistanceTo(standstill.getLocation());
     }
 
-    @Override
-    public String toString() {
-        if (location.getName() == null) {
-            return super.toString();
-        }
-        return location.getName();
-    }
-
 }

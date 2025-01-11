@@ -39,12 +39,4 @@ public class Depot extends AbstractPersistable
         this.location = location;
     }
 
-    @Override
-    public String toString() {
-        if (location.getName() == null) {
-            return super.toString();
-        }
-        return location.getName();
-    }
-
 }

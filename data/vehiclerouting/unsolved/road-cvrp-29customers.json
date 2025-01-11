@@ -7,7 +7,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#1",
     "id" : 1,
-    "name" : null,
     "latitude" : 1150.0,
     "longitude" : 1760.0,
     "travelDistanceMap" : {
@@ -44,7 +43,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#2",
     "id" : 2,
-    "name" : null,
     "latitude" : 630.0,
     "longitude" : 1660.0,
     "travelDistanceMap" : {
@@ -81,7 +79,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#3",
     "id" : 3,
-    "name" : null,
     "latitude" : 40.0,
     "longitude" : 2090.0,
     "travelDistanceMap" : {
@@ -118,7 +115,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#4",
     "id" : 4,
-    "name" : null,
     "latitude" : 750.0,
     "longitude" : 1100.0,
     "travelDistanceMap" : {
@@ -155,7 +151,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#5",
     "id" : 5,
-    "name" : null,
     "latitude" : 750.0,
     "longitude" : 2030.0,
     "travelDistanceMap" : {
@@ -192,7 +187,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#6",
     "id" : 6,
-    "name" : null,
     "latitude" : 1030.0,
     "longitude" : 2070.0,
     "travelDistanceMap" : {
@@ -229,7 +223,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#7",
     "id" : 7,
-    "name" : null,
     "latitude" : 1650.0,
     "longitude" : 650.0,
     "travelDistanceMap" : {
@@ -266,7 +259,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#8",
     "id" : 8,
-    "name" : null,
     "latitude" : 1490.0,
     "longitude" : 1630.0,
     "travelDistanceMap" : {
@@ -303,7 +295,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#9",
     "id" : 9,
-    "name" : null,
     "latitude" : 790.0,
     "longitude" : 2260.0,
     "travelDistanceMap" : {
@@ -340,7 +331,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#10",
     "id" : 10,
-    "name" : null,
     "latitude" : 710.0,
     "longitude" : 1310.0,
     "travelDistanceMap" : {
@@ -377,7 +367,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#11",
     "id" : 11,
-    "name" : null,
     "latitude" : 840.0,
     "longitude" : 550.0,
     "travelDistanceMap" : {
@@ -414,7 +403,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#12",
     "id" : 12,
-    "name" : null,
     "latitude" : 1170.0,
     "longitude" : 2300.0,
     "travelDistanceMap" : {
@@ -451,7 +439,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#13",
     "id" : 13,
-    "name" : null,
     "latitude" : 970.0,
     "longitude" : 1340.0,
     "travelDistanceMap" : {
@@ -488,7 +475,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#14",
     "id" : 14,
-    "name" : null,
     "latitude" : 510.0,
     "longitude" : 700.0,
     "travelDistanceMap" : {
@@ -525,7 +511,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#15",
     "id" : 15,
-    "name" : null,
     "latitude" : 750.0,
     "longitude" : 900.0,
     "travelDistanceMap" : {
@@ -562,7 +547,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#16",
     "id" : 16,
-    "name" : null,
     "latitude" : 1280.0,
     "longitude" : 1200.0,
     "travelDistanceMap" : {
@@ -599,7 +583,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#17",
     "id" : 17,
-    "name" : null,
     "latitude" : 230.0,
     "longitude" : 590.0,
     "travelDistanceMap" : {
@@ -636,7 +619,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#18",
     "id" : 18,
-    "name" : null,
     "latitude" : 460.0,
     "longitude" : 860.0,
     "travelDistanceMap" : {
@@ -673,7 +655,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#19",
     "id" : 19,
-    "name" : null,
     "latitude" : 1040.0,
     "longitude" : 950.0,
     "travelDistanceMap" : {
@@ -710,7 +691,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#20",
     "id" : 20,
-    "name" : null,
     "latitude" : 590.0,
     "longitude" : 1390.0,
     "travelDistanceMap" : {
@@ -747,7 +727,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#21",
     "id" : 21,
-    "name" : null,
     "latitude" : 830.0,
     "longitude" : 1770.0,
     "travelDistanceMap" : {
@@ -784,7 +763,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#22",
     "id" : 22,
-    "name" : null,
     "latitude" : 490.0,
     "longitude" : 500.0,
     "travelDistanceMap" : {
@@ -821,7 +799,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#23",
     "id" : 23,
-    "name" : null,
     "latitude" : 1840.0,
     "longitude" : 1240.0,
     "travelDistanceMap" : {
@@ -858,7 +835,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#24",
     "id" : 24,
-    "name" : null,
     "latitude" : 1260.0,
     "longitude" : 1500.0,
     "travelDistanceMap" : {
@@ -895,7 +871,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#25",
     "id" : 25,
-    "name" : null,
     "latitude" : 1280.0,
     "longitude" : 790.0,
     "travelDistanceMap" : {
@@ -932,7 +907,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#26",
     "id" : 26,
-    "name" : null,
     "latitude" : 490.0,
     "longitude" : 2130.0,
     "travelDistanceMap" : {
@@ -969,7 +943,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#27",
     "id" : 27,
-    "name" : null,
     "latitude" : 1460.0,
     "longitude" : 1420.0,
     "travelDistanceMap" : {
@@ -1006,7 +979,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#28",
     "id" : 28,
-    "name" : null,
     "latitude" : 1260.0,
     "longitude" : 1910.0,
     "travelDistanceMap" : {
@@ -1043,7 +1015,6 @@
     "@type" : "road",
     "@id" : "RoadLocation#29",
     "id" : 29,
-    "name" : null,
     "latitude" : 360.0,
     "longitude" : 1980.0,
     "travelDistanceMap" : {

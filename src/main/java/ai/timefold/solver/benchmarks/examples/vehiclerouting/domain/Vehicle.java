@@ -82,12 +82,4 @@ public class Vehicle extends AbstractPersistable implements LocationAware {
         return depot.getLocation();
     }
 
-    @Override
-    public String toString() {
-        Location location = getLocation();
-        if (location.getName() == null) {
-            return super.toString();
-        }
-        return location.getName() + "/" + super.toString();
-    }
 }

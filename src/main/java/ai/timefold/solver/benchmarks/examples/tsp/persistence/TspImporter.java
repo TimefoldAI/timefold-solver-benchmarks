@@ -133,9 +133,6 @@ public class TspImporter extends AbstractTxtSolutionImporter<TspSolution> {
                 double x = Double.parseDouble(lineTokens[1]);
                 double y = Double.parseDouble(lineTokens[2]);
                 Location location = tspSolution.getDistanceType().createLocation(id, x, y);
-                if (lineTokens.length == 4) {
-                    location.setName(lineTokens[3]);
-                }
                 locationList.add(location);
             }
         }

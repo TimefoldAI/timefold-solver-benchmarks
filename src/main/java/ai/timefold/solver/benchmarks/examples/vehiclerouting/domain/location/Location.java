@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonIdentityInfo(generator = JacksonUniqueIdGenerator.class)
 public abstract class Location extends AbstractPersistable {
 
-    protected String name = null;
     protected double latitude;
     protected double longitude;
 
@@ -34,14 +33,6 @@ public abstract class Location extends AbstractPersistable {
         this(id);
         this.latitude = latitude;
         this.longitude = longitude;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public double getLatitude() {
@@ -99,14 +90,6 @@ public abstract class Location extends AbstractPersistable {
 
     protected static long adjust(double distance) {
         return (long) (distance + 0.5); // +0.5 to avoid floating point rounding errors
-    }
-
-    @Override
-    public String toString() {
-        if (name == null) {
-            return super.toString();
-        }
-        return name;
     }
 
 }
