@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.Map;
 
 import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractTxtSolutionImporter;
-import ai.timefold.solver.benchmarks.examples.common.persistence.SolutionConverter;
-import ai.timefold.solver.benchmarks.examples.tsp.app.TspApp;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.Domicile;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.Standstill;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.TspSolution;
@@ -26,14 +24,6 @@ import ai.timefold.solver.benchmarks.examples.tsp.domain.location.RoadLocation;
 public class TspImporter extends AbstractTxtSolutionImporter<TspSolution> {
 
     public static final String INPUT_FILE_SUFFIX = "tsp";
-
-    public static void main(String[] args) {
-        SolutionConverter<TspSolution> converter =
-                SolutionConverter.createImportConverter(TspApp.DATA_DIR_NAME, new TspImporter(), new TspSolutionFileIO());
-        converter.convert("other/air/europe40.tsp", "europe40.json");
-        converter.convert("other/road-km/americanRoadTrip-road-km-n50.tsp", "americanRoadTrip-road-km-n50.json");
-        converter.convert("cook/air/lu980.tsp", "lu980.json");
-    }
 
     @Override
     public String getInputFileSuffix() {

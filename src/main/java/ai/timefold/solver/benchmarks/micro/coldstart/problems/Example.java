@@ -37,7 +37,7 @@ public enum Example {
             while (true) {
                 try {
                     var io = new TspSolutionFileIO();
-                    return (Solution_) io.read(new File("data/tsp/tsp-lu980.json"));
+                    return (Solution_) io.read(new File("data/tsp/tsp-vm1084.json"));
                 } catch (StackOverflowError stackOverflowError) {
                     // Do nothing.
                 }

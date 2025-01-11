@@ -42,7 +42,7 @@ public final class TspProblem extends AbstractProblem<TspSolution> {
 
     @Override
     protected String getDatasetName() {
-        return "lu980";
+        return "vm1084";
     }
 
 }
