@@ -45,7 +45,7 @@ public final class VehicleRoutingProblem extends AbstractProblem<VehicleRoutingS
 
     @Override
     protected String getDatasetName() {
-        return "belgium-tw-n2750-k55";
+        return "RC2_4_10";
     }
 
 }

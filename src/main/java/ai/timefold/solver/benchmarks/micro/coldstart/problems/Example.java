@@ -49,7 +49,7 @@ public enum Example {
         @Override
         <Solution_> Solution_ loadDataset() {
             var io = new VehicleRoutingSolutionFileIO();
-            return (Solution_) io.read(new File("data/vehiclerouting/vehiclerouting-belgium-tw-n2750-k55.json"));
+            return (Solution_) io.read(new File("data/vehiclerouting/vehiclerouting-RC2_4_10.json"));
         }
     };
 
