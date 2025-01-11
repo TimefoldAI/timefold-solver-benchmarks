@@ -174,7 +174,7 @@ jobs:
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
-          echo "forks=15" > scoredirector-benchmark.properties
+          echo "forks=20" > scoredirector-benchmark.properties
           echo "warmup_iterations=5" >> scoredirector-benchmark.properties
           echo "measurement_iterations=5" >> scoredirector-benchmark.properties
           echo "relative_score_error_threshold=0.02" >> scoredirector-benchmark.properties
