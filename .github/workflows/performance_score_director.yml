@@ -239,7 +239,7 @@ jobs:
             exit 0
           elif [ "$SUT_RANGE_START" -gt "$BASELINE_RANGE_END" ]; then
             echo "### 🚀🚀🚀 Statistically significant improvement 🚀🚀🚀" >> $GITHUB_STEP_SUMMARY
-          elif [ "$SUT_BASELINE_START" -gt "$SUT_RANGE_END" ]; then
+          elif [ "$BASELINE_RANGE_START" -gt "$SUT_RANGE_END" ]; then
             echo "### ‼️‼️‼️ Statistically significant regression ‼️‼️‼️" >> $GITHUB_STEP_SUMMARY
             export FAIL=true
           else
