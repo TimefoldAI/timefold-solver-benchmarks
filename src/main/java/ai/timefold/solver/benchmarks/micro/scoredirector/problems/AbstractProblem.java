@@ -36,7 +36,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
 
     protected final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
-    private static final double PROBABILITY_OF_UNDO = 0.9;
+    private static final double MOVES_BEFORE_UNDO = 10;
 
     private final Example example;
     private final SolutionDescriptor<Solution_> solutionDescriptor;
@@ -51,6 +51,8 @@ abstract class AbstractProblem<Solution_> implements Problem {
     private LocalSearchPhaseScope<Solution_> phaseScope;
     private LocalSearchStepScope<Solution_> stepScope;
     private Move<Solution_> move;
+
+    private long invocationCount = 0;
     private boolean willUndo = true;
 
     protected AbstractProblem(final Example example, final ScoreDirectorType scoreDirectorType) {
@@ -151,7 +153,8 @@ abstract class AbstractProblem<Solution_> implements Problem {
             moveSelector.stepStarted(stepScope);
             moveIterator = moveSelector.iterator();
         }
-        willUndo = stepScope.getWorkingRandom().nextDouble() <= PROBABILITY_OF_UNDO; // Fully reproducible undo order.
+        // Only undo every nth move; undo means the end of the step.
+        willUndo = (invocationCount % MOVES_BEFORE_UNDO) < (MOVES_BEFORE_UNDO - 1);
         move = moveIterator.next();
     }
 
@@ -159,7 +162,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
      * Designed to emulate the solver.
      * The solver typically tries all sorts of moves, calculates their score, and undoes them.
      * After a certain amount of such moves, it picks one move and that move is finally not undone.
-     * So we do the same here, and the probability of a move being undone is defined by {@link #PROBABILITY_OF_UNDO}.
+     * So we do the same here, and every {@link #MOVES_BEFORE_UNDO}th move will be undone.
      *
      * <p>
      * We're benchmarking the actual operations inside the score director:
@@ -177,7 +180,6 @@ abstract class AbstractProblem<Solution_> implements Problem {
      */
     @Override
     public final Object runInvocation() {
-        var scoreDirector = (InnerScoreDirector<Solution_, ?>) moveDirector.getScoreDirector();
         if (willUndo) {
             try (var ephemeralMoveDirector = moveDirector.ephemeral()) {
                 move.doMoveOnly(ephemeralMoveDirector.getScoreDirector());
@@ -193,6 +195,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
         if (!willUndo) { // Move was not undone; this signifies the end of the step.
             endStep();
         }
+        invocationCount++;
     }
 
     private void endStep() {
@@ -205,6 +208,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
         if (stepScope != null) { // Clean up in case the last move was undone.
             endStep();
         }
+        invocationCount = 0;
     }
 
     @Override
