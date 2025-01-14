@@ -55,7 +55,7 @@ public abstract class AbstractMain<C extends AbstractConfiguration> {
 
     protected final Logger LOGGER = LoggerFactory.getLogger(getClass());
     private final String subpackage;
-    private final Path resultsDirectory;
+    protected final Path resultsDirectory;
 
     protected AbstractMain(String subpackage) {
         this.subpackage = subpackage;
