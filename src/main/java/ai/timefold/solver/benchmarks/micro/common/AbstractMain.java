@@ -117,20 +117,25 @@ public abstract class AbstractMain<C extends AbstractConfiguration> {
 
     protected void convertJfrToFlameGraphs() {
         if (getAsyncProfilerPath().isPresent()) {
+            var combinedJfr = resultsDirectory.resolve("combined.jfr");
+            var jfrAssembleLog = resultsDirectory.resolve("jfr-assemble.log");
             try {
-                Files.walk(resultsDirectory)
-                        .filter(Files::isRegularFile)
-                        .filter(f -> f.toString().endsWith(".jfr"))
-                        .forEach(path -> {
-                            LOGGER.info("Found JFR file: {}.", path);
-                            generateFlameGraphsFromJfr(path, null);
-                            generateFlameGraphsFromJfr(path, "alloc");
-                        });
-            } catch (IOException e) {
+                var process = new ProcessBuilder()
+                        .command("jfr", "assemble", resultsDirectory.toAbsolutePath().toString(),
+                                combinedJfr.toAbsolutePath().toString())
+                        .redirectOutput(jfrAssembleLog.toFile())
+                        .start();
+                if (process.waitFor() != 0) {
+                    LOGGER.error("Failed combining JFR files. See '{}' for details.", jfrAssembleLog);
+                    return;
+                }
+                generateFlameGraphsFromJfr(combinedJfr, null);
+                generateFlameGraphsFromJfr(combinedJfr, "alloc");
+            } catch (Exception e) {
                 LOGGER.error("Failed converting JFR to flame graphs.", e);
             }
         } else {
-            LOGGER.warn("Skipping JFR conversion in '{}'.", resultsDirectory);
+            LOGGER.info("Skipping JFR conversion in '{}'.", resultsDirectory);
         }
     }
 
