@@ -22,6 +22,12 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.util.UnCloseablePrintStream;
 import org.openjdk.jmh.util.Utils;
 
+/**
+ * The JFR file from one fork will overwrite JFR files from previous forks.
+ * But we want all of them to be saved.
+ * Therefore we need to break into JMH, and save the JFR file after each fork.
+ * Because JMH doesn't expose when a fork is finished, we need to count iterations.
+ */
 public final class ResultCapturingJMHRunner extends Runner {
 
     public ResultCapturingJMHRunner(Path resultsDirectory, Options options) {

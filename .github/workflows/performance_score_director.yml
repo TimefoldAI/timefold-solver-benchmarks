@@ -127,7 +127,7 @@ jobs:
 
   benchmark:
     needs: build
-    runs-on: ubuntu-latest # We need a stable machine to actually run the benchmarks.
+    runs-on: self-hosted # We need a stable machine to actually run the benchmarks.
     strategy:
       fail-fast: false # Jobs fail if the benchmark error is over predefined thresholds; other benchmarks continue.
       matrix:
@@ -174,9 +174,9 @@ jobs:
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
-          echo "forks=2" > scoredirector-benchmark.properties
-          echo "warmup_iterations=1" >> scoredirector-benchmark.properties
-          echo "measurement_iterations=1" >> scoredirector-benchmark.properties
+          echo "forks=20" > scoredirector-benchmark.properties
+          echo "warmup_iterations=5" >> scoredirector-benchmark.properties
+          echo "measurement_iterations=5" >> scoredirector-benchmark.properties
           echo "relative_score_error_threshold=0.02" >> scoredirector-benchmark.properties
           echo "score_director_type=cs" >> scoredirector-benchmark.properties
           echo "example=${{ matrix.example }}" >> scoredirector-benchmark.properties
@@ -216,14 +216,7 @@ jobs:
           name: results-${{ matrix.example }}-${{ github.event.inputs.baseline }}_vs_${{ github.event.inputs.branch }}
           path: |
             ./timefold-solver-benchmarks/scoredirector-benchmark.properties
-            ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.baseline }}/*.log
-            ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.baseline }}/*.jfr
-            ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.baseline }}/*.html
-            ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.baseline }}/*.json
-            ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.branch }}/*.log
-            ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.branch }}/*.jfr
-            ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.branch }}/*.html
-            ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.branch }}/*.json
+            ./timefold-solver-benchmarks/results/scoredirector
 
       - name: Report results
         working-directory: ./timefold-solver-benchmarks
