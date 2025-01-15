@@ -85,7 +85,8 @@ public final class ResultCapturingJMHRunner extends Runner {
             if (jfrFile == null) {
                 return;
             }
-            var target = resultsDirectory.resolve(System.nanoTime() + "-" + jfrFile.getName());
+            var unixTime = System.currentTimeMillis() / 1000;
+            var target = resultsDirectory.resolve(unixTime + "-" + jfrFile.getName());
             try {
                 Files.copy(jfrFile.toPath(), target);
             } catch (IOException e) {
