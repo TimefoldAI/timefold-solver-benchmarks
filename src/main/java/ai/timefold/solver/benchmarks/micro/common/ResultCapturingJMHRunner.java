@@ -7,9 +7,7 @@ import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import org.openjdk.jmh.infra.BenchmarkParams;
 import org.openjdk.jmh.infra.IterationParams;
@@ -28,10 +26,6 @@ public final class ResultCapturingJMHRunner extends Runner {
 
     public ResultCapturingJMHRunner(Path resultsDirectory, Options options) {
         super(options, new ResultCapturingOutputFormat(resultsDirectory, createOutputFormat(options)));
-    }
-
-    public List<File> getResults() {
-        return ((ResultCapturingOutputFormat) out).results;
     }
 
     private static OutputFormat createOutputFormat(Options options) { // Copied from parent, as access is private.
@@ -63,7 +57,6 @@ public final class ResultCapturingJMHRunner extends Runner {
 
         private final Path resultsDirectory;
         private final OutputFormat delegate;
-        private final List<File> results = new ArrayList<>();
 
         public ResultCapturingOutputFormat(Path resultsDirectory, OutputFormat format) {
             this.resultsDirectory = resultsDirectory;
@@ -95,13 +88,12 @@ public final class ResultCapturingJMHRunner extends Runner {
             var target = resultsDirectory.resolve(System.nanoTime() + "-" + jfrFile.getName());
             try {
                 Files.copy(jfrFile.toPath(), target);
-                results.add(jfrFile);
             } catch (IOException e) {
                 throw new IllegalStateException(e);
             }
         }
 
-        public static File findJfrFile(File file) {
+        private static File findJfrFile(File file) {
             if (file.isDirectory()) {
                 for (var f : file.listFiles()) {
                     var result = findJfrFile(f);
