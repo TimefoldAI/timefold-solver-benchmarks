@@ -57,6 +57,8 @@ public final class ResultCapturingJMHRunner extends Runner {
 
         private final Path resultsDirectory;
         private final OutputFormat delegate;
+        private int expectedIterationCount = -1;
+        private int iterationsRemaining = -1;
 
         public ResultCapturingOutputFormat(Path resultsDirectory, OutputFormat format) {
             this.resultsDirectory = resultsDirectory;
@@ -71,26 +73,20 @@ public final class ResultCapturingJMHRunner extends Runner {
         @Override
         public void iterationResult(BenchmarkParams benchParams, IterationParams params, int iteration, IterationResult data) {
             delegate.iterationResult(benchParams, params, iteration, data);
-        }
-
-        @Override
-        public void startBenchmark(BenchmarkParams benchParams) {
-            delegate.startBenchmark(benchParams);
-        }
-
-        @Override
-        public void endBenchmark(BenchmarkResult result) {
-            delegate.endBenchmark(result);
-            var jfrFile = findJfrFile(resultsDirectory.toFile());
-            if (jfrFile == null) {
-                return;
-            }
-            var unixTime = System.currentTimeMillis() / 1000;
-            var target = resultsDirectory.resolve(unixTime + "-" + jfrFile.getName());
-            try {
-                Files.copy(jfrFile.toPath(), target);
-            } catch (IOException e) {
-                throw new IllegalStateException(e);
+            iterationsRemaining--;
+            if (iterationsRemaining == 0) {
+                iterationsRemaining = expectedIterationCount;
+                var jfrFile = findJfrFile(resultsDirectory.toFile());
+                if (jfrFile == null) {
+                    return;
+                }
+                var unixTime = System.currentTimeMillis() / 1000;
+                var target = resultsDirectory.resolve(unixTime + "-" + jfrFile.getName());
+                try {
+                    Files.copy(jfrFile.toPath(), target);
+                } catch (IOException e) {
+                    throw new IllegalStateException(e);
+                }
             }
         }
 
@@ -106,6 +102,18 @@ public final class ResultCapturingJMHRunner extends Runner {
                 return file;
             }
             return null;
+        }
+
+        @Override
+        public void startBenchmark(BenchmarkParams benchParams) {
+            expectedIterationCount = benchParams.getWarmup().getCount() + benchParams.getMeasurement().getCount();
+            iterationsRemaining = expectedIterationCount;
+            delegate.startBenchmark(benchParams);
+        }
+
+        @Override
+        public void endBenchmark(BenchmarkResult result) {
+            delegate.endBenchmark(result);
         }
 
         @Override
