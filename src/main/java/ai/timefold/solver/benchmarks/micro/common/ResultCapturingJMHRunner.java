@@ -104,7 +104,9 @@ public final class ResultCapturingJMHRunner extends Runner {
                         return result;
                     }
                 }
-            } else if (file.getName().endsWith(".jfr")) {
+            } else if (file.getName().startsWith("jfr-") && file.getName().endsWith(".jfr")) {
+                // Only match the jfr-cpu.jfr file produced by JMH.
+                // Otherwise the previously copied files could also be matched.
                 return file;
             }
             return null;

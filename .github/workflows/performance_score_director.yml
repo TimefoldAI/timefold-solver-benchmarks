@@ -217,11 +217,11 @@ jobs:
           path: |
             ./timefold-solver-benchmarks/scoredirector-benchmark.properties
             ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.baseline }}/*.log
-            ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.baseline }}/*.jfr
+            ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.baseline }}/combined.jfr
             ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.baseline }}/*.html
             ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.baseline }}/*.json
             ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.branch }}/*.log
-            ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.branch }}/*.jfr
+            ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.branch }}/combined.jfr
             ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.branch }}/*.html
             ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.branch }}/*.json
 
