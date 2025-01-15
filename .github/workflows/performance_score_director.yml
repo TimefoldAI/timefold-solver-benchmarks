@@ -216,7 +216,14 @@ jobs:
           name: results-${{ matrix.example }}-${{ github.event.inputs.baseline }}_vs_${{ github.event.inputs.branch }}
           path: |
             ./timefold-solver-benchmarks/scoredirector-benchmark.properties
-            ./timefold-solver-benchmarks/results/scoredirector
+            ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.baseline }}/*.log
+            ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.baseline }}/*.jfr
+            ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.baseline }}/*.html
+            ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.baseline }}/*.json
+            ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.branch }}/*.log
+            ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.branch }}/*.jfr
+            ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.branch }}/*.html
+            ./timefold-solver-benchmarks/results/scoredirector/${{ github.event.inputs.branch }}/*.json
 
       - name: Report results
         working-directory: ./timefold-solver-benchmarks
