@@ -97,25 +97,22 @@ public final class ResultCapturingJMHRunner extends Runner {
                 Files.copy(jfrFile.toPath(), target);
                 results.add(jfrFile);
             } catch (IOException e) {
-                verbosePrintln("Failed to copy JFR file: " + e.getMessage());
+                throw new IllegalStateException(e);
             }
         }
 
         public static File findJfrFile(File file) {
             if (file.isDirectory()) {
                 for (var f : file.listFiles()) {
-                    if (findJfrFile(f) != null) {
-                        return f;
+                    var result = findJfrFile(f);
+                    if (result != null) {
+                        return result;
                     }
                 }
-                return null;
-            } else {
-                if (file.getName().endsWith(".jfr")) {
-                    return file;
-                } else {
-                    return null;
-                }
+            } else if (file.getName().endsWith(".jfr")) {
+                return file;
             }
+            return null;
         }
 
         @Override
