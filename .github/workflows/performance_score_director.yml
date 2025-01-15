@@ -127,7 +127,7 @@ jobs:
 
   benchmark:
     needs: build
-    runs-on: self-hosted # We need a stable machine to actually run the benchmarks.
+    runs-on: ubuntu-latest # We need a stable machine to actually run the benchmarks.
     strategy:
       fail-fast: false # Jobs fail if the benchmark error is over predefined thresholds; other benchmarks continue.
       matrix:
