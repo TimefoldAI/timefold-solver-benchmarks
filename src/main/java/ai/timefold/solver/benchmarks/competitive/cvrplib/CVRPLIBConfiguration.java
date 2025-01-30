@@ -63,7 +63,6 @@ public enum CVRPLIBConfiguration implements Configuration<CVRPLIBDataset> {
                 .negate();
         var terminationConfig = new TerminationConfig()
                 .withSecondsSpentLimit(AbstractCompetitiveBenchmark.MAX_SECONDS)
-                .withUnimprovedSecondsSpentLimit(AbstractCompetitiveBenchmark.UNIMPROVED_SECONDS_TERMINATION)
                 .withBestScoreLimit(HardSoftLongScore.ofSoft(threshold.longValue()).toString());
         return new SolverConfig()
                 .withSolutionClass(VehicleRoutingSolution.class)
@@ -81,7 +80,6 @@ public enum CVRPLIBConfiguration implements Configuration<CVRPLIBDataset> {
                 .negate();
         var terminationConfig = new TerminationConfig()
                 .withSecondsSpentLimit(AbstractCompetitiveBenchmark.MAX_SECONDS)
-                .withUnimprovedSecondsSpentLimit(AbstractCompetitiveBenchmark.UNIMPROVED_SECONDS_TERMINATION)
                 .withBestScoreLimit(HardSoftLongScore.ofSoft(threshold.longValue()).toString());
         return new SolverConfig()
                 .withPreviewFeature(PreviewFeature.DIVERSIFIED_LATE_ACCEPTANCE)
