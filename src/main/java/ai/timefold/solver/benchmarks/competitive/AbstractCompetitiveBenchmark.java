@@ -1,12 +1,5 @@
 package ai.timefold.solver.benchmarks.competitive;
 
-import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutionImporter;
-import ai.timefold.solver.core.api.score.Score;
-import ai.timefold.solver.core.api.solver.SolverFactory;
-import ai.timefold.solver.core.config.solver.SolverConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -24,17 +17,25 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutionImporter;
+import ai.timefold.solver.core.api.score.Score;
+import ai.timefold.solver.core.api.solver.SolverFactory;
+import ai.timefold.solver.core.config.solver.SolverConfig;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Dataset_>, Configuration_ extends Configuration<Dataset_>, Solution_, Score_ extends Score<Score_>> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractCompetitiveBenchmark.class);
 
-    public static final long MAX_SECONDS = 60;
+    public static final long MAX_SECONDS = 300;
     public static final long UNIMPROVED_SECONDS_TERMINATION = MAX_SECONDS / 3;
 
-    static final int MAX_THREADS = 5; // Set to the number of performance cores on your machine.
+    static final int MAX_THREADS = 44; // Set to the number of performance cores on your machine.
     // Recommended to divide MAX_THREADS without remainder.
     // Don't overdo it with move threads; it's not a silver bullet.
-    public static final int ENTERPRISE_MOVE_THREAD_COUNT = 5;
+    public static final int ENTERPRISE_MOVE_THREAD_COUNT = 4;
 
     protected abstract String getLibraryName();
 
@@ -137,7 +138,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
     }
 
     private int determineParallelSolverCount(Configuration_ configuration) {
-        return configuration.usesEnterprise() ? MAX_THREADS / ENTERPRISE_MOVE_THREAD_COUNT : MAX_THREADS;
+        return configuration.usesEnterprise() ? MAX_THREADS / (ENTERPRISE_MOVE_THREAD_COUNT + 1) : MAX_THREADS;
     }
 
     private BigDecimal computeGap(Dataset_ dataset, Score_ actual) {
@@ -183,9 +184,9 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
     }
 
     private Result<Dataset_, Score_> solveDataset(Configuration_ configuration, Dataset_ dataset, SolverConfig solverConfig,
-                                                  int totalDatasetCount) {
+            int totalDatasetCount) {
         var solution = readInputFile(dataset.getPath().toFile());
-        var solverFactory = SolverFactory.<Solution_>create(solverConfig);
+        var solverFactory = SolverFactory.<Solution_> create(solverConfig);
         var solver = solverFactory.buildSolver();
         var nanotime = System.nanoTime();
         var remainingDatasets = totalDatasetCount - dataset.ordinal();

@@ -1,10 +1,10 @@
 package ai.timefold.solver.benchmarks.competitive.cvrplib;
 
-import ai.timefold.solver.benchmarks.competitive.Dataset;
-
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.util.Arrays;
+
+import ai.timefold.solver.benchmarks.competitive.Dataset;
 
 /**
  * The datasets come <a href="http://vrp.galgos.inf.puc-rio.br/index.php/en/">from here</a>.
@@ -666,7 +666,8 @@ public enum CVRPLIBDataset implements Dataset<CVRPLIBDataset> {
     }
 
     public static CVRPLIBDataset[] CVRPTWInstances() {
-        return Arrays.stream(CVRPLIBDataset.values()).toList().subList(217, CVRPLIBDataset.values().length).toArray(CVRPLIBDataset[]::new);
+        return Arrays.stream(CVRPLIBDataset.values()).toList().subList(217, CVRPLIBDataset.values().length)
+                .toArray(CVRPLIBDataset[]::new);
     }
 
 }

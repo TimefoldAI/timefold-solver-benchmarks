@@ -1,18 +1,18 @@
 package ai.timefold.solver.benchmarks.competitive.cvrplib;
 
-import ai.timefold.solver.benchmarks.competitive.AbstractCompetitiveBenchmark;
-import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutionImporter;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.AirLocation;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.persistence.VehicleRoutingImporter;
-import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
-
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+
+import ai.timefold.solver.benchmarks.competitive.AbstractCompetitiveBenchmark;
+import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutionImporter;
+import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
+import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.AirLocation;
+import ai.timefold.solver.benchmarks.examples.vehiclerouting.persistence.VehicleRoutingImporter;
+import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
 
 public class Main
         extends AbstractCompetitiveBenchmark<CVRPLIBDataset, CVRPLIBConfiguration, VehicleRoutingSolution, HardSoftLongScore> {
@@ -25,9 +25,9 @@ public class Main
             var configuration = CVRPLIBConfiguration.valueOf(args[0]);
             int locationCount = Integer.parseInt(args[1]);
             var datasets = Arrays.stream(CVRPLIBDataset.CVRPTWInstances()).filter(d -> {
-                        var initialSolution = benchmark.readInputFile(d.getPath().toFile());
-                        return benchmark.countLocations(initialSolution) == locationCount;
-                    })
+                var initialSolution = benchmark.readInputFile(d.getPath().toFile());
+                return benchmark.countLocations(initialSolution) == locationCount;
+            })
                     .toArray(CVRPLIBDataset[]::new);
             benchmark.run(List.of(configuration), datasets);
         }
