@@ -1,16 +1,16 @@
 package ai.timefold.solver.benchmarks.competitive.tsplib95;
 
-import ai.timefold.solver.benchmarks.competitive.AbstractCompetitiveBenchmark;
-import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutionImporter;
-import ai.timefold.solver.benchmarks.examples.tsp.domain.TspSolution;
-import ai.timefold.solver.benchmarks.examples.tsp.persistence.TspImporter;
-import ai.timefold.solver.core.api.score.buildin.simplelong.SimpleLongScore;
-
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+
+import ai.timefold.solver.benchmarks.competitive.AbstractCompetitiveBenchmark;
+import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutionImporter;
+import ai.timefold.solver.benchmarks.examples.tsp.domain.TspSolution;
+import ai.timefold.solver.benchmarks.examples.tsp.persistence.TspImporter;
+import ai.timefold.solver.core.api.score.buildin.simplelong.SimpleLongScore;
 
 public class Main extends AbstractCompetitiveBenchmark<TSPLIBDataset, TSPLIBConfiguration, TspSolution, SimpleLongScore> {
 

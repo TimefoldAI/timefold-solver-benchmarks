@@ -10,6 +10,7 @@ import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -18,7 +19,18 @@ public class Main
 
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
         var benchmark = new Main();
-        benchmark.run(List.of(CVRPLIBConfiguration.COMMUNITY_EDITION), CVRPLIBDataset.values());
+        if (args.length == 0) {
+            benchmark.run(List.of(CVRPLIBConfiguration.COMMUNITY_EDITION), CVRPLIBDataset.values());
+        } else {
+            var configuration = CVRPLIBConfiguration.valueOf(args[0]);
+            int locationCount = Integer.parseInt(args[1]);
+            var datasets = Arrays.stream(CVRPLIBDataset.CVRPTWInstances()).filter(d -> {
+                        var initialSolution = benchmark.readInputFile(d.getPath().toFile());
+                        return benchmark.countLocations(initialSolution) == locationCount;
+                    })
+                    .toArray(CVRPLIBDataset[]::new);
+            benchmark.run(List.of(configuration), datasets);
+        }
     }
 
     @Override

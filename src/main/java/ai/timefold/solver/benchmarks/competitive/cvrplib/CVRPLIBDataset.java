@@ -1,9 +1,10 @@
 package ai.timefold.solver.benchmarks.competitive.cvrplib;
 
+import ai.timefold.solver.benchmarks.competitive.Dataset;
+
 import java.math.BigDecimal;
 import java.nio.file.Path;
-
-import ai.timefold.solver.benchmarks.competitive.Dataset;
+import java.util.Arrays;
 
 /**
  * The datasets come <a href="http://vrp.galgos.inf.puc-rio.br/index.php/en/">from here</a>.
@@ -27,7 +28,6 @@ import ai.timefold.solver.benchmarks.competitive.Dataset;
  * <li>XML100; hundreds of very similar, seemingly randomly generated datasets.</li>
  * </ul>
  * <p>
- *
  */
 public enum CVRPLIBDataset implements Dataset<CVRPLIBDataset> {
 
@@ -659,6 +659,14 @@ public enum CVRPLIBDataset implements Dataset<CVRPLIBDataset> {
     @Override
     public Path getPath() {
         return Path.of("data", "vehiclerouting", "import", this.filename);
+    }
+
+    public static CVRPLIBDataset[] CVRPInstances() {
+        return Arrays.stream(CVRPLIBDataset.values()).toList().subList(0, 217).toArray(CVRPLIBDataset[]::new);
+    }
+
+    public static CVRPLIBDataset[] CVRPTWInstances() {
+        return Arrays.stream(CVRPLIBDataset.values()).toList().subList(217, CVRPLIBDataset.values().length).toArray(CVRPLIBDataset[]::new);
     }
 
 }

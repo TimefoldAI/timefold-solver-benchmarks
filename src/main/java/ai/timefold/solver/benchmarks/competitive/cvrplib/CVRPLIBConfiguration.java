@@ -1,5 +1,9 @@
 package ai.timefold.solver.benchmarks.competitive.cvrplib;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
+
 import ai.timefold.solver.benchmarks.competitive.AbstractCompetitiveBenchmark;
 import ai.timefold.solver.benchmarks.competitive.Configuration;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Customer;
@@ -17,10 +21,6 @@ import ai.timefold.solver.core.config.localsearch.decider.acceptor.LocalSearchAc
 import ai.timefold.solver.core.config.solver.PreviewFeature;
 import ai.timefold.solver.core.config.solver.SolverConfig;
 import ai.timefold.solver.core.config.solver.termination.TerminationConfig;
-
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.List;
 
 public enum CVRPLIBConfiguration implements Configuration<CVRPLIBDataset> {
 

@@ -7,6 +7,7 @@ import ai.timefold.solver.core.config.solver.SolverConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -182,9 +183,8 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
     }
 
     private Result<Dataset_, Score_> solveDataset(Configuration_ configuration, Dataset_ dataset, SolverConfig solverConfig,
-            int totalDatasetCount) {
-        var importer = createImporter();
-        var solution = importer.readSolution(dataset.getPath().toFile());
+                                                  int totalDatasetCount) {
+        var solution = readInputFile(dataset.getPath().toFile());
         var solverFactory = SolverFactory.<Solution_>create(solverConfig);
         var solver = solverFactory.buildSolver();
         var nanotime = System.nanoTime();
@@ -202,6 +202,11 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         LOGGER.info("Solved {} in {} ms with a distance of {}; verdict: {}", dataset.name(), runtime.toMillis(),
                 roundToOneDecimal(extractDistance(dataset, actualDistance)), health);
         return new Result<>(dataset, actualDistance, countLocations(bestSolution) + 1, countVehicles(bestSolution), runtime);
+    }
+
+    public Solution_ readInputFile(File inputFile) {
+        var importer = createImporter();
+        return importer.readSolution(inputFile);
     }
 
 }
