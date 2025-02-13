@@ -22,7 +22,7 @@ on:
         required: true
       baseline:
         description: 'Timefold Solver release'
-        default: '1.18.0'
+        default: '1.19.0'
         required: true
       branch:
         description: 'Branch to benchmark (needs to use 999-SNAPSHOT)'
