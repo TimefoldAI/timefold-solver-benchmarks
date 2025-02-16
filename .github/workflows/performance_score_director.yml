@@ -16,13 +16,17 @@ name: Performance Regression Test - Score Director
 on:
   workflow_dispatch:
     inputs:
-      jdk:
+      jdk_baseline:
         description: 'JDK version'
         default: '21'
         required: true
       baseline:
         description: 'Timefold Solver release'
         default: '1.19.0'
+        required: true
+      jdk_branch:
+        description: 'JDK version'
+        default: '21'
         required: true
       branch:
         description: 'Branch to benchmark (needs to use 999-SNAPSHOT)'
@@ -37,7 +41,7 @@ on:
         default: '3.0'
         required: true
 
-run-name: "Timefold Solver v${{ github.event.inputs.baseline }} vs. ${{ github.event.inputs.branch_owner }}/${{ github.event.inputs.branch }} on Java ${{ github.event.inputs.jdk }}"
+run-name: "Timefold Solver v${{ github.event.inputs.baseline }} vs. ${{ github.event.inputs.branch_owner }}/${{ github.event.inputs.branch }} (Java ${{ github.event.inputs.jdk_baseline }} vs. ${{ github.event.inputs.jdk_branch }})"
 
 jobs:
   build:
@@ -150,7 +154,7 @@ jobs:
       - name: Setup JDK and Maven
         uses: actions/setup-java@v4
         with:
-          java-version: ${{ github.event.inputs.jdk }} # Use the JDK version specified by the user.
+          java-version: ${{ github.event.inputs.jdk_baseline }}
           distribution: 'temurin'
           check-latest: true
 
@@ -195,6 +199,13 @@ jobs:
           echo "RANGE_START=$(jq '.[0].primaryMetric.scoreConfidence[0]|round' results/scoredirector/${{ github.event.inputs.baseline }}/results.json)" >> "$GITHUB_OUTPUT"
           echo "RANGE_END=$(jq '.[0].primaryMetric.scoreConfidence[1]|round' results/scoredirector/${{ github.event.inputs.baseline }}/results.json)" >> "$GITHUB_OUTPUT"
           echo "RANGE_MID=$(jq '.[0].primaryMetric.score|round' results/scoredirector/${{ github.event.inputs.baseline }}/results.json)" >> "$GITHUB_OUTPUT"
+
+      - name: (SUT) Setup JDK and Maven
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ github.event.inputs.jdk_branch }}
+          distribution: 'temurin'
+          check-latest: true
 
       - name: (SUT) Run the benchmark
         id: benchmark_sut
