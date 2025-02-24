@@ -4,12 +4,14 @@ import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.Machine
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrMachine;
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrProcessAssignment;
 import ai.timefold.solver.core.api.score.director.ScoreDirector;
-import ai.timefold.solver.core.impl.phase.custom.CustomPhaseCommand;
+import ai.timefold.solver.core.api.solver.phase.PhaseCommand;
 
-public class ToOriginalMachineSolutionInitializer implements CustomPhaseCommand<MachineReassignment> {
+import java.util.function.BooleanSupplier;
+
+public class ToOriginalMachineSolutionInitializer implements PhaseCommand<MachineReassignment> {
 
     @Override
-    public void changeWorkingSolution(ScoreDirector<MachineReassignment> scoreDirector) {
+    public void changeWorkingSolution(ScoreDirector<MachineReassignment> scoreDirector, BooleanSupplier isPhaseTerminated) {
         MachineReassignment machineReassignment = scoreDirector.getWorkingSolution();
         initializeProcessAssignmentList(scoreDirector, machineReassignment);
     }
