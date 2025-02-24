@@ -100,7 +100,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
     protected MoveSelector<Solution_> buildMoveSelector(SolutionDescriptor<Solution_> solutionDescriptor) {
         // Build the top-level local search move selector as the solver would've built it.
         var solverConfig = new SolverConfig()
-                .withEnvironmentMode(EnvironmentMode.REPRODUCIBLE)
+                .withEnvironmentMode(EnvironmentMode.PHASE_ASSERT)
                 .withSolutionClass(solutionDescriptor.getSolutionClass())
                 .withEntityClasses(solutionDescriptor.getEntityClassSet().toArray(new Class[0]))
                 .withEasyScoreCalculatorClass(DummyEasyScoreCalculator.class);

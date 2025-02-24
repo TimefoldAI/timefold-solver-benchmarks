@@ -87,7 +87,7 @@ public abstract class SolveAllTurtleTest<Solution_> extends LoggingTest {
 
     @Execution(ExecutionMode.CONCURRENT)
     @TestFactory
-    Stream<DynamicTest> runFastAndFullAssert() {
+    Stream<DynamicTest> runStepAndFullAssert() {
         CommonApp<Solution_> commonApp = createCommonApp();
         ProblemFactory<Solution_> problemFactory = createProblemFactory(commonApp);
         /*
@@ -95,17 +95,17 @@ public abstract class SolveAllTurtleTest<Solution_> extends LoggingTest {
          * This code intends to limit the number of tests so that they can all run within the time limit.
          */
         return getFilteredSolutionFiles(commonApp).stream()
-                .map(solutionFile -> dynamicTest(solutionFile.getName(), () -> runFastAndFullAssert(
+                .map(solutionFile -> dynamicTest(solutionFile.getName(), () -> runStepAndFullAssert(
                         buildSolverConfig(commonApp.getSolverConfigResource()),
                         problemFactory.loadProblem(solutionFile))));
     }
 
-    public void runFastAndFullAssert(SolverConfig solverConfig, Solution_ problem) {
+    public void runStepAndFullAssert(SolverConfig solverConfig, Solution_ problem) {
         // Specifically use NON_INTRUSIVE_FULL_ASSERT instead of FULL_ASSERT to flush out bugs hidden by intrusiveness
         // 1) NON_INTRUSIVE_FULL_ASSERT ASSERT to find CH bugs (but covers little ground)
         problem = buildAndSolve(solverConfig, EnvironmentMode.NON_INTRUSIVE_FULL_ASSERT, problem, 2L);
-        // 2) FAST_ASSERT to run past CH into LS to find easy bugs (but covers much ground)
-        problem = buildAndSolve(solverConfig, EnvironmentMode.FAST_ASSERT, problem, 5L);
+        // 2) STEP_ASSERT to run past CH into LS to find easy bugs (but covers much ground)
+        problem = buildAndSolve(solverConfig, EnvironmentMode.STEP_ASSERT, problem, 5L);
         // 3) NON_INTRUSIVE_FULL_ASSERT ASSERT to find LS bugs (but covers little ground)
         buildAndSolve(solverConfig, EnvironmentMode.NON_INTRUSIVE_FULL_ASSERT, problem, 3L);
     }
@@ -125,7 +125,7 @@ public abstract class SolveAllTurtleTest<Solution_> extends LoggingTest {
         solverConfig.getTerminationConfig().setMinutesSpentLimit(maximumMinutesSpent);
         solverConfig.setEnvironmentMode(environmentMode);
         Class<? extends EasyScoreCalculator> easyScoreCalculatorClass = overwritingEasyScoreCalculatorClass();
-        if (easyScoreCalculatorClass != null && environmentMode.isAsserted()) {
+        if (easyScoreCalculatorClass != null && environmentMode.isStepAssertOrMore()) {
             ScoreDirectorFactoryConfig assertionScoreDirectorFactoryConfig = new ScoreDirectorFactoryConfig();
             assertionScoreDirectorFactoryConfig.setEasyScoreCalculatorClass(easyScoreCalculatorClass);
             solverConfig.getScoreDirectorFactoryConfig().setAssertionScoreDirectorFactory(

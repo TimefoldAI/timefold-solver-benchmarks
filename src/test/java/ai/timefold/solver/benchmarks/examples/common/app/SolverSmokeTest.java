@@ -72,11 +72,11 @@ public abstract class SolverSmokeTest<Solution_, Score_ extends Score<Score_>> e
                         .flatMap(testData -> {
                             Stream.Builder<DynamicTest> streamBuilder = Stream.builder();
                             streamBuilder.add(createSpeedTest(testData.unsolvedDataFile,
-                                    EnvironmentMode.REPRODUCIBLE,
+                                    EnvironmentMode.PHASE_ASSERT,
                                     testData.bestScoreLimitForReproducible, moveThreadCount));
                             if (testData.bestScoreLimitForFastAssert != null) {
                                 streamBuilder.add(createSpeedTest(testData.unsolvedDataFile,
-                                        EnvironmentMode.FAST_ASSERT,
+                                        EnvironmentMode.STEP_ASSERT,
                                         testData.bestScoreLimitForFastAssert, moveThreadCount));
                             }
                             if (testData.bestScoreLimitForFullAssert != null) {
