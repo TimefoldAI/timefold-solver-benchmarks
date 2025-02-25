@@ -53,7 +53,7 @@ class VehicleRoutingMultiThreadedReproducibilityTurtleTest {
 
         SolverConfig solverConfig =
                 SolverConfig.createFromXmlResource(vehicleRoutingApp.getSolverConfigResource());
-        solverConfig.withEnvironmentMode(EnvironmentMode.REPRODUCIBLE)
+        solverConfig.withEnvironmentMode(EnvironmentMode.PHASE_ASSERT)
                 .withMoveThreadCount(MOVE_THREAD_COUNT);
         solverConfig.getPhaseConfigList().forEach(phaseConfig -> {
             if (LocalSearchPhaseConfig.class.isAssignableFrom(phaseConfig.getClass())) {
