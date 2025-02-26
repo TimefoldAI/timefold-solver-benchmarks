@@ -126,7 +126,9 @@ abstract class AbstractProblem<Solution_> implements Problem {
         var constraintMatchPolicy =
                 scoreDirectorType == ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED ? ConstraintMatchPolicy.ENABLED
                         : ConstraintMatchPolicy.DISABLED;
-        scoreDirector = scoreDirectorFactory.buildScoreDirector(false, constraintMatchPolicy);
+        scoreDirector = scoreDirectorFactory.createScoreDirectorBuilder()
+                .withConstraintMatchPolicy(constraintMatchPolicy)
+                .build();
         moveDirector = new MoveDirector<>(scoreDirector);
         moveSelector = buildMoveSelector(solutionDescriptor);
     }
