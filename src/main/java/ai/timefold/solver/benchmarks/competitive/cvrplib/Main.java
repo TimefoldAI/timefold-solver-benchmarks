@@ -20,16 +20,16 @@ public class Main
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
         var benchmark = new Main();
         if (args.length == 0) {
-            benchmark.run(List.of(CVRPLIBConfiguration.COMMUNITY_EDITION), CVRPLIBDataset.values());
+            benchmark.run(List.of(CVRPLIBConfiguration.COMMUNITY_EDITION), System.nanoTime(), CVRPLIBDataset.values());
         } else {
             var configuration = CVRPLIBConfiguration.valueOf(args[0]);
             int locationCount = Integer.parseInt(args[1]);
+            long seed = Long.parseLong(args[2]);
             var datasets = Arrays.stream(CVRPLIBDataset.CVRPTWInstances()).filter(d -> {
                 var initialSolution = benchmark.readInputFile(d.getPath().toFile());
                 return benchmark.countLocations(initialSolution) == locationCount;
-            })
-                    .toArray(CVRPLIBDataset[]::new);
-            benchmark.run(List.of(configuration), datasets);
+            }).toArray(CVRPLIBDataset[]::new);
+            benchmark.run(List.of(configuration), seed, datasets);
         }
     }
 

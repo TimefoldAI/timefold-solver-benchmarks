@@ -12,6 +12,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -32,7 +33,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
     public static final long MAX_SECONDS = 300;
     public static final long UNIMPROVED_SECONDS_TERMINATION = MAX_SECONDS / 3;
 
-    static final int MAX_THREADS = 44; // Set to the number of performance cores on your machine.
+    static final int MAX_THREADS = 60; // Set to the number of performance cores on your machine.
     // Recommended to divide MAX_THREADS without remainder.
     // Don't overdo it with move threads; it's not a silver bullet.
     public static final int ENTERPRISE_MOVE_THREAD_COUNT = 4;
@@ -50,11 +51,16 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
     protected abstract AbstractSolutionImporter<Solution_> createImporter();
 
     public void run(List<Configuration_> configurations, Dataset_... datasets)
+            throws IOException, ExecutionException, InterruptedException {
+        run(configurations, null, datasets);
+    }
+
+    public void run(List<Configuration_> configurations, Long seed, Dataset_... datasets)
             throws ExecutionException, InterruptedException, IOException {
 
         var resultList = new ArrayList<Map<Dataset_, Result<Dataset_, Score_>>>(configurations.size());
         for (Configuration_ configuration : configurations) {
-            resultList.add(run(configuration, datasets));
+            resultList.add(run(configuration, seed, datasets));
         }
         var result = new StringBuilder();
         try {
@@ -117,15 +123,19 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         return "\"" + s + "\"";
     }
 
-    private Map<Dataset_, Result<Dataset_, Score_>> run(Configuration_ configuration, Dataset_... datasets)
+    private Map<Dataset_, Result<Dataset_, Score_>> run(Configuration_ configuration, Long seed, Dataset_... datasets)
             throws ExecutionException, InterruptedException {
-        System.out.println("Running with " + configuration.name() + " solver config");
+        System.out.println(
+                "Running with " + configuration.name() + " solver config with seed " + Optional.ofNullable(seed).orElse(0L));
         var results = new TreeMap<Dataset_, Result<Dataset_, Score_>>();
         var parallelSolverCount = determineParallelSolverCount(configuration);
         try (var executorService = Executors.newFixedThreadPool(parallelSolverCount)) {
             var resultFutureList = new ArrayList<Future<Result<Dataset_, Score_>>>(datasets.length);
             for (var dataset : datasets) {
                 var solverConfig = configuration.getSolverConfig(dataset);
+                if (seed != null) {
+                    solverConfig.setRandomSeed(seed);
+                }
                 var future = executorService.submit(() -> solveDataset(configuration, dataset, solverConfig, datasets.length));
                 resultFutureList.add(future);
             }
