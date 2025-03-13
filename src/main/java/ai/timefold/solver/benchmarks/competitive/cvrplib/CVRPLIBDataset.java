@@ -2,6 +2,7 @@ package ai.timefold.solver.benchmarks.competitive.cvrplib;
 
 import java.math.BigDecimal;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 import ai.timefold.solver.benchmarks.competitive.Dataset;
 
@@ -659,6 +660,15 @@ public enum CVRPLIBDataset implements Dataset<CVRPLIBDataset> {
     @Override
     public Path getPath() {
         return Path.of("data", "vehiclerouting", "import", this.filename);
+    }
+
+    public static CVRPLIBDataset[] CVRPInstances() {
+        return Arrays.stream(CVRPLIBDataset.values()).toList().subList(0, 217).toArray(CVRPLIBDataset[]::new);
+    }
+
+    public static CVRPLIBDataset[] CVRPTWInstances() {
+        return Arrays.stream(CVRPLIBDataset.values()).toList().subList(217, CVRPLIBDataset.values().length)
+                .toArray(CVRPLIBDataset[]::new);
     }
 
 }

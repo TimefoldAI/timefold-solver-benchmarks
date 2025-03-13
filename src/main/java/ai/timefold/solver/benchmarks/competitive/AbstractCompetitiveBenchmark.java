@@ -1,5 +1,6 @@
 package ai.timefold.solver.benchmarks.competitive;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -9,7 +10,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -30,7 +33,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
     public static final long MAX_SECONDS = 60;
     public static final long UNIMPROVED_SECONDS_TERMINATION = MAX_SECONDS / 3;
 
-    static final int MAX_THREADS = 4; // Set to the number of performance cores on your machine.
+    static final int MAX_THREADS = 15; // Set to the number of performance cores on your machine.
     // Recommended to divide MAX_THREADS without remainder.
     // Don't overdo it with move threads; it's not a silver bullet.
     public static final int ENTERPRISE_MOVE_THREAD_COUNT = 4;
@@ -47,48 +50,56 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
 
     protected abstract AbstractSolutionImporter<Solution_> createImporter();
 
-    public void run(Configuration_ communityEdition, Configuration_ enterpriseEdition,
-            Dataset_... datasets)
-            throws ExecutionException, InterruptedException, IOException {
-        var communityResultList = run(communityEdition, datasets);
-        var enterpriseResultList = run(enterpriseEdition, datasets);
+    public void run(List<Configuration_> configurations, Dataset_... datasets)
+            throws IOException, ExecutionException, InterruptedException {
+        run(configurations, null, datasets);
+    }
 
+    public void run(List<Configuration_> configurations, Long seed, Dataset_... datasets)
+            throws ExecutionException, InterruptedException, IOException {
+
+        var resultList = new ArrayList<Map<Dataset_, Result<Dataset_, Score_>>>(configurations.size());
+        for (Configuration_ configuration : configurations) {
+            resultList.add(run(configuration, seed, datasets));
+        }
         var result = new StringBuilder();
         try {
-            String line = """
-                    %s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s
-                    """;
-            String header = line.formatted("Dataset", "Location count", "Vehicle count", "Best known score",
-                    "CE Achieved score", "CE run time (ms)", "CE gap to best (%)", "CE Health",
-                    "EE Achieved score", "EE run time (ms)", "EE gap to best (%)", "EE Health");
-            result.append(header);
+            StringBuilder header = new StringBuilder("Dataset;Location count;Vehicle count;Best known score;");
+            for (Configuration_ configuration : configurations) {
+                header.append("%s Achieved score; %s run time (ms); %s gap to best (%%); %s Health;"
+                        .formatted(configuration.name(), configuration.name(), configuration.name(), configuration.name()));
+            }
+            result.append(header)
+                    .append("\n");
 
             for (var dataset : datasets) {
-                var communityResult = communityResultList.get(dataset);
-                var enterpriseResult = enterpriseResultList.get(dataset);
-
                 var datasetName = dataset.name();
-                var communityScore = communityResult.score();
-                var communityRuntime = communityResult.runtime().toMillis();
-                var communityGap = computeGap(dataset, communityScore);
-                var communityHealth = determineHealth(dataset, communityScore, communityResult.runtime());
-                var enterpriseScore = enterpriseResult.score();
-                var enterpriseRuntime = enterpriseResult.runtime().toMillis();
-                var enterpriseTweakedGap = computeGap(dataset, enterpriseScore);
-                var enterpriseHealth = determineHealth(dataset, enterpriseScore, enterpriseResult.runtime());
-                result.append(line.formatted(
-                        quote(datasetName),
-                        communityResult.locationCount(),
-                        communityResult.vehicleCount(),
-                        roundToOneDecimal(dataset.getBestKnownDistance()),
-                        roundToOneDecimal(extractDistance(dataset, communityScore)),
-                        communityRuntime,
-                        communityGap,
-                        quote(communityHealth),
-                        roundToOneDecimal(extractDistance(dataset, enterpriseScore)),
-                        enterpriseRuntime,
-                        enterpriseTweakedGap,
-                        quote(enterpriseHealth)));
+                StringBuilder line = new StringBuilder();
+                line.append(quote(datasetName))
+                        .append(";")
+                        .append(resultList.get(0).get(dataset).locationCount())
+                        .append(";")
+                        .append(resultList.get(0).get(dataset).vehicleCount())
+                        .append(";")
+                        .append(roundToOneDecimal(dataset.getBestKnownDistance()))
+                        .append(";");
+                for (var configurationResult : resultList) {
+                    var singleResult = configurationResult.get(dataset);
+                    var score = singleResult.score();
+                    var runtime = singleResult.runtime().toMillis();
+                    var gap = computeGap(dataset, score);
+                    var health = determineHealth(dataset, score, singleResult.runtime());
+                    line.append(roundToOneDecimal(extractDistance(dataset, score)))
+                            .append(";")
+                            .append(runtime)
+                            .append(";")
+                            .append(gap)
+                            .append(";")
+                            .append(quote(health))
+                            .append(";");
+                }
+                line.append("\n");
+                result.append(line);
             }
         } finally { // Do everything possible to not lose the results.
             var filename = "%s-%s.csv"
@@ -112,15 +123,19 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         return "\"" + s + "\"";
     }
 
-    private Map<Dataset_, Result<Dataset_, Score_>> run(Configuration_ configuration, Dataset_... datasets)
+    private Map<Dataset_, Result<Dataset_, Score_>> run(Configuration_ configuration, Long seed, Dataset_... datasets)
             throws ExecutionException, InterruptedException {
-        System.out.println("Running with " + configuration.name() + " solver config");
+        System.out.println(
+                "Running with " + configuration.name() + " solver config with seed " + Optional.ofNullable(seed).orElse(0L));
         var results = new TreeMap<Dataset_, Result<Dataset_, Score_>>();
         var parallelSolverCount = determineParallelSolverCount(configuration);
         try (var executorService = Executors.newFixedThreadPool(parallelSolverCount)) {
             var resultFutureList = new ArrayList<Future<Result<Dataset_, Score_>>>(datasets.length);
             for (var dataset : datasets) {
                 var solverConfig = configuration.getSolverConfig(dataset);
+                if (seed != null) {
+                    solverConfig.setRandomSeed(seed);
+                }
                 var future = executorService.submit(() -> solveDataset(configuration, dataset, solverConfig, datasets.length));
                 resultFutureList.add(future);
             }
@@ -133,7 +148,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
     }
 
     private int determineParallelSolverCount(Configuration_ configuration) {
-        return configuration.usesEnterprise() ? MAX_THREADS / ENTERPRISE_MOVE_THREAD_COUNT : MAX_THREADS;
+        return configuration.usesEnterprise() ? MAX_THREADS / (ENTERPRISE_MOVE_THREAD_COUNT + 1) : MAX_THREADS;
     }
 
     private BigDecimal computeGap(Dataset_ dataset, Score_ actual) {
@@ -180,8 +195,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
 
     private Result<Dataset_, Score_> solveDataset(Configuration_ configuration, Dataset_ dataset, SolverConfig solverConfig,
             int totalDatasetCount) {
-        var importer = createImporter();
-        var solution = importer.readSolution(dataset.getPath().toFile());
+        var solution = readInputFile(dataset.getPath().toFile());
         var solverFactory = SolverFactory.<Solution_> create(solverConfig);
         var solver = solverFactory.buildSolver();
         var nanotime = System.nanoTime();
@@ -199,6 +213,11 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         LOGGER.info("Solved {} in {} ms with a distance of {}; verdict: {}", dataset.name(), runtime.toMillis(),
                 roundToOneDecimal(extractDistance(dataset, actualDistance)), health);
         return new Result<>(dataset, actualDistance, countLocations(bestSolution) + 1, countVehicles(bestSolution), runtime);
+    }
+
+    public Solution_ readInputFile(File inputFile) {
+        var importer = createImporter();
+        return importer.readSolution(inputFile);
     }
 
 }

@@ -3,6 +3,7 @@ package ai.timefold.solver.benchmarks.competitive.tsplib95;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import ai.timefold.solver.benchmarks.competitive.AbstractCompetitiveBenchmark;
@@ -15,7 +16,7 @@ public class Main extends AbstractCompetitiveBenchmark<TSPLIBDataset, TSPLIBConf
 
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
         var benchmark = new Main();
-        benchmark.run(TSPLIBConfiguration.COMMUNITY_EDITION, TSPLIBConfiguration.ENTERPRISE_EDITION, TSPLIBDataset.values());
+        benchmark.run(List.of(TSPLIBConfiguration.COMMUNITY_EDITION), TSPLIBDataset.values());
     }
 
     @Override

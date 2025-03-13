@@ -1,12 +1,12 @@
 package ai.timefold.solver.benchmarks.examples.machinereassignment.solver.solution.initializer;
 
+import java.util.function.BooleanSupplier;
+
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MachineReassignment;
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrMachine;
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrProcessAssignment;
 import ai.timefold.solver.core.api.score.director.ScoreDirector;
 import ai.timefold.solver.core.api.solver.phase.PhaseCommand;
-
-import java.util.function.BooleanSupplier;
 
 public class ToOriginalMachineSolutionInitializer implements PhaseCommand<MachineReassignment> {
 
