@@ -30,10 +30,10 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractCompetitiveBenchmark.class);
 
-    public static final long MAX_SECONDS = 60;
+    public static final long MAX_SECONDS = 600;
     public static final long UNIMPROVED_SECONDS_TERMINATION = MAX_SECONDS / 3;
 
-    static final int MAX_THREADS = 15; // Set to the number of performance cores on your machine.
+    static final int MAX_THREADS = 60; // Set to the number of performance cores on your machine.
     // Recommended to divide MAX_THREADS without remainder.
     // Don't overdo it with move threads; it's not a silver bullet.
     public static final int ENTERPRISE_MOVE_THREAD_COUNT = 4;

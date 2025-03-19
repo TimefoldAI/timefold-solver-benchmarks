@@ -41,4 +41,4 @@ nohup java -Xmx4g -XX:+UseParallelGC -cp ./experiment/benchmarks-main.jar ai.tim
 nohup java -Xmx4g -XX:+UseParallelGC -cp ./experiment/benchmarks-restart.jar ai.timefold.solver.benchmarks.competitive.cvrplib.Main ENTERPRISE_EDITION 600 77322220542333 > ./experiment/nohup38.out 2>&1
 nohup java -Xmx4g -XX:+UseParallelGC -cp ./experiment/benchmarks-main.jar ai.timefold.solver.benchmarks.competitive.cvrplib.Main ENTERPRISE_EDITION 600 77322220551458 > ./experiment/nohup39.out 2>&1
 nohup java -Xmx4g -XX:+UseParallelGC -cp ./experiment/benchmarks-main.jar ai.timefold.solver.benchmarks.competitive.cvrplib.Main ENTERPRISE_EDITION 600 77322220526250 > ./experiment/nohup40.out 2>&1
-sudo shutdown -h now
+#sudo shutdown -h now

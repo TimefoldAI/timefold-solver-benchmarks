@@ -69,7 +69,10 @@ public enum CVRPLIBConfiguration implements Configuration<CVRPLIBDataset> {
                 .withEntityClasses(Vehicle.class, Customer.class, TimeWindowedCustomer.class)
                 .withConstraintProviderClass(VehicleRoutingConstraintProvider.class)
                 .withTerminationConfig(terminationConfig)
-                .withPhases(new ConstructionHeuristicPhaseConfig(), new LocalSearchPhaseConfig());
+                .withPhases(new ConstructionHeuristicPhaseConfig(),
+                        new LocalSearchPhaseConfig()
+                                .withAcceptorConfig(new LocalSearchAcceptorConfig()
+                                        .withAcceptorTypeList(List.of(AcceptorType.ADAPTIVE_LATE_ACCEPTANCE))));
 
     }
 

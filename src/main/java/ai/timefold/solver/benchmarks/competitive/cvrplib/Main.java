@@ -20,7 +20,13 @@ public class Main
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
         var benchmark = new Main();
         if (args.length == 0) {
-            benchmark.run(List.of(CVRPLIBConfiguration.COMMUNITY_EDITION), System.nanoTime(), CVRPLIBDataset.CVRPTWInstances());
+            //            benchmark.run(List.of(CVRPLIBConfiguration.COMMUNITY_EDITION), System.nanoTime(), CVRPLIBDataset.CVRPTWInstances());
+            //            benchmark.run(List.of(CVRPLIBConfiguration.ENTERPRISE_EDITION), 240754434265291L, CVRPLIBDataset.R1_2_7);
+            //            benchmark.run(List.of(CVRPLIBConfiguration.ENTERPRISE_EDITION), 240754434265291L, CVRPLIBDataset.X_N101_K25);
+            //            benchmark.run(List.of(CVRPLIBConfiguration.ENTERPRISE_EDITION), 240754434265291L, CVRPLIBDataset.C1_4_8);
+            //            benchmark.run(List.of(CVRPLIBConfiguration.ENTERPRISE_EDITION), System.nanoTime(), CVRPLIBDataset.R101);
+            benchmark.run(List.of(CVRPLIBConfiguration.ENTERPRISE_EDITION), System.nanoTime(), CVRPLIBDataset.RC2_10_10);
+            //            benchmark.run(List.of(CVRPLIBConfiguration.ENTERPRISE_EDITION), System.nanoTime(), CVRPLIBDataset.R2_10_10);
         } else {
             var configuration = CVRPLIBConfiguration.valueOf(args[0]);
             int locationCount = Integer.parseInt(args[1]);
