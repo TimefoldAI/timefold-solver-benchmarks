@@ -181,11 +181,9 @@ abstract class AbstractProblem<Solution_> implements Problem {
     @Override
     public final Object runInvocation() {
         if (willUndo) {
-            try (var ephemeralMoveDirector = moveDirector.ephemeral()) {
-                move.doMoveOnly(ephemeralMoveDirector.getScoreDirector());
-            }
+            moveDirector.executeTemporary(move);
         } else {
-            move.doMoveOnly(scoreDirector); // Do the move without any undo.
+            moveDirector.execute(move); // Do the move without any undo.
         }
         return scoreDirector.calculateScore();
     }
