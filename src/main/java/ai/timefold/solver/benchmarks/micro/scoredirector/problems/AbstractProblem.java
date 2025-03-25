@@ -15,7 +15,7 @@ import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
 import ai.timefold.solver.core.config.solver.EnvironmentMode;
 import ai.timefold.solver.core.config.solver.SolverConfig;
 import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
-import ai.timefold.solver.core.impl.heuristic.move.Move;
+import ai.timefold.solver.core.impl.heuristic.move.LegacyMoveAdapter;
 import ai.timefold.solver.core.impl.heuristic.selector.move.MoveSelector;
 import ai.timefold.solver.core.impl.localsearch.DefaultLocalSearchPhase;
 import ai.timefold.solver.core.impl.localsearch.decider.LocalSearchDecider;
@@ -27,6 +27,7 @@ import ai.timefold.solver.core.impl.score.director.InnerScoreDirector;
 import ai.timefold.solver.core.impl.score.director.InnerScoreDirectorFactory;
 import ai.timefold.solver.core.impl.solver.DefaultSolver;
 import ai.timefold.solver.core.impl.solver.scope.SolverScope;
+import ai.timefold.solver.core.preview.api.move.Move;
 import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
 
 import org.slf4j.Logger;
@@ -47,7 +48,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
     private InnerScoreDirector<Solution_, ?> scoreDirector;
     private MoveDirector<Solution_> moveDirector;
     private MoveSelector<Solution_> moveSelector;
-    private Iterator<Move<Solution_>> moveIterator;
+    private Iterator<ai.timefold.solver.core.impl.heuristic.move.Move<Solution_>> moveIterator;
     private LocalSearchPhaseScope<Solution_> phaseScope;
     private LocalSearchStepScope<Solution_> stepScope;
     private Move<Solution_> move;
@@ -155,7 +156,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
         }
         // Only undo every nth move; undo means the end of the step.
         willUndo = (invocationCount % MOVES_BEFORE_UNDO) < (MOVES_BEFORE_UNDO - 1);
-        move = moveIterator.next();
+        move = new LegacyMoveAdapter<>(moveIterator.next());
     }
 
     /**
@@ -181,11 +182,11 @@ abstract class AbstractProblem<Solution_> implements Problem {
     @Override
     public final Object runInvocation() {
         if (willUndo) {
-            moveDirector.executeTemporary(move);
-        } else {
-            moveDirector.execute(move); // Do the move without any undo.
+            return moveDirector.executeTemporary(move, (moveDirector, score) -> score);
+        } else {  // Do the move without any undo.
+            moveDirector.execute(move);
+            return scoreDirector.calculateScore();
         }
-        return scoreDirector.calculateScore();
     }
 
     @Override
