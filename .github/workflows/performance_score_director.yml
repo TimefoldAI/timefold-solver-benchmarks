@@ -76,7 +76,7 @@ jobs:
         shell: bash
         run: |
           mvn clean install -B -Dquickly -Dversion.ai.timefold.solver=${{ github.event.inputs.baseline }} -Dversion.tools.provider="${{ github.event.inputs.async_profiler_version }}"
-          mv target/benchmarks.jar benchmarks-baseline.jar
+          mv target/benchmarks.jar ../benchmarks-baseline.jar
 
       - name: (SUT) Checkout timefold-solver
         uses: actions/checkout@v4
@@ -129,15 +129,15 @@ jobs:
         shell: bash
         run: |
           mvn clean install -B -Dquickly -Dversion.tools.provider="${{ github.event.inputs.async_profiler_version }}"
-          mv target/benchmarks.jar benchmarks-sut.jar
+          mv target/benchmarks.jar ../benchmarks-sut.jar
 
       - name: Upload the binaries
         uses: actions/upload-artifact@v4
         with:
           name: binaries-${{ matrix.example }}
           path: |
-            ./timefold-solver-benchmarks/benchmarks-baseline.jar
-            ./timefold-solver-benchmarks/benchmarks-sut.jar
+            ./benchmarks-baseline.jar
+            ./benchmarks-sut.jar
           if-no-files-found: error
 
   benchmark:
