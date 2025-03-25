@@ -59,7 +59,7 @@ jobs:
         with:
           repository: TimefoldAI/timefold-solver-benchmarks
           path: ./timefold-solver-benchmarks
-          ref: main
+          ref: main # Assume the version of main is compatible with the tagged Solver.
 
       - name: Setup JDK and Maven
         uses: actions/setup-java@v4
