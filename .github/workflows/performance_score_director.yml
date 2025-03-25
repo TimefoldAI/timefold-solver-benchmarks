@@ -113,6 +113,16 @@ jobs:
         shell: bash
         run: mvn -B -Dquickly clean install
 
+      # Sometimes changes may be incompatible with the tag.
+      # If the branch doesn't exist, we assume that the changes are compatible and move on.
+      - name: (SUT) Checkout timefold-solver-benchmarks
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          repository: TimefoldAI/timefold-solver-benchmarks
+          path: ./timefold-solver-benchmarks
+          ref: ${{ github.event.inputs.branch }}
+
       - name: (SUT) Compile the benchmarks
         working-directory: ./timefold-solver-benchmarks
         shell: bash
