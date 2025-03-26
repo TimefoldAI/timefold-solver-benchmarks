@@ -46,7 +46,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
     private final Solution_ originalSolution;
 
     private InnerScoreDirector<Solution_, ?> scoreDirector;
-    private MoveDirector<Solution_> moveDirector;
+    private MoveDirector<Solution_, ?> moveDirector;
     private MoveSelector<Solution_> moveSelector;
     private Iterator<ai.timefold.solver.core.impl.heuristic.move.Move<Solution_>> moveIterator;
     private LocalSearchPhaseScope<Solution_> phaseScope;
@@ -182,7 +182,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
     @Override
     public final Object runInvocation() {
         if (willUndo) {
-            return moveDirector.executeTemporary(move, (moveDirector, score) -> score);
+            return moveDirector.executeTemporary(move);
         } else {  // Do the move without any undo.
             moveDirector.execute(move);
             return scoreDirector.calculateScore();
