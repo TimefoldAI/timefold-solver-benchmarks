@@ -20,7 +20,6 @@ import ai.timefold.solver.core.impl.localsearch.decider.LocalSearchDecider;
 import ai.timefold.solver.core.impl.localsearch.scope.LocalSearchPhaseScope;
 import ai.timefold.solver.core.impl.localsearch.scope.LocalSearchStepScope;
 import ai.timefold.solver.core.impl.move.MoveRepository;
-import ai.timefold.solver.core.impl.move.director.MoveDirector;
 import ai.timefold.solver.core.impl.score.constraint.ConstraintMatchPolicy;
 import ai.timefold.solver.core.impl.score.director.InnerScoreDirector;
 import ai.timefold.solver.core.impl.score.director.InnerScoreDirectorFactory;
@@ -45,7 +44,6 @@ abstract class AbstractProblem<Solution_> implements Problem {
     private final Solution_ originalSolution;
 
     private InnerScoreDirector<Solution_, ?> scoreDirector;
-    private MoveDirector<Solution_, ?> moveDirector;
     private MoveRepository<Solution_> moveRepository;
     private Iterator<Move<Solution_>> moveIterator;
     private LocalSearchPhaseScope<Solution_> phaseScope;
@@ -126,9 +124,10 @@ abstract class AbstractProblem<Solution_> implements Problem {
         var constraintMatchPolicy =
                 scoreDirectorType == ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED ? ConstraintMatchPolicy.ENABLED
                         : ConstraintMatchPolicy.DISABLED;
-        scoreDirector = scoreDirectorFactory.buildScoreDirector(false, constraintMatchPolicy);
-        moveDirector = new MoveDirector<>(scoreDirector);
         moveRepository = buildMoveRepository(solutionDescriptor);
+        scoreDirector = scoreDirectorFactory.createScoreDirectorBuilder()
+                .withConstraintMatchPolicy(constraintMatchPolicy)
+                .build();
     }
 
     @Override
