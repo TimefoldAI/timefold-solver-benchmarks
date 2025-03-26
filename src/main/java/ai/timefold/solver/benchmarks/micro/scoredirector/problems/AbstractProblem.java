@@ -15,12 +15,11 @@ import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
 import ai.timefold.solver.core.config.solver.EnvironmentMode;
 import ai.timefold.solver.core.config.solver.SolverConfig;
 import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
-import ai.timefold.solver.core.impl.heuristic.move.LegacyMoveAdapter;
-import ai.timefold.solver.core.impl.heuristic.selector.move.MoveSelector;
 import ai.timefold.solver.core.impl.localsearch.DefaultLocalSearchPhase;
 import ai.timefold.solver.core.impl.localsearch.decider.LocalSearchDecider;
 import ai.timefold.solver.core.impl.localsearch.scope.LocalSearchPhaseScope;
 import ai.timefold.solver.core.impl.localsearch.scope.LocalSearchStepScope;
+import ai.timefold.solver.core.impl.move.MoveRepository;
 import ai.timefold.solver.core.impl.move.director.MoveDirector;
 import ai.timefold.solver.core.impl.score.constraint.ConstraintMatchPolicy;
 import ai.timefold.solver.core.impl.score.director.InnerScoreDirector;
@@ -47,8 +46,8 @@ abstract class AbstractProblem<Solution_> implements Problem {
 
     private InnerScoreDirector<Solution_, ?> scoreDirector;
     private MoveDirector<Solution_, ?> moveDirector;
-    private MoveSelector<Solution_> moveSelector;
-    private Iterator<ai.timefold.solver.core.impl.heuristic.move.Move<Solution_>> moveIterator;
+    private MoveRepository<Solution_> moveRepository;
+    private Iterator<Move<Solution_>> moveIterator;
     private LocalSearchPhaseScope<Solution_> phaseScope;
     private LocalSearchStepScope<Solution_> stepScope;
     private Move<Solution_> move;
@@ -98,7 +97,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
 
     abstract protected String getDatasetName();
 
-    protected MoveSelector<Solution_> buildMoveSelector(SolutionDescriptor<Solution_> solutionDescriptor) {
+    protected MoveRepository<Solution_> buildMoveRepository(SolutionDescriptor<Solution_> solutionDescriptor) {
         // Build the top-level local search move selector as the solver would've built it.
         var solverConfig = new SolverConfig()
                 .withEnvironmentMode(EnvironmentMode.PHASE_ASSERT)
@@ -116,7 +115,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
                     .orElseThrow(() -> new IllegalStateException("MoveSelectorFactory field not found"));
             deciderField.setAccessible(true);
             var decider = (LocalSearchDecider<Solution_>) deciderField.get(localSearchPhase);
-            return decider.getMoveSelector();
+            return decider.getMoveRepository();
         } catch (Exception e) {
             throw new IllegalStateException("Failed to extract MoveSelector from LocalSearchPhase", e);
         }
@@ -129,7 +128,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
                         : ConstraintMatchPolicy.DISABLED;
         scoreDirector = scoreDirectorFactory.buildScoreDirector(false, constraintMatchPolicy);
         moveDirector = new MoveDirector<>(scoreDirector);
-        moveSelector = buildMoveSelector(solutionDescriptor);
+        moveRepository = buildMoveRepository(solutionDescriptor);
     }
 
     @Override
@@ -142,21 +141,21 @@ abstract class AbstractProblem<Solution_> implements Problem {
         var solverScope = new SolverScope<Solution_>();
         solverScope.setScoreDirector(scoreDirector);
         solverScope.setWorkingRandom(new Random(0)); // Fully reproducible random selection.
-        moveSelector.solvingStarted(solverScope);
+        moveRepository.solvingStarted(solverScope);
         phaseScope = new LocalSearchPhaseScope<>(solverScope, 0);
-        moveSelector.phaseStarted(phaseScope);
+        moveRepository.phaseStarted(phaseScope);
     }
 
     @Override
     public final void setupInvocation() {
         if (stepScope == null) {
             stepScope = new LocalSearchStepScope<>(phaseScope);
-            moveSelector.stepStarted(stepScope);
-            moveIterator = moveSelector.iterator();
+            moveRepository.stepStarted(stepScope);
+            moveIterator = moveRepository.iterator();
         }
         // Only undo every nth move; undo means the end of the step.
         willUndo = (invocationCount % MOVES_BEFORE_UNDO) < (MOVES_BEFORE_UNDO - 1);
-        move = new LegacyMoveAdapter<>(moveIterator.next());
+        move = moveIterator.next();
     }
 
     /**
@@ -182,9 +181,9 @@ abstract class AbstractProblem<Solution_> implements Problem {
     @Override
     public final Object runInvocation() {
         if (willUndo) {
-            return moveDirector.executeTemporary(move);
-        } else {  // Do the move without any undo.
-            moveDirector.execute(move);
+            return scoreDirector.executeTemporaryMove(move, false);
+        } else {
+            scoreDirector.executeMove(move);
             return scoreDirector.calculateScore();
         }
     }
@@ -198,7 +197,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
     }
 
     private void endStep() {
-        moveSelector.stepEnded(stepScope);
+        moveRepository.stepEnded(stepScope);
         stepScope = null;
     }
 
