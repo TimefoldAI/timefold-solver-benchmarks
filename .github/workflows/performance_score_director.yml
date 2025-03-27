@@ -229,9 +229,9 @@ jobs:
         shell: bash
         run: |
           mv results/scoredirector/${{ env.SANITIZED_BASELINE }} .
-          mv ${{ env.SANITIZED_BASELINE }}/combined.jfr ${{ env.SANITIZED_BASELINE }}/${{ matrix.example }}-${{ github.event.inputs.baseline }}-combined.jfr 
+          mv ${{ env.SANITIZED_BASELINE }}/combined.jfr ${{ env.SANITIZED_BASELINE }}/${{ matrix.example }}-${{ env.SANITIZED_BASELINE }}-combined.jfr 
           mv results/scoredirector/${{ github.event.inputs.branch }} .
-          mv ${{ env.SANITIZED_BRANCH }}/combined.jfr ${{ env.SANITIZED_BRANCH }}/${{ matrix.example }}-${{ github.event.inputs.branch }}-combined.jfr 
+          mv ${{ env.SANITIZED_BRANCH }}/combined.jfr ${{ env.SANITIZED_BRANCH }}/${{ matrix.example }}-${{ env.SANITIZED_BRANCH }}-combined.jfr 
 
       - name: Archive benchmark data
         uses: actions/upload-artifact@v4
