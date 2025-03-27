@@ -145,8 +145,8 @@ jobs:
         run: |
           rm -rf timefold-solver-benchmarks
           # Github expressions can't do this, so we need to hack this in shell.
-          echo "SANITIZED_BASELINE=${${{ github.event.inputs.baseline }}/\//-}" >> $GITHUB_ENV
-          echo "SANITIZED_BRANCH=${${{ github.event.inputs.branch }}/\//-}" >> $GITHUB_ENV
+          echo "SANITIZED_BASELINE=$(echo "${{ github.event.inputs.baseline }}" | sed 's/\\/\-/g')" >> $GITHUB_ENV
+          echo "SANITIZED_BRANCH=$(echo "${{ github.event.inputs.branch }}" | sed 's/\\/\-/g')" >> $GITHUB_ENV
 
       - name: Checkout timefold-solver-benchmarks
         uses: actions/checkout@v4
