@@ -144,6 +144,9 @@ jobs:
         shell: bash
         run: |
           rm -rf timefold-solver-benchmarks
+          # Github expressions can't do this, so we need to hack this in shell.
+          echo "SANITIZED_BASELINE=${${{ github.event.inputs.baseline }}/\//-}" >> $GITHUB_ENV
+          echo "SANITIZED_BRANCH=${${{ github.event.inputs.branch }}/\//-}" >> $GITHUB_ENV
 
       - name: Checkout timefold-solver-benchmarks
         uses: actions/checkout@v4
@@ -191,14 +194,14 @@ jobs:
         working-directory: ./timefold-solver-benchmarks
         id: benchmark_baseline
         env:
-          RUN_ID: ${{ github.event.inputs.baseline }}
+          RUN_ID: ${{ env.SANITIZED_BASELINE }}
         shell: bash
         run: |
           cp benchmarks-baseline.jar target/benchmarks.jar
           ./run-scoredirector.sh
-          echo "RANGE_START=$(jq '.[0].primaryMetric.scoreConfidence[0]|round' results/scoredirector/${{ github.event.inputs.baseline }}/results.json)" >> "$GITHUB_OUTPUT"
-          echo "RANGE_END=$(jq '.[0].primaryMetric.scoreConfidence[1]|round' results/scoredirector/${{ github.event.inputs.baseline }}/results.json)" >> "$GITHUB_OUTPUT"
-          echo "RANGE_MID=$(jq '.[0].primaryMetric.score|round' results/scoredirector/${{ github.event.inputs.baseline }}/results.json)" >> "$GITHUB_OUTPUT"
+          echo "RANGE_START=$(jq '.[0].primaryMetric.scoreConfidence[0]|round' results/scoredirector/${{ env.RUN_ID }}/results.json)" >> "$GITHUB_OUTPUT"
+          echo "RANGE_END=$(jq '.[0].primaryMetric.scoreConfidence[1]|round' results/scoredirector/${{ env.RUN_ID }}/results.json)" >> "$GITHUB_OUTPUT"
+          echo "RANGE_MID=$(jq '.[0].primaryMetric.score|round' results/scoredirector/${{ env.RUN_ID }}/results.json)" >> "$GITHUB_OUTPUT"
 
       - name: (SUT) Setup JDK and Maven
         uses: actions/setup-java@v4
@@ -211,39 +214,39 @@ jobs:
         id: benchmark_sut
         working-directory: ./timefold-solver-benchmarks
         env:
-          RUN_ID: ${{ github.event.inputs.branch }}
+          RUN_ID: ${{ env.SANITIZED_BRANCH }}
         shell: bash
         run: |
           rm target/benchmarks.jar
           cp benchmarks-sut.jar target/benchmarks.jar
           ./run-scoredirector.sh
-          echo "RANGE_START=$(jq '.[0].primaryMetric.scoreConfidence[0]|round' results/scoredirector/${{ github.event.inputs.branch }}/results.json)" >> "$GITHUB_OUTPUT"
-          echo "RANGE_END=$(jq '.[0].primaryMetric.scoreConfidence[1]|round' results/scoredirector/${{ github.event.inputs.branch }}/results.json)" >> "$GITHUB_OUTPUT"
-          echo "RANGE_MID=$(jq '.[0].primaryMetric.score|round' results/scoredirector/${{ github.event.inputs.branch }}/results.json)" >> "$GITHUB_OUTPUT"
+          echo "RANGE_START=$(jq '.[0].primaryMetric.scoreConfidence[0]|round' results/scoredirector/${{ env.RUN_ID }}/results.json)" >> "$GITHUB_OUTPUT"
+          echo "RANGE_END=$(jq '.[0].primaryMetric.scoreConfidence[1]|round' results/scoredirector/${{ env.RUN_ID }}/results.json)" >> "$GITHUB_OUTPUT"
+          echo "RANGE_MID=$(jq '.[0].primaryMetric.score|round' results/scoredirector/${{ env.RUN_ID }}/results.json)" >> "$GITHUB_OUTPUT"
 
       - name: Clean up the data
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
-          mv results/scoredirector/${{ github.event.inputs.baseline }} .
-          mv ${{ github.event.inputs.baseline }}/combined.jfr ${{ github.event.inputs.baseline }}/${{ matrix.example }}-${{ github.event.inputs.baseline }}-combined.jfr 
+          mv results/scoredirector/${{ env.SANITIZED_BASELINE }} .
+          mv ${{ env.SANITIZED_BASELINE }}/combined.jfr ${{ env.SANITIZED_BASELINE }}/${{ matrix.example }}-${{ github.event.inputs.baseline }}-combined.jfr 
           mv results/scoredirector/${{ github.event.inputs.branch }} .
-          mv ${{ github.event.inputs.branch }}/combined.jfr ${{ github.event.inputs.branch }}/${{ matrix.example }}-${{ github.event.inputs.branch }}-combined.jfr 
+          mv ${{ env.SANITIZED_BRANCH }}/combined.jfr ${{ env.SANITIZED_BRANCH }}/${{ matrix.example }}-${{ github.event.inputs.branch }}-combined.jfr 
 
       - name: Archive benchmark data
         uses: actions/upload-artifact@v4
         with:
-          name: results-${{ matrix.example }}-${{ github.event.inputs.baseline }}_vs_${{ github.event.inputs.branch }}
+          name: results-${{ matrix.example }}-${{ env.SANITIZED_BASELINE }}_vs_${{ env.SANITIZED_BRANCH }}
           path: |
             ./timefold-solver-benchmarks/scoredirector-benchmark.properties
-            ./timefold-solver-benchmarks/${{ github.event.inputs.baseline }}/*.log
-            ./timefold-solver-benchmarks/${{ github.event.inputs.baseline }}/*combined.jfr
-            ./timefold-solver-benchmarks/${{ github.event.inputs.baseline }}/*.html
-            ./timefold-solver-benchmarks/${{ github.event.inputs.baseline }}/*.json
-            ./timefold-solver-benchmarks/${{ github.event.inputs.branch }}/*.log
-            ./timefold-solver-benchmarks/${{ github.event.inputs.branch }}/*combined.jfr
-            ./timefold-solver-benchmarks/${{ github.event.inputs.branch }}/*.html
-            ./timefold-solver-benchmarks/${{ github.event.inputs.branch }}/*.json
+            ./timefold-solver-benchmarks/${{ env.SANITIZED_BASELINE }}/*.log
+            ./timefold-solver-benchmarks/${{ env.SANITIZED_BASELINE }}/*combined.jfr
+            ./timefold-solver-benchmarks/${{ env.SANITIZED_BASELINE }}/*.html
+            ./timefold-solver-benchmarks/${{ env.SANITIZED_BASELINE }}/*.json
+            ./timefold-solver-benchmarks/${{ env.SANITIZED_BRANCH }}/*.log
+            ./timefold-solver-benchmarks/${{ env.SANITIZED_BRANCH }}/*combined.jfr
+            ./timefold-solver-benchmarks/${{ env.SANITIZED_BRANCH }}/*.html
+            ./timefold-solver-benchmarks/${{ env.SANITIZED_BRANCH }}/*.json
 
       - name: Report results
         working-directory: ./timefold-solver-benchmarks
