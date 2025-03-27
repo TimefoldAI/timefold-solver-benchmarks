@@ -144,7 +144,7 @@ jobs:
         shell: bash
         run: |
           rm -rf timefold-solver-benchmarks
-          # Github expressions can't do this, so we need to hack this in shell.
+          # GitHub expressions can't do this, so we need to hack this in shell.
           echo "SANITIZED_BASELINE=$(echo "${{ github.event.inputs.baseline }}" | sed 's/\//\-/g')" >> $GITHUB_ENV
           echo "SANITIZED_BRANCH=$(echo "${{ github.event.inputs.branch }}" | sed 's/\//\-/g')" >> $GITHUB_ENV
 
