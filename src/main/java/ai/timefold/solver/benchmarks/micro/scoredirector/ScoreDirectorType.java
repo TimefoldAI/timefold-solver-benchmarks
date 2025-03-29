@@ -7,10 +7,11 @@ import ai.timefold.solver.benchmarks.micro.scoredirector.jmh.ConstraintStreamsBe
 import ai.timefold.solver.benchmarks.micro.scoredirector.jmh.ConstraintStreamsJustifiedBenchmark;
 import ai.timefold.solver.benchmarks.micro.scoredirector.jmh.EasyBenchmark;
 import ai.timefold.solver.benchmarks.micro.scoredirector.jmh.IncrementalBenchmark;
+import ai.timefold.solver.core.api.score.Score;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
 import ai.timefold.solver.core.config.solver.EnvironmentMode;
 import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
-import ai.timefold.solver.core.impl.score.director.InnerScoreDirectorFactory;
+import ai.timefold.solver.core.impl.score.director.ScoreDirectorFactory;
 import ai.timefold.solver.core.impl.score.director.ScoreDirectorFactoryFactory;
 
 /**
@@ -39,10 +40,9 @@ public enum ScoreDirectorType implements Comparable<ScoreDirectorType> {
         return benchmarkParamName;
     }
 
-    public static <Solution_> InnerScoreDirectorFactory<Solution_, ?> buildScoreDirectorFactory(
+    public static <Solution_, Score_ extends Score<Score_>> ScoreDirectorFactory<Solution_, Score_> buildScoreDirectorFactory(
             ScoreDirectorFactoryConfig scoreDirectorFactoryConfig, SolutionDescriptor<Solution_> solutionDescriptor) {
-        ScoreDirectorFactoryFactory<Solution_, ?> scoreDirectorFactoryFactory =
-                new ScoreDirectorFactoryFactory<>(scoreDirectorFactoryConfig);
+        var scoreDirectorFactoryFactory = new ScoreDirectorFactoryFactory<Solution_, Score_>(scoreDirectorFactoryConfig);
         return scoreDirectorFactoryFactory.buildScoreDirectorFactory(EnvironmentMode.PHASE_ASSERT, solutionDescriptor);
     }
 

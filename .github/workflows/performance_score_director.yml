@@ -59,6 +59,7 @@ jobs:
         with:
           repository: TimefoldAI/timefold-solver-benchmarks
           path: ./timefold-solver-benchmarks
+          ref: main # Assume the version of main is compatible with the tagged Solver.
 
       - name: Setup JDK and Maven
         uses: actions/setup-java@v4
@@ -75,7 +76,7 @@ jobs:
         shell: bash
         run: |
           mvn clean install -B -Dquickly -Dversion.ai.timefold.solver=${{ github.event.inputs.baseline }} -Dversion.tools.provider="${{ github.event.inputs.async_profiler_version }}"
-          mv target/benchmarks.jar benchmarks-baseline.jar
+          mv target/benchmarks.jar ../benchmarks-baseline.jar
 
       - name: (SUT) Checkout timefold-solver
         uses: actions/checkout@v4
@@ -113,20 +114,30 @@ jobs:
         shell: bash
         run: mvn -B -Dquickly clean install
 
+      # Sometimes changes may be incompatible with the tag.
+      # If the branch doesn't exist, we assume that the changes are compatible and move on.
+      - name: (SUT) Checkout timefold-solver-benchmarks
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          repository: TimefoldAI/timefold-solver-benchmarks
+          path: ./timefold-solver-benchmarks
+          ref: ${{ github.event.inputs.branch }}
+
       - name: (SUT) Compile the benchmarks
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
           mvn clean install -B -Dquickly -Dversion.tools.provider="${{ github.event.inputs.async_profiler_version }}"
-          mv target/benchmarks.jar benchmarks-sut.jar
+          mv target/benchmarks.jar ../benchmarks-sut.jar
 
       - name: Upload the binaries
         uses: actions/upload-artifact@v4
         with:
           name: binaries-${{ matrix.example }}
           path: |
-            ./timefold-solver-benchmarks/benchmarks-baseline.jar
-            ./timefold-solver-benchmarks/benchmarks-sut.jar
+            ./benchmarks-baseline.jar
+            ./benchmarks-sut.jar
           if-no-files-found: error
 
   benchmark:
