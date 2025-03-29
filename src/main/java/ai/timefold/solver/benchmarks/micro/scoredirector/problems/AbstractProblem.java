@@ -22,7 +22,7 @@ import ai.timefold.solver.core.impl.localsearch.scope.LocalSearchStepScope;
 import ai.timefold.solver.core.impl.move.MoveRepository;
 import ai.timefold.solver.core.impl.score.constraint.ConstraintMatchPolicy;
 import ai.timefold.solver.core.impl.score.director.InnerScoreDirector;
-import ai.timefold.solver.core.impl.score.director.InnerScoreDirectorFactory;
+import ai.timefold.solver.core.impl.score.director.ScoreDirectorFactory;
 import ai.timefold.solver.core.impl.solver.DefaultSolver;
 import ai.timefold.solver.core.impl.solver.scope.SolverScope;
 import ai.timefold.solver.core.preview.api.move.Move;
@@ -40,7 +40,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
     private final Example example;
     private final SolutionDescriptor<Solution_> solutionDescriptor;
     private final ScoreDirectorType scoreDirectorType;
-    private final InnerScoreDirectorFactory<Solution_, ?> scoreDirectorFactory;
+    private final ScoreDirectorFactory<Solution_, ?> scoreDirectorFactory;
     private final Solution_ originalSolution;
 
     private InnerScoreDirector<Solution_, ?> scoreDirector;
