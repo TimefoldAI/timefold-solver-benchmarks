@@ -72,22 +72,22 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                 var datasetName = dataset.name();
                 var communityInnerScore = communityResult.score();
                 var communityRuntime = communityResult.runtime().toMillis();
-                var communityGap = computeGap(dataset, communityInnerScore.score());
+                var communityGap = computeGap(dataset, communityInnerScore.initialized());
                 var communityHealth = determineHealth(dataset, communityInnerScore, communityResult.runtime());
                 var enterpriseInnerScore = enterpriseResult.score();
                 var enterpriseRuntime = enterpriseResult.runtime().toMillis();
-                var enterpriseTweakedGap = computeGap(dataset, enterpriseInnerScore.score());
+                var enterpriseTweakedGap = computeGap(dataset, enterpriseInnerScore.initialized());
                 var enterpriseHealth = determineHealth(dataset, enterpriseInnerScore, enterpriseResult.runtime());
                 result.append(line.formatted(
                         quote(datasetName),
                         communityResult.locationCount(),
                         communityResult.vehicleCount(),
                         roundToOneDecimal(dataset.getBestKnownDistance()),
-                        roundToOneDecimal(extractDistance(dataset, communityInnerScore.score())),
+                        roundToOneDecimal(extractDistance(dataset, communityInnerScore.initialized())),
                         communityRuntime,
                         communityGap,
                         quote(communityHealth),
-                        roundToOneDecimal(extractDistance(dataset, enterpriseInnerScore.score())),
+                        roundToOneDecimal(extractDistance(dataset, enterpriseInnerScore.initialized())),
                         enterpriseRuntime,
                         enterpriseTweakedGap,
                         quote(enterpriseHealth)));
@@ -153,7 +153,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         if (!actualInnerScore.isInitialized()) {
             return "Uninitialized.";
         }
-        var actualScore = actualInnerScore.score();
+        var actualScore = actualInnerScore.initialized();
         if (!actualScore.isFeasible()) {
             return "Infeasible.";
         }
