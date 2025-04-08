@@ -150,7 +150,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
     }
 
     private String determineHealth(Dataset_ dataset, InnerScore<Score_> actualInnerScore, Duration runTime, boolean addGap) {
-        if (!actualInnerScore.isInitialized()) {
+        if (!actualInnerScore.fullyAssigned()) {
             return "Uninitialized.";
         }
         var actualScore = actualInnerScore.raw();
@@ -200,8 +200,8 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         var solutionDescriptor = ((DefaultSolverFactory<Solution_>) solverFactory).getSolutionDescriptor();
         var initializationStatistics = solutionDescriptor.computeInitializationStatistics(bestSolution);
         var actualDistance = extractScore(bestSolution);
-        var innerScore = initializationStatistics.isInitialized() ? InnerScore.of(actualDistance)
-                : InnerScore.ofUninitialized(actualDistance, initializationStatistics.getInitCount());
+        var innerScore = initializationStatistics.isInitialized() ? InnerScore.fullyAssigned(actualDistance)
+                : InnerScore.withUnassignedCount(actualDistance, initializationStatistics.getInitCount());
         var runtime = Duration.ofNanos(System.nanoTime() - nanotime);
         var health = determineHealth(dataset, innerScore, runtime, true);
         LOGGER.info("Solved {} in {} ms with a distance of {}; verdict: {}", dataset.name(), runtime.toMillis(),
