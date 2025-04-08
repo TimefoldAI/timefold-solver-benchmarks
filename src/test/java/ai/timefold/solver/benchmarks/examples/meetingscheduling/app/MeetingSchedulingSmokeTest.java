@@ -20,6 +20,6 @@ class MeetingSchedulingSmokeTest extends SolverSmokeTest<MeetingSchedule, HardMe
         return Stream.of(
                 TestData.of(UNSOLVED_DATA_FILE,
                         HardMediumSoftScore.of(-29, -344, -9227),
-                        HardMediumSoftScore.ofUninitialized(-20, -116, -143, -5094)));
+                        HardMediumSoftScore.of(-116, -143, -5094)));
     }
 }

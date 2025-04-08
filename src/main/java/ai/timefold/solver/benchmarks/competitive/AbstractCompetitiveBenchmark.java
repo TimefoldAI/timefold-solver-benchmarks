@@ -19,6 +19,8 @@ import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutio
 import ai.timefold.solver.core.api.score.Score;
 import ai.timefold.solver.core.api.solver.SolverFactory;
 import ai.timefold.solver.core.config.solver.SolverConfig;
+import ai.timefold.solver.core.impl.score.director.InnerScore;
+import ai.timefold.solver.core.impl.solver.DefaultSolverFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,24 +70,24 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                 var enterpriseResult = enterpriseResultList.get(dataset);
 
                 var datasetName = dataset.name();
-                var communityScore = communityResult.score();
+                var communityInnerScore = communityResult.score();
                 var communityRuntime = communityResult.runtime().toMillis();
-                var communityGap = computeGap(dataset, communityScore);
-                var communityHealth = determineHealth(dataset, communityScore, communityResult.runtime());
-                var enterpriseScore = enterpriseResult.score();
+                var communityGap = computeGap(dataset, communityInnerScore.raw());
+                var communityHealth = determineHealth(dataset, communityInnerScore, communityResult.runtime());
+                var enterpriseInnerScore = enterpriseResult.score();
                 var enterpriseRuntime = enterpriseResult.runtime().toMillis();
-                var enterpriseTweakedGap = computeGap(dataset, enterpriseScore);
-                var enterpriseHealth = determineHealth(dataset, enterpriseScore, enterpriseResult.runtime());
+                var enterpriseTweakedGap = computeGap(dataset, enterpriseInnerScore.raw());
+                var enterpriseHealth = determineHealth(dataset, enterpriseInnerScore, enterpriseResult.runtime());
                 result.append(line.formatted(
                         quote(datasetName),
                         communityResult.locationCount(),
                         communityResult.vehicleCount(),
                         roundToOneDecimal(dataset.getBestKnownDistance()),
-                        roundToOneDecimal(extractDistance(dataset, communityScore)),
+                        roundToOneDecimal(extractDistance(dataset, communityInnerScore.raw())),
                         communityRuntime,
                         communityGap,
                         quote(communityHealth),
-                        roundToOneDecimal(extractDistance(dataset, enterpriseScore)),
+                        roundToOneDecimal(extractDistance(dataset, enterpriseInnerScore.raw())),
                         enterpriseRuntime,
                         enterpriseTweakedGap,
                         quote(enterpriseHealth)));
@@ -143,18 +145,20 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                 .divide(bestKnownDistance, 4, RoundingMode.HALF_EVEN);
     }
 
-    private String determineHealth(Dataset_ dataset, Score_ actual, Duration runTime) {
+    private String determineHealth(Dataset_ dataset, InnerScore<Score_> actual, Duration runTime) {
         return determineHealth(dataset, actual, runTime, false);
     }
 
-    private String determineHealth(Dataset_ dataset, Score_ actual, Duration runTime, boolean addGap) {
-        if (!actual.isSolutionInitialized()) {
+    private String determineHealth(Dataset_ dataset, InnerScore<Score_> actualInnerScore, Duration runTime, boolean addGap) {
+        if (!actualInnerScore.fullyAssigned()) {
             return "Uninitialized.";
-        } else if (!actual.isFeasible()) {
+        }
+        var actualScore = actualInnerScore.raw();
+        if (!actualScore.isFeasible()) {
             return "Infeasible.";
         }
         var bestKnownDistance = dataset.getBestKnownDistance();
-        var actualDistance = extractDistance(dataset, actual);
+        var actualDistance = extractDistance(dataset, actualScore);
         var comparison = actualDistance.compareTo(bestKnownDistance);
         if (comparison == 0) {
             return "Optimal.";
@@ -163,7 +167,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                     .formatted(roundToOneDecimal(bestKnownDistance.subtract(actualDistance).doubleValue()));
         } else {
             var cutoff = MAX_SECONDS * 1000 - 100; // Give some leeway before declaring flat line.
-            var gapString = addGap ? (" " + getGapString(dataset, actual)) : "";
+            var gapString = addGap ? (" " + getGapString(dataset, actualScore)) : "";
             if (runTime.toMillis() < cutoff) {
                 var actualRunTime = (int) Math.round((runTime.toMillis() - (UNIMPROVED_SECONDS_TERMINATION * 1000)) / 1000.0);
                 return "Flatlined after ~" + actualRunTime + " s." + gapString;
@@ -193,12 +197,16 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         LOGGER.info("Started {} ({} / {}), ~{} minute(s) remain in {}.", dataset.name(), dataset.ordinal() + 1,
                 totalDatasetCount, minutesRemaining, configuration.name());
         var bestSolution = solver.solve(solution);
-        var runtime = Duration.ofNanos(System.nanoTime() - nanotime);
+        var solutionDescriptor = ((DefaultSolverFactory<Solution_>) solverFactory).getSolutionDescriptor();
+        var initializationStatistics = solutionDescriptor.computeInitializationStatistics(bestSolution);
         var actualDistance = extractScore(bestSolution);
-        var health = determineHealth(dataset, actualDistance, runtime, true);
+        var innerScore = initializationStatistics.isInitialized() ? InnerScore.fullyAssigned(actualDistance)
+                : InnerScore.withUnassignedCount(actualDistance, initializationStatistics.getInitCount());
+        var runtime = Duration.ofNanos(System.nanoTime() - nanotime);
+        var health = determineHealth(dataset, innerScore, runtime, true);
         LOGGER.info("Solved {} in {} ms with a distance of {}; verdict: {}", dataset.name(), runtime.toMillis(),
                 roundToOneDecimal(extractDistance(dataset, actualDistance)), health);
-        return new Result<>(dataset, actualDistance, countLocations(bestSolution) + 1, countVehicles(bestSolution), runtime);
+        return new Result<>(dataset, innerScore, countLocations(bestSolution) + 1, countVehicles(bestSolution), runtime);
     }
 
 }
