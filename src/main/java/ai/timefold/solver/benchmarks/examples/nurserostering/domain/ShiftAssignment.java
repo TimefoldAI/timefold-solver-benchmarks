@@ -7,14 +7,13 @@ import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
 import ai.timefold.solver.benchmarks.examples.nurserostering.domain.contract.Contract;
 import ai.timefold.solver.benchmarks.examples.nurserostering.domain.solver.EmployeeStrengthComparator;
 import ai.timefold.solver.benchmarks.examples.nurserostering.domain.solver.ShiftAssignmentDifficultyComparator;
-import ai.timefold.solver.benchmarks.examples.nurserostering.domain.solver.ShiftAssignmentPinningFilter;
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
+import ai.timefold.solver.core.api.domain.entity.PlanningPin;
 import ai.timefold.solver.core.api.domain.variable.PlanningVariable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-@PlanningEntity(pinningFilter = ShiftAssignmentPinningFilter.class,
-        difficultyComparatorClass = ShiftAssignmentDifficultyComparator.class)
+@PlanningEntity(difficultyComparatorClass = ShiftAssignmentDifficultyComparator.class)
 public class ShiftAssignment extends AbstractPersistable implements Comparable<ShiftAssignment> {
 
     private static final Comparator<Shift> COMPARATOR =
@@ -22,14 +21,16 @@ public class ShiftAssignment extends AbstractPersistable implements Comparable<S
                     .thenComparing(a -> a.getShiftType().getStartTimeString())
                     .thenComparing(a -> a.getShiftType().getEndTimeString());
 
+    @PlanningPin
+    private boolean pinned;
+
     private Shift shift;
     private int indexInShift;
 
     public ShiftAssignment() {
     }
 
-    public ShiftAssignment(long id, Shift shift,
-            int indexInShift) {
+    public ShiftAssignment(long id, Shift shift, int indexInShift) {
         super(id);
         this.shift = shift;
         this.indexInShift = indexInShift;
@@ -38,6 +39,14 @@ public class ShiftAssignment extends AbstractPersistable implements Comparable<S
     // Planning variables: changes during planning, between score calculations.
     @PlanningVariable(strengthComparatorClass = EmployeeStrengthComparator.class)
     private Employee employee;
+
+    public boolean isPinned() {
+        return pinned;
+    }
+
+    public void setPinned(boolean pinned) {
+        this.pinned = pinned;
+    }
 
     public Shift getShift() {
         return shift;
