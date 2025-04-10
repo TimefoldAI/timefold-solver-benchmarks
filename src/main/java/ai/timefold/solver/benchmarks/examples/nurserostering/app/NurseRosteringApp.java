@@ -1,5 +1,6 @@
 package ai.timefold.solver.benchmarks.examples.nurserostering.app;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
@@ -18,7 +19,9 @@ public class NurseRosteringApp extends CommonApp<NurseRoster> {
     public static final String DATA_DIR_NAME = "nurserostering";
 
     public static void main(String[] args) {
-        var solution = new NurseRosteringApp().solve("medium_late01.json");
+        var app = new NurseRosteringApp();
+        var solution = app.solve("medium_late01.json");
+        app.createSolutionFileIO().write(solution, new File("medium_late01_initialized.json"));
         System.out.println("Done: " + solution);
     }
 

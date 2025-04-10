@@ -31,7 +31,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
  */
 public abstract class SolveAllTurtleTest<Solution_> extends LoggingTest {
 
-    interface ProblemFactory<Solution_> extends Function<File, Solution_> {
+    protected interface ProblemFactory<Solution_> extends Function<File, Solution_> {
 
         default Solution_ loadProblem(File f) {
             return apply(f);
