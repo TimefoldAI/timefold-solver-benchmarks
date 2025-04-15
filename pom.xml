@@ -15,6 +15,7 @@
 
     <properties>
         <version.ai.timefold.solver>999-SNAPSHOT</version.ai.timefold.solver>
+        <version.me.bechberger>3.0-9</version.me.bechberger>
         <version.org.jdom>2.0.6.1</version.org.jdom>
         <version.org.junit>5.10.2</version.org.junit>
         <version.org.mockito>5.11.0</version.org.mockito>
@@ -26,8 +27,6 @@
         <jmh.version>1.37</jmh.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <uberjar.name>benchmarks</uberjar.name>
-        <!-- Used to set a property in buildtime.properties, that will later be read by the JMH benchmark. -->
-        <version.tools.profiler>3.0</version.tools.profiler>
     </properties>
 
     <dependencyManagement>
@@ -55,9 +54,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>tools.profiler</groupId>
-            <artifactId>async-profiler-converter</artifactId>
-            <version>${version.tools.profiler}</version>
+            <groupId>me.bechberger</groupId>
+            <artifactId>ap-loader-all</artifactId>
+            <version>${version.me.bechberger}</version>
         </dependency>
         <dependency>
             <groupId>ai.timefold.solver.enterprise</groupId>

@@ -36,10 +36,6 @@ on:
         description: 'User owning the branch'
         default: 'TimefoldAI'
         required: true
-      async_profiler_version:
-        description: 'async-profiler version'
-        default: '3.0'
-        required: true
 
 run-name: "Timefold Solver v${{ github.event.inputs.baseline }} vs. ${{ github.event.inputs.branch_owner }}/${{ github.event.inputs.branch }} (Java ${{ github.event.inputs.jdk_baseline }} vs. ${{ github.event.inputs.jdk_branch }})"
 
@@ -75,7 +71,7 @@ jobs:
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
-          mvn clean install -B -Dquickly -Dversion.ai.timefold.solver=${{ github.event.inputs.baseline }} -Dversion.tools.provider="${{ github.event.inputs.async_profiler_version }}"
+          mvn clean install -B -Dquickly -Dversion.ai.timefold.solver=${{ github.event.inputs.baseline }}
           mv target/benchmarks.jar ../benchmarks-baseline.jar
 
       - name: (SUT) Checkout timefold-solver
@@ -128,7 +124,7 @@ jobs:
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
-          mvn clean install -B -Dquickly -Dversion.tools.provider="${{ github.event.inputs.async_profiler_version }}"
+          mvn clean install -B -Dquickly
           mv target/benchmarks.jar ../benchmarks-sut.jar
 
       - name: Upload the binaries
@@ -177,15 +173,6 @@ jobs:
         with:
           name: binaries-${{ matrix.example }}
           path: ./timefold-solver-benchmarks/
-
-      - name: Setup Async Profiler
-        working-directory: ./timefold-solver-benchmarks
-        run: |
-          export FILENAME=async-profiler-${{ github.event.inputs.async_profiler_version }}-linux-x64.tar.gz
-          wget https://github.com/async-profiler/async-profiler/releases/download/v${{ github.event.inputs.async_profiler_version }}/$FILENAME
-          tar -xzf $FILENAME 
-          mkdir target
-          ls -l
 
       # Fine-tuned for stability on GHA.
       - name: Configure the benchmark

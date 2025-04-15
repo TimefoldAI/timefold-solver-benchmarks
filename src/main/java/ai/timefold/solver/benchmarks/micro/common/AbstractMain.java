@@ -40,7 +40,6 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Properties;
 
 import org.openjdk.jmh.profile.AsyncProfiler;
 import org.openjdk.jmh.results.format.ResultFormatType;
@@ -48,6 +47,8 @@ import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import one.profiler.AsyncProfilerLoader;
 
 public abstract class AbstractMain<C extends AbstractConfiguration> {
 
@@ -83,19 +84,9 @@ public abstract class AbstractMain<C extends AbstractConfiguration> {
 
     protected static Optional<Path> getAsyncProfilerPath() {
         try {
-            var properties = new Properties();
-            properties.load(AbstractMain.class.getResourceAsStream("/buildtime.properties"));
-            var asyncProfilerPath = Path.of(
-                    properties.getProperty("async.profiler.path").trim(),
-                    "lib",
-                    "libasyncProfiler.so")
-                    .toAbsolutePath();
-            if (!asyncProfilerPath.toFile().exists()) {
-                return Optional.empty();
-            }
-            return Optional.of(asyncProfilerPath);
-        } catch (IOException e) {
-            STATIC_LOGGER.error("Failed reading buildtime.properties from the benchmarks JAR.", e);
+            return Optional.of(AsyncProfilerLoader.getAsyncProfilerPath());
+        } catch (Exception e) {
+            STATIC_LOGGER.error("Failed loading AsyncProfiler.", e);
             return Optional.empty();
         }
     }
@@ -153,10 +144,8 @@ public abstract class AbstractMain<C extends AbstractConfiguration> {
                         jfrFilePath.toString(),
                         Path.of(jfrFilePath.toAbsolutePath().getParent().toString(), type + ".html").toString()
                 };
-        try { // Converter is stupidly in the default package.
-            var fooClass = Class.forName("jfr2flame");
-            var fooMethod = fooClass.getMethod("main", String[].class);
-            fooMethod.invoke(null, (Object) args);
+        try {
+            one.converter.jfr2flame.main(args);
             STATIC_LOGGER.info("Generating flame graph succeeded: {}.", Arrays.toString(args));
         } catch (Exception ex) {
             STATIC_LOGGER.error("Generating flame graph failed: {}.", Arrays.toString(args), ex);

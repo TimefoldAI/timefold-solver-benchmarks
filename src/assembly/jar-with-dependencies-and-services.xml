@@ -36,7 +36,6 @@
             <filtered>true</filtered>
             <includes>
                 <include>logback.xml</include>
-                <include>buildtime.properties</include>
             </includes>
         </fileSet>
     </fileSets>
