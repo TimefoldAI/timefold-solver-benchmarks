@@ -22,7 +22,7 @@ on:
         required: true
       baseline:
         description: 'Timefold Solver release'
-        default: '1.20.1'
+        default: '1.21.0'
         required: true
       jdk_branch:
         description: 'JDK version'
@@ -237,11 +237,9 @@ jobs:
           name: results-${{ matrix.example }}-${{ env.SANITIZED_BASELINE }}_vs_${{ env.SANITIZED_BRANCH }}
           path: |
             ./timefold-solver-benchmarks/scoredirector-benchmark.properties
-            ./timefold-solver-benchmarks/${{ env.SANITIZED_BASELINE }}/*.log
             ./timefold-solver-benchmarks/${{ env.SANITIZED_BASELINE }}/*combined.jfr
             ./timefold-solver-benchmarks/${{ env.SANITIZED_BASELINE }}/*.html
             ./timefold-solver-benchmarks/${{ env.SANITIZED_BASELINE }}/*.json
-            ./timefold-solver-benchmarks/${{ env.SANITIZED_BRANCH }}/*.log
             ./timefold-solver-benchmarks/${{ env.SANITIZED_BRANCH }}/*combined.jfr
             ./timefold-solver-benchmarks/${{ env.SANITIZED_BRANCH }}/*.html
             ./timefold-solver-benchmarks/${{ env.SANITIZED_BRANCH }}/*.json
