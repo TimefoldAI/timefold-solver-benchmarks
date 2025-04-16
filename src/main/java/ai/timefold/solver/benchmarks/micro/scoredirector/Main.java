@@ -39,12 +39,8 @@ import ai.timefold.solver.benchmarks.micro.common.ResultCapturingJMHRunner;
 
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public final class Main extends AbstractMain<Configuration> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
     public Main() {
         super("scoredirector");
@@ -61,18 +57,21 @@ public final class Main extends AbstractMain<Configuration> {
     }
 
     public static void main(String[] args) throws RunnerException, IOException {
-        var main = new Main();
-        var configuration = main.readConfiguration();
-        var options = main.getBaseJmhConfig(configuration);
+        new Main().run(args);
+    }
+
+    public void run(String[] args) throws RunnerException, IOException {
+        var configuration = readConfiguration();
+        var options = getBaseJmhConfig(configuration);
         options = processBenchmark(options, configuration, ScoreDirectorType.CONSTRAINT_STREAMS);
         options = processBenchmark(options, configuration, ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED);
         options = processBenchmark(options, configuration, ScoreDirectorType.EASY);
         options = processBenchmark(options, configuration, ScoreDirectorType.INCREMENTAL);
-        options = main.initAsyncProfiler(options);
+        options = initAsyncProfiler(options);
 
-        var runner = new ResultCapturingJMHRunner(main.resultsDirectory, options.build());
+        var runner = new ResultCapturingJMHRunner(resultsDirectory, options.build());
         var runResults = runner.run();
-        main.convertJfrToFlameGraphs();
+        convertJfrToFlameGraphs();
 
         var relativeScoreErrorThreshold = configuration.getRelativeScoreErrorThreshold();
         var thresholdForPrint = ((int) Math.round(relativeScoreErrorThreshold * 10_000)) / 100.0D;
@@ -95,7 +94,7 @@ public final class Main extends AbstractMain<Configuration> {
         });
     }
 
-    private static ChainedOptionsBuilder processBenchmark(ChainedOptionsBuilder options, Configuration configuration,
+    private ChainedOptionsBuilder processBenchmark(ChainedOptionsBuilder options, Configuration configuration,
             ScoreDirectorType scoreDirectorType) {
         var supportedExampleNames = getSupportedExampleNames(configuration, scoreDirectorType);
         if (supportedExampleNames.length > 0) {
@@ -105,7 +104,7 @@ public final class Main extends AbstractMain<Configuration> {
         return options;
     }
 
-    private static String[] getSupportedExampleNames(Configuration configuration, ScoreDirectorType scoreDirectorType) {
+    private String[] getSupportedExampleNames(Configuration configuration, ScoreDirectorType scoreDirectorType) {
         if (!configuration.getEnabledScoreDirectorTypes().contains(scoreDirectorType)) {
             LOGGER.warn("No examples enabled for score director type " + scoreDirectorType);
             return new String[0];
