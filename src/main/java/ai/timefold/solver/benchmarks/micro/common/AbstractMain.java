@@ -107,7 +107,7 @@ public abstract class AbstractMain<C extends AbstractConfiguration> {
                 });
     }
 
-    protected void convertJfrToFlameGraphs() {
+    protected void visualizeJfr() {
         if (getAsyncProfilerPath().isPresent()) {
             var combinedJfr = resultsDirectory.resolve("combined.jfr");
             // JFR will create the combined file before it finishes combining all of the inputs.
@@ -129,9 +129,12 @@ public abstract class AbstractMain<C extends AbstractConfiguration> {
                 }
                 Files.move(tmpCombinedJfr, combinedJfr);
                 LOGGER.error("Combined JFR files to {}.", combinedJfr);
-                // From the combined JMH file, create flame graphs.
-                visualizeJfr(combinedJfr, null);
-                visualizeJfr(combinedJfr, "alloc");
+                // From the combined JMH file, create visualizations.
+                for (var visualizationType : VisualizationType.values()) {
+                    for (var dataType : DataType.values()) {
+                        visualizeJfr(combinedJfr, visualizationType, dataType);
+                    }
+                }
             } catch (Exception e) {
                 LOGGER.error("Failed converting JFR to flame graphs.", e);
             }
@@ -140,25 +143,31 @@ public abstract class AbstractMain<C extends AbstractConfiguration> {
         }
     }
 
-    private void visualizeJfr(Path jfrFilePath, String type) {
+    private void visualizeJfr(Path jfrFilePath, VisualizationType visualizationType, DataType dataType) {
         var inputPath = jfrFilePath.toAbsolutePath();
-        var output = type == null ? Path.of(inputPath.getParent().toString(), "cpu.html")
-                : Path.of(inputPath.getParent().toString(), type + ".html");
-        // "--skip 15" removes bottom frames which come from JMH; they are unnecessary clutter.
-        // "--norm" removes random strings from lambdas, which allows the flame graph to merge different frames
-        //          which are only different because they use a different instance of the same lambda.
-        var argStream = Stream.of("--simple", "--norm", "--skip", "15");
-        if (type != null) {
-            argStream = Stream.concat(argStream, Stream.of("--" + type));
-        }
+        var filename = String.format("%s-%s.html", dataType.name, visualizationType.name);
+        var output = Path.of(inputPath.getParent().toString(), filename);
+        var argStream = Stream.of(
+                "--simple", // Shorter names.
+                // "--norm" removes random strings from lambdas; 
+                //          allows to merge different frames which are only different
+                //          because they use a different instance of the same lambda.
+                "--norm",
+                // "--skip 15" removes bottom frames which come from JMH; they are unnecessary clutter.
+                "--skip", "15",
+                "--" + dataType.name);
         var args = argStream.toArray(String[]::new);
         try {
-            one.convert.JfrToFlame.convert(inputPath.toString(),
-                    output.toString(),
-                    new Arguments(args));
-            LOGGER.info("Generating flame graph succeeded: {}.", Arrays.toString(args));
+            if (visualizationType == VisualizationType.FLAME_GRAPH) {
+                one.convert.JfrToFlame.convert(inputPath.toString(), output.toString(), new Arguments(args));
+            } else if (visualizationType == VisualizationType.HEAT_MAP) {
+                one.convert.JfrToHeatmap.convert(inputPath.toString(), output.toString(), new Arguments(args));
+            } else {
+                throw new IllegalArgumentException("Unsupported visualization: " + visualizationType);
+            }
+            LOGGER.info("{} Generation succeeded: {}.", visualizationType, Arrays.toString(args));
         } catch (Exception ex) {
-            LOGGER.error("Generating flame graph failed: {}.", Arrays.toString(args), ex);
+            LOGGER.error("{} Generation failed: {}.", visualizationType, Arrays.toString(args), ex);
         }
     }
 
@@ -190,6 +199,32 @@ public abstract class AbstractMain<C extends AbstractConfiguration> {
                 .result(resultsDirectory.resolve("results.json").toAbsolutePath().toString())
                 .resultFormat(ResultFormatType.JSON)
                 .shouldDoGC(true);
+    }
+
+    private enum VisualizationType {
+
+        FLAME_GRAPH("flamegraph"),
+        HEAT_MAP("heatmap");
+
+        private final String name;
+
+        VisualizationType(String name) {
+            this.name = Objects.requireNonNull(name);
+        }
+
+    }
+
+    private enum DataType {
+
+        CPU("cpu"),
+        MEM("alloc");
+
+        private final String name;
+
+        DataType(String name) {
+            this.name = Objects.requireNonNull(name);
+        }
+
     }
 
 }

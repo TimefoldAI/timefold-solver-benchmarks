@@ -70,7 +70,7 @@ public final class Main extends AbstractMain<Configuration> {
 
         var runner = new ResultCapturingJMHRunner(resultsDirectory, options.build());
         var runResults = runner.run();
-        convertJfrToFlameGraphs();
+        visualizeJfr();
 
         var relativeScoreErrorThreshold = configuration.getRelativeScoreErrorThreshold();
         var thresholdForPrint = ((int) Math.round(relativeScoreErrorThreshold * 10_000)) / 100.0D;
