@@ -41,12 +41,8 @@ import ai.timefold.solver.benchmarks.micro.common.ResultCapturingJMHRunner;
 
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public final class Main extends AbstractMain<Configuration> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
     public Main() {
         super("coldstart");
@@ -62,16 +58,19 @@ public final class Main extends AbstractMain<Configuration> {
         return Configuration.getDefault();
     }
 
-    public static void main(String[] args) throws RunnerException, IOException {
-        var main = new Main();
-        var configuration = main.readConfiguration();
-        var options = main.getBaseJmhConfig(configuration);
-        options = processBenchmark(options, configuration);
-        options = main.initAsyncProfiler(options);
+    public static void main(String[] args) throws RunnerException {
+        new Main().run(args);
+    }
 
-        var runner = new ResultCapturingJMHRunner(main.resultsDirectory, options.build());
+    public void run(String[] args) throws RunnerException {
+        var configuration = readConfiguration();
+        var options = getBaseJmhConfig(configuration);
+        options = processBenchmark(options, configuration);
+        options = initAsyncProfiler(options);
+
+        var runner = new ResultCapturingJMHRunner(resultsDirectory, options.build());
         var runResults = runner.run();
-        main.convertJfrToFlameGraphs();
+        visualizeJfr();
 
         var relativeScoreErrorThreshold = configuration.getRelativeScoreErrorThreshold();
         var thresholdForPrint = ((int) Math.round(relativeScoreErrorThreshold * 10_000)) / 100.0D;
@@ -94,7 +93,7 @@ public final class Main extends AbstractMain<Configuration> {
         });
     }
 
-    private static ChainedOptionsBuilder processBenchmark(ChainedOptionsBuilder options, Configuration configuration) {
+    private ChainedOptionsBuilder processBenchmark(ChainedOptionsBuilder options, Configuration configuration) {
         var supportedExampleNames = getSupportedExampleNames(configuration);
         if (supportedExampleNames.length > 0) {
             options = options.include(TimeToFirstScoreBenchmark.class.getSimpleName())
@@ -104,7 +103,7 @@ public final class Main extends AbstractMain<Configuration> {
         return options;
     }
 
-    private static String[] getSupportedExampleNames(Configuration configuration) {
+    private String[] getSupportedExampleNames(Configuration configuration) {
         var examples = configuration.getEnabledExamples()
                 .stream()
                 .map(Enum::name)

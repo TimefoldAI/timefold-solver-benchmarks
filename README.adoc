@@ -24,12 +24,6 @@ and they will include flame graphs if Async Profiler is available.
 In the default configuration, the benchmark will run for many hours and fully occupy 1 CPU.
 Only run the benchmark on a quiet machine, otherwise results will be skewed.
 
-==== Async profiler
-
-The benchmark can optionally produce flame graphs using https://github.com/async-profiler/async-profiler[Async Profiler].
-On the first run, if Async Profiler is not found, a message will be logged.
-Let the message point you in the right direction.
-
 === Configuring the benchmark
 
 The benchmark is configured using the `coldstart-benchmark.properties` and `scoredirector-benchmark.properties` file.
@@ -59,4 +53,3 @@ The benchmark results will be published as a CSV file in the `results` directory
 
 In the default configuration, the benchmark will run for many hours and fully occupy 4 CPUs.
 Only run the benchmark on a quiet machine, otherwise results will be skewed.
-
