@@ -2,9 +2,9 @@ package ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowe
 
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Customer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.Location;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.solver.ArrivalTimeUpdatingVariableListener;
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
 import ai.timefold.solver.core.api.domain.variable.ShadowVariable;
+import ai.timefold.solver.core.preview.api.domain.variable.declarative.ShadowSources;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -68,14 +68,38 @@ public class TimeWindowedCustomer extends Customer {
      */
     // Arguable, to adhere to API specs (although this works), nextCustomer should also be a source,
     // because this shadow must be triggered after nextCustomer (but there is no need to be triggered by nextCustomer)
-    @ShadowVariable(variableListenerClass = ArrivalTimeUpdatingVariableListener.class, sourceVariableName = "vehicle")
-    @ShadowVariable(variableListenerClass = ArrivalTimeUpdatingVariableListener.class, sourceVariableName = "previousCustomer")
+    @ShadowVariable(supplierName = "arrivalTimeSupplier")
     public Long getArrivalTime() {
         return arrivalTime;
     }
 
     public void setArrivalTime(Long arrivalTime) {
         this.arrivalTime = arrivalTime;
+    }
+
+    @ShadowSources({ "vehicle", "previousCustomer.arrivalTime" })
+    public Long arrivalTimeSupplier() {
+        if (vehicle == null) {
+            return null;
+        }
+
+        Long departureTime;
+        if (previousCustomer == null) {
+            departureTime = ((TimeWindowedDepot) vehicle.getDepot()).getMinStartTime();
+        } else {
+            departureTime = getPreviousCustomer().getDepartureTime();
+        }
+
+        if (departureTime == null) {
+            return null;
+        }
+
+        return departureTime + getDistanceFromPreviousStandstill();
+    }
+
+    @Override
+    public TimeWindowedCustomer getPreviousCustomer() {
+        return (TimeWindowedCustomer) super.getPreviousCustomer();
     }
 
     // ************************************************************************

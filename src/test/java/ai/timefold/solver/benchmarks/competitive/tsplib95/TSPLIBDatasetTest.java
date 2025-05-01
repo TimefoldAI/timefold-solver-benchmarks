@@ -24,6 +24,7 @@ class TSPLIBDatasetTest {
         var config = TSPLIBConfiguration.ENTERPRISE_EDITION.getSolverConfig(dataset);
         var phases = config.getPhaseConfigList().subList(0, 1); // Keep only CH.
         config.setPhaseConfigList(phases);
+        config.setMoveThreadCount("1"); // So that the tests can efficiently run in parallel, while still being MT.
 
         var solverFactory = SolverFactory.create(config);
         var solver = solverFactory.buildSolver();
