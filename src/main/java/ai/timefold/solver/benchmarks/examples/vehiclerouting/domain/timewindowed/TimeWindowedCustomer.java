@@ -77,7 +77,7 @@ public class TimeWindowedCustomer extends Customer {
         this.arrivalTime = arrivalTime;
     }
 
-    @ShadowSources({"vehicle", "previousCustomer.arrivalTime"})
+    @ShadowSources({ "vehicle", "previousCustomer.arrivalTime" })
     public Long arrivalTimeSupplier() {
         if (vehicle == null) {
             return null;
