@@ -6,15 +6,12 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.persistence.VehicleRoutingImporter;
 import ai.timefold.solver.core.api.solver.SolverFactory;
 
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-@Execution(ExecutionMode.CONCURRENT)
 class CVRPLIBDatasetTest {
 
-    @ParameterizedTest
+    @ParameterizedTest // Don't run in parallel, the test uses multi-threaded.
     @EnumSource(CVRPLIBDataset.class)
     void runConstructionHeuristics(CVRPLIBDataset dataset) {
         assumeFalse(dataset.isLarge(), "Skipping large dataset: " + dataset); // CH takes too long.
