@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.persistence.VehicleRoutingImporter;
 import ai.timefold.solver.core.api.solver.SolverFactory;
 
-
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -25,7 +24,7 @@ class CVRPLIBDatasetTest {
         var config = CVRPLIBConfiguration.ENTERPRISE_EDITION.getSolverConfig(dataset);
         var phases = config.getPhaseConfigList().subList(0, 1); // Keep only CH.
         config.setPhaseConfigList(phases);
-        config.setMoveThreadCount("1"); // So that the tests can efficiently run in parallel.
+        config.setMoveThreadCount("1"); // So that the tests can efficiently run in parallel, while still being MT.
 
         var solverFactory = SolverFactory.create(config);
         var solver = solverFactory.buildSolver();
