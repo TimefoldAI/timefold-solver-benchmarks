@@ -24,9 +24,9 @@
         <minutesSpentLimit>5</minutesSpentLimit>
     </termination>
 
-<!--    <nearbyDistanceMeterClass>-->
-<!--        ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.solver.nearby.CustomerNearbyDistanceMeter-->
-<!--    </nearbyDistanceMeterClass>-->
+    <nearbyDistanceMeterClass>
+        ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.solver.nearby.CustomerNearbyDistanceMeter
+    </nearbyDistanceMeterClass>
 
     <constructionHeuristic>
     </constructionHeuristic>
