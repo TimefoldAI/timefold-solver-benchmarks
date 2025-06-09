@@ -150,7 +150,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
     }
 
     private String determineHealth(Dataset_ dataset, InnerScore<Score_> actualInnerScore, Duration runTime, boolean addGap) {
-        if (!actualInnerScore.fullyAssigned()) {
+        if (!actualInnerScore.isFullyAssigned()) {
             return "Uninitialized.";
         }
         var actualScore = actualInnerScore.raw();
