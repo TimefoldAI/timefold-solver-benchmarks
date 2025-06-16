@@ -15,6 +15,7 @@ Having acquired that, run any of the benchmarks:
 [source,shell]
 ----
 ./run-coldstart.sh
+./run-cloning.sh
 ./run-scoredirector.sh
 ----
 
@@ -26,7 +27,7 @@ Only run the benchmark on a quiet machine, otherwise results will be skewed.
 
 === Configuring the benchmark
 
-The benchmark is configured using the `coldstart-benchmark.properties` and `scoredirector-benchmark.properties` file.
+The benchmark is configured using the `coldstart-benchmark.properties`, `cloning-benchmark.properties` and `scoredirector-benchmark.properties` file.
 The file is well-commented, and should be self-explanatory.
 Modify it to suit your needs.
 
