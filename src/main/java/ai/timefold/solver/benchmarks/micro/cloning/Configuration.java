@@ -28,7 +28,7 @@ final class Configuration extends AbstractConfiguration {
     private final List<Example> enabledExamples;
 
     private Configuration(List<Example> enabledExamples, int forkCount, int warmupIterations, int measurementIterations,
-                          double relativeScoreErrorThreshold) {
+            double relativeScoreErrorThreshold) {
         super(forkCount, warmupIterations, measurementIterations, relativeScoreErrorThreshold);
         this.enabledExamples = enabledExamples;
     }
