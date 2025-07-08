@@ -141,6 +141,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
         // Prepare the lifecycle.
         var solverScope = new SolverScope<Solution_>();
         solverScope.setScoreDirector(scoreDirector);
+        solverScope.setValueRangeResolver(scoreDirector.getValueRangeResolver());
         solverScope.setWorkingRandom(new Random(0)); // Fully reproducible random selection.
         moveRepository.solvingStarted(solverScope);
         phaseScope = new LocalSearchPhaseScope<>(solverScope, 0);
