@@ -22,7 +22,7 @@ on:
         required: true
       baseline:
         description: 'Timefold Solver release'
-        default: '1.23.0'
+        default: '1.24.0'
         required: true
       jdk_branch:
         description: 'JDK version'
