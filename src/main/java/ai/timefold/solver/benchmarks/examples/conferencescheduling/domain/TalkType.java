@@ -1,5 +1,6 @@
 package ai.timefold.solver.benchmarks.examples.conferencescheduling.domain;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
@@ -49,7 +50,7 @@ public class TalkType extends AbstractPersistable {
     }
 
     public void setCompatibleTimeslotSet(Set<Timeslot> compatibleTimeslotSet) {
-        this.compatibleTimeslotSet = compatibleTimeslotSet;
+        this.compatibleTimeslotSet = new LinkedHashSet<>(compatibleTimeslotSet);
     }
 
     public Set<Room> getCompatibleRoomSet() {
@@ -57,7 +58,7 @@ public class TalkType extends AbstractPersistable {
     }
 
     public void setCompatibleRoomSet(Set<Room> compatibleRoomSet) {
-        this.compatibleRoomSet = compatibleRoomSet;
+        this.compatibleRoomSet = new LinkedHashSet<>(compatibleRoomSet);
     }
 
 }
