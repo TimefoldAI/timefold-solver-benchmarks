@@ -20,8 +20,7 @@ import ai.timefold.solver.core.api.score.Score;
 import ai.timefold.solver.core.api.solver.SolverFactory;
 import ai.timefold.solver.core.config.solver.SolverConfig;
 import ai.timefold.solver.core.impl.score.director.InnerScore;
-import ai.timefold.solver.core.impl.score.director.ValueRangeManager;
-import ai.timefold.solver.core.impl.solver.DefaultSolverFactory;
+import ai.timefold.solver.core.impl.solver.DefaultSolver;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -198,9 +197,8 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         LOGGER.info("Started {} ({} / {}), ~{} minute(s) remain in {}.", dataset.name(), dataset.ordinal() + 1,
                 totalDatasetCount, minutesRemaining, configuration.name());
         var bestSolution = solver.solve(solution);
-        var solutionDescriptor = ((DefaultSolverFactory<Solution_>) solverFactory).getSolutionDescriptor();
-        var initializationStatistics =
-                solutionDescriptor.computeInitializationStatistics(bestSolution, new ValueRangeManager<>());
+        var valueRangeManager = ((DefaultSolver<Solution_>) solver).getSolverScope().getScoreDirector().getValueRangeManager();
+        var initializationStatistics = valueRangeManager.getInitializationStatistics();
         var actualDistance = extractScore(bestSolution);
         var innerScore = initializationStatistics.isInitialized() ? InnerScore.fullyAssigned(actualDistance)
                 : InnerScore.withUnassignedCount(actualDistance, initializationStatistics.getInitCount());
