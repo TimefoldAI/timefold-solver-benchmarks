@@ -51,7 +51,7 @@ jobs:
       MVN_PASSWORD: '${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_TOKEN }}'
     steps:
       - name: Checkout timefold-solver-benchmarks
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: TimefoldAI/timefold-solver-benchmarks
           path: ./timefold-solver-benchmarks
@@ -75,7 +75,7 @@ jobs:
           mv target/benchmarks.jar ../benchmarks-baseline.jar
 
       - name: (SUT) Checkout timefold-solver
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: ${{ github.event.inputs.branch_owner }}/timefold-solver
           ref: ${{ github.event.inputs.branch }}
@@ -89,7 +89,7 @@ jobs:
       # Clone timefold-solver-enterprise
       - name: (SUT) Checkout timefold-solver-enterprise (Specified)
         id: checkout-solver-enterprise
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         continue-on-error: true
         with:
           repository: TimefoldAI/timefold-solver-enterprise
@@ -98,7 +98,7 @@ jobs:
           path: ./timefold-solver-enterprise
       - name: (SUT) Checkout timefold-solver-enterprise (Fallback)
         if: steps.checkout-solver-enterprise.outcome != 'success'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: TimefoldAI/timefold-solver-enterprise
           ref: main
@@ -113,7 +113,7 @@ jobs:
       # Sometimes changes may be incompatible with the tag.
       # If the branch doesn't exist, we assume that the changes are compatible and move on.
       - name: (SUT) Checkout timefold-solver-benchmarks
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         continue-on-error: true
         with:
           repository: TimefoldAI/timefold-solver-benchmarks
@@ -156,7 +156,7 @@ jobs:
           echo "SANITIZED_BRANCH=$(echo "${{ github.event.inputs.branch }}" | sed 's/\//\-/g')" >> $GITHUB_ENV
 
       - name: Checkout timefold-solver-benchmarks
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: TimefoldAI/timefold-solver-benchmarks
           path: ./timefold-solver-benchmarks
