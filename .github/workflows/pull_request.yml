@@ -60,7 +60,7 @@ jobs:
       - name: Checkout timefold-solver (PR) # Checkout the PR branch first, if it exists
         if: github.head_ref # Only true if this is a PR.
         id: checkout-solver
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         continue-on-error: true
         with:
           repository: ${{ github.actor }}/timefold-solver
@@ -69,7 +69,7 @@ jobs:
           fetch-depth: 0 # Otherwise merge will fail on account of not having history.
       - name: Checkout timefold-solver (main) # Checkout the main branch if the PR branch does not exist
         if: ${{ steps.checkout-solver.outcome != 'success' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: TimefoldAI/timefold-solver
           ref: main
@@ -93,7 +93,7 @@ jobs:
       - name: Checkout timefold-solver-enterprise (PR) # Checkout the PR branch first, if it exists
         if: github.head_ref # Only true if this is a PR.
         id: checkout-solver-enterprise
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         continue-on-error: true
         with:
           repository: TimefoldAI/timefold-solver-enterprise
@@ -103,7 +103,7 @@ jobs:
           fetch-depth: 0 # Otherwise merge will fail on account of not having history.
       - name: Checkout timefold-solver-enterprise (main) # Checkout the main branch if the PR branch does not exist
         if: steps.checkout-solver-enterprise.outcome != 'success'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: TimefoldAI/timefold-solver-enterprise
           ref: main
@@ -117,7 +117,7 @@ jobs:
 
       # Clone timefold-solver-benchmarks
       - name: Checkout timefold-solver-benchmarks
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: TimefoldAI/timefold-solver-benchmarks
           ref: ${{ github.head_ref }}
