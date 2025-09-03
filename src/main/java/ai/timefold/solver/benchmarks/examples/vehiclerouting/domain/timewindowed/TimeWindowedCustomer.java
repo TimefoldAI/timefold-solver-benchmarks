@@ -3,8 +3,8 @@ package ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowe
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Customer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.Location;
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
+import ai.timefold.solver.core.api.domain.variable.ShadowSources;
 import ai.timefold.solver.core.api.domain.variable.ShadowVariable;
-import ai.timefold.solver.core.preview.api.domain.variable.declarative.ShadowSources;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 

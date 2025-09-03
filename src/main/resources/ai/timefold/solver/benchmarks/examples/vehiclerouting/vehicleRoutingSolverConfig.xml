@@ -5,7 +5,6 @@
     <!--<environmentMode>FULL_ASSERT</environmentMode>-->
     <!-- To solve faster by saturating multiple CPU cores -->
     <!--<moveThreadCount>AUTO</moveThreadCount>-->
-    <enablePreviewFeature>DECLARATIVE_SHADOW_VARIABLES</enablePreviewFeature>
     <solutionClass>ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution</solutionClass>
     <entityClass>ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Vehicle</entityClass>
     <entityClass>ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Customer</entityClass>
