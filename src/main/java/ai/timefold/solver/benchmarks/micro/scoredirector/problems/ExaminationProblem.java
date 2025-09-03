@@ -1,6 +1,5 @@
 package ai.timefold.solver.benchmarks.micro.scoredirector.problems;
 
-import java.util.EnumSet;
 import java.util.Objects;
 
 import ai.timefold.solver.benchmarks.examples.examination.domain.Exam;
@@ -12,7 +11,6 @@ import ai.timefold.solver.benchmarks.examples.examination.score.ExaminationConst
 import ai.timefold.solver.benchmarks.micro.scoredirector.Example;
 import ai.timefold.solver.benchmarks.micro.scoredirector.ScoreDirectorType;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
-import ai.timefold.solver.core.config.solver.PreviewFeature;
 import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
 import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
 
@@ -35,8 +33,8 @@ public final class ExaminationProblem extends AbstractProblem<Examination> {
 
     @Override
     protected SolutionDescriptor<Examination> buildSolutionDescriptor() {
-        return SolutionDescriptor.buildSolutionDescriptor(EnumSet.of(PreviewFeature.DECLARATIVE_SHADOW_VARIABLES),
-                Examination.class, Exam.class, LeadingExam.class, FollowingExam.class);
+        return SolutionDescriptor.buildSolutionDescriptor(Examination.class, Exam.class, LeadingExam.class,
+                FollowingExam.class);
     }
 
     @Override
