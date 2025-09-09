@@ -13,7 +13,6 @@ import ai.timefold.solver.core.api.score.calculator.EasyScoreCalculator;
 import ai.timefold.solver.core.api.solver.SolverFactory;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
 import ai.timefold.solver.core.config.solver.EnvironmentMode;
-import ai.timefold.solver.core.config.solver.PreviewFeature;
 import ai.timefold.solver.core.config.solver.SolverConfig;
 import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
 import ai.timefold.solver.core.impl.localsearch.DefaultLocalSearchPhase;
@@ -99,7 +98,6 @@ abstract class AbstractProblem<Solution_> implements Problem {
     protected MoveRepository<Solution_> buildMoveRepository(SolutionDescriptor<Solution_> solutionDescriptor) {
         // Build the top-level local search move selector as the solver would've built it.
         var solverConfig = new SolverConfig()
-                .withPreviewFeature(PreviewFeature.DECLARATIVE_SHADOW_VARIABLES)
                 .withEnvironmentMode(EnvironmentMode.PHASE_ASSERT)
                 .withSolutionClass(solutionDescriptor.getSolutionClass())
                 .withEntityClasses(solutionDescriptor.getEntityClassSet().toArray(new Class[0]))

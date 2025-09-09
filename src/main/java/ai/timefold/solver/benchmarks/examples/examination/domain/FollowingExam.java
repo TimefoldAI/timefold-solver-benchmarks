@@ -1,8 +1,8 @@
 package ai.timefold.solver.benchmarks.examples.examination.domain;
 
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
+import ai.timefold.solver.core.api.domain.variable.ShadowSources;
 import ai.timefold.solver.core.api.domain.variable.ShadowVariable;
-import ai.timefold.solver.core.preview.api.domain.variable.declarative.ShadowSources;
 
 @PlanningEntity
 public class FollowingExam extends Exam {

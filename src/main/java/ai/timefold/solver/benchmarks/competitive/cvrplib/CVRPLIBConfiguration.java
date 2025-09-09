@@ -15,7 +15,6 @@ import ai.timefold.solver.benchmarks.examples.vehiclerouting.score.VehicleRoutin
 import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
 import ai.timefold.solver.core.config.constructionheuristic.ConstructionHeuristicPhaseConfig;
 import ai.timefold.solver.core.config.localsearch.LocalSearchPhaseConfig;
-import ai.timefold.solver.core.config.solver.PreviewFeature;
 import ai.timefold.solver.core.config.solver.SolverConfig;
 import ai.timefold.solver.core.config.solver.termination.TerminationConfig;
 
@@ -59,7 +58,6 @@ public enum CVRPLIBConfiguration implements Configuration<CVRPLIBDataset> {
                 .withUnimprovedSecondsSpentLimit(AbstractCompetitiveBenchmark.UNIMPROVED_SECONDS_TERMINATION)
                 .withBestScoreLimit(HardSoftLongScore.ofSoft(threshold.longValue()).toString());
         return new SolverConfig()
-                .withPreviewFeature(PreviewFeature.DECLARATIVE_SHADOW_VARIABLES)
                 .withSolutionClass(VehicleRoutingSolution.class)
                 .withEntityClasses(Vehicle.class, Customer.class, TimeWindowedCustomer.class)
                 .withConstraintProviderClass(VehicleRoutingConstraintProvider.class)

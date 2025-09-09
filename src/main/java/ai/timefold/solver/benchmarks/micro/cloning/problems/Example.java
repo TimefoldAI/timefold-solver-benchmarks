@@ -13,7 +13,6 @@ import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
 import ai.timefold.solver.core.api.solver.SolverFactory;
 import ai.timefold.solver.core.config.constructionheuristic.ConstructionHeuristicPhaseConfig;
 import ai.timefold.solver.core.config.constructionheuristic.ConstructionHeuristicType;
-import ai.timefold.solver.core.config.solver.PreviewFeature;
 import ai.timefold.solver.core.config.solver.SolverConfig;
 import ai.timefold.solver.core.impl.solver.DefaultSolverFactory;
 
@@ -55,7 +54,6 @@ public enum Example {
             constructionHeuristicConfig.withConstructionHeuristicType(ConstructionHeuristicType.FIRST_FIT);
         }
         return SolverFactory.create(new SolverConfig()
-                .withPreviewFeature(PreviewFeature.DECLARATIVE_SHADOW_VARIABLES)
                 .withSolutionClass(solutionClass)
                 .withEntityClasses(entityClasses)
                 .withConstraintProviderClass(constraintProviderClass)
