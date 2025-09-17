@@ -23,6 +23,14 @@ public class Domicile extends Standstill {
         return 0;
     }
 
+    @Override
+    public long getDistanceToNextStandstill() {
+        if (getNextStandstill() == null) {
+            return 0;
+        }
+        return getDistanceTo(getNextStandstill());
+    }
+
     public Domicile(long id, Location location) {
         this(id);
         this.location = location;

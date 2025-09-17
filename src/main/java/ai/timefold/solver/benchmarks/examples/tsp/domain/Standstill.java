@@ -41,6 +41,8 @@ public abstract class Standstill implements LocationAware {
 
     public abstract long getDistanceFromPreviousStandstill();
 
+    public abstract long getDistanceToNextStandstill();
+
     @InverseRelationShadowVariable(sourceVariableName = "previousStandstill")
     public Visit getNextStandstill() {
         return nextStandstill;
