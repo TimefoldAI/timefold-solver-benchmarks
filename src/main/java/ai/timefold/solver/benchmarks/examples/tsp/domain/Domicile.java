@@ -25,10 +25,11 @@ public class Domicile extends Standstill {
 
     @Override
     public long getDistanceToNextStandstill() {
-        if (getNextStandstill() == null) {
+        var next = getNextStandstill();
+        if (next == null) {
             return 0;
         }
-        return getDistanceTo(getNextStandstill());
+        return getDistanceTo(next);
     }
 
     public Domicile(long id, Location location) {
