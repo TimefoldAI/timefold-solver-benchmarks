@@ -34,12 +34,12 @@ public class TspIncrementalScoreCalculator implements IncrementalScoreCalculator
 
     @Override
     public void beforeVariableChanged(Object entity, String variableName) {
-        retract((Visit) entity);
+        retract((Standstill) entity);
     }
 
     @Override
     public void afterVariableChanged(Object entity, String variableName) {
-        insert((Visit) entity);
+        insert((Standstill) entity);
     }
 
     @Override
@@ -52,7 +52,7 @@ public class TspIncrementalScoreCalculator implements IncrementalScoreCalculator
         // Do nothing
     }
 
-    private void insert(Visit visit) {
+    private void insert(Standstill visit) {
         Standstill previousStandstill = visit.getPreviousStandstill();
         if (previousStandstill != null) {
             score -= visit.getDistanceFromPreviousStandstill();
@@ -62,7 +62,7 @@ public class TspIncrementalScoreCalculator implements IncrementalScoreCalculator
         }
     }
 
-    private void retract(Visit visit) {
+    private void retract(Standstill visit) {
         Standstill previousStandstill = visit.getPreviousStandstill();
         if (previousStandstill != null) {
             score += visit.getDistanceFromPreviousStandstill();

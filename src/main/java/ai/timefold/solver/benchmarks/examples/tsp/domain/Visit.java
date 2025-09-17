@@ -33,6 +33,7 @@ public class Visit extends Standstill {
     }
 
     @PlanningVariable(graphType = PlanningVariableGraphType.CHAINED)
+    @Override
     public Standstill getPreviousStandstill() {
         return previousStandstill;
     }
@@ -49,6 +50,7 @@ public class Visit extends Standstill {
      * @return a positive number, the distance multiplied by 1000 to avoid floating point arithmetic rounding errors
      */
     @JsonIgnore
+    @Override
     public long getDistanceFromPreviousStandstill() {
         if (previousStandstill == null) {
             return 0L;

@@ -25,7 +25,7 @@ public abstract class Standstill implements LocationAware {
     private long id;
     private Visit nextStandstill;
 
-    public Standstill() {
+    Standstill() {
     }
 
     protected Standstill(long id) {
@@ -36,6 +36,10 @@ public abstract class Standstill implements LocationAware {
     public long getId() {
         return id;
     }
+
+    public abstract Standstill getPreviousStandstill();
+
+    public abstract long getDistanceFromPreviousStandstill();
 
     @InverseRelationShadowVariable(sourceVariableName = "previousStandstill")
     public Visit getNextStandstill() {
