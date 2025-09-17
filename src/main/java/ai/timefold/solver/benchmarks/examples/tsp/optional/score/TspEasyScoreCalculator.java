@@ -19,17 +19,17 @@ public class TspEasyScoreCalculator implements EasyScoreCalculator<TspSolution, 
         Set<Visit> tailVisitSet = new HashSet<>(visitList);
         long score = 0L;
         for (Visit visit : visitList) {
-            Standstill previousStandstill = visit.getPreviousStandstill();
-            if (previousStandstill != null) {
-                score -= visit.getDistanceFromPreviousStandstill();
-                if (previousStandstill instanceof Visit) {
-                    tailVisitSet.remove(previousStandstill);
+            Standstill nextStandsstill = visit.getNextStandstill();
+            if (nextStandsstill != null) {
+                score -= visit.getDistanceToNextStandstill();
+                if (nextStandsstill instanceof Visit) {
+                    tailVisitSet.remove(nextStandsstill);
                 }
             }
         }
         Domicile domicile = tspSolution.getDomicile();
         for (Visit tailVisit : tailVisitSet) {
-            if (tailVisit.getPreviousStandstill() != null) {
+            if (tailVisit.getNextStandstill() == null) {
                 score -= tailVisit.getDistanceTo(domicile);
             }
         }
