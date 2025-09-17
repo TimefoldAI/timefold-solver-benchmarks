@@ -1,6 +1,5 @@
 package ai.timefold.solver.benchmarks.examples.tsp.domain;
 
-import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.location.Location;
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
 import ai.timefold.solver.core.api.domain.variable.PlanningVariable;
@@ -9,7 +8,7 @@ import ai.timefold.solver.core.api.domain.variable.PlanningVariableGraphType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @PlanningEntity
-public class Visit extends AbstractPersistable implements Standstill {
+public class Visit extends Standstill {
 
     private Location location;
 
