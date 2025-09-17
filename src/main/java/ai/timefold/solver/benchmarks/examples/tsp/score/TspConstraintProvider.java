@@ -6,7 +6,6 @@ import ai.timefold.solver.core.api.score.buildin.simplelong.SimpleLongScore;
 import ai.timefold.solver.core.api.score.stream.Constraint;
 import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
-import ai.timefold.solver.core.api.score.stream.Joiners;
 
 public class TspConstraintProvider implements ConstraintProvider {
 
@@ -27,13 +26,10 @@ public class TspConstraintProvider implements ConstraintProvider {
 
     private Constraint distanceFromLastVisitToDomicile(ConstraintFactory constraintFactory) {
         return constraintFactory.forEach(Visit.class)
-                .ifNotExists(Visit.class,
-                        Joiners.equal(visit -> visit,
-                                Visit::getPreviousStandstill))
+                .filter(visit -> visit.getNextStandstill() == null)
                 .join(Domicile.class)
                 .penalizeLong(SimpleLongScore.ONE,
                         Visit::getDistanceTo)
                 .asConstraint("Distance from last visit to domicile");
     }
-
 }
