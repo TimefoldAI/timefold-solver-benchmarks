@@ -1,9 +1,8 @@
 package ai.timefold.solver.benchmarks.examples.tsp.domain;
 
-import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.location.Location;
 
-public class Domicile extends AbstractPersistable implements Standstill {
+public class Domicile extends Standstill {
 
     private Location location;
 
@@ -12,6 +11,25 @@ public class Domicile extends AbstractPersistable implements Standstill {
 
     public Domicile(long id) {
         super(id);
+    }
+
+    @Override
+    public Standstill getPreviousStandstill() {
+        return null;
+    }
+
+    @Override
+    public long getDistanceFromPreviousStandstill() {
+        return 0;
+    }
+
+    @Override
+    public long getDistanceToNextStandstill() {
+        var next = getNextStandstill();
+        if (next == null) {
+            return 0;
+        }
+        return getDistanceTo(next);
     }
 
     public Domicile(long id, Location location) {

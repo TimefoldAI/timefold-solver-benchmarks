@@ -1,20 +1,23 @@
 package ai.timefold.solver.benchmarks.examples.tsp.domain;
 
-import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.location.Location;
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
+import ai.timefold.solver.core.api.domain.variable.AnchorShadowVariable;
 import ai.timefold.solver.core.api.domain.variable.PlanningVariable;
 import ai.timefold.solver.core.api.domain.variable.PlanningVariableGraphType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @PlanningEntity
-public class Visit extends AbstractPersistable implements Standstill {
+public class Visit extends Standstill {
 
     private Location location;
 
     // Planning variables: changes during planning, between score calculations.
     private Standstill previousStandstill;
+
+    // Anchor shadow var
+    private Domicile domicile;
 
     public Visit() {
     }
@@ -34,12 +37,22 @@ public class Visit extends AbstractPersistable implements Standstill {
     }
 
     @PlanningVariable(graphType = PlanningVariableGraphType.CHAINED)
+    @Override
     public Standstill getPreviousStandstill() {
         return previousStandstill;
     }
 
     public void setPreviousStandstill(Standstill previousStandstill) {
         this.previousStandstill = previousStandstill;
+    }
+
+    @AnchorShadowVariable(sourceVariableName = "previousStandstill")
+    public Domicile getDomicile() {
+        return domicile;
+    }
+
+    public void setDomicile(Domicile domicile) {
+        this.domicile = domicile;
     }
 
     // ************************************************************************
@@ -50,11 +63,27 @@ public class Visit extends AbstractPersistable implements Standstill {
      * @return a positive number, the distance multiplied by 1000 to avoid floating point arithmetic rounding errors
      */
     @JsonIgnore
+    @Override
     public long getDistanceFromPreviousStandstill() {
         if (previousStandstill == null) {
             return 0L;
         }
         return getDistanceFrom(previousStandstill);
+    }
+
+    /**
+     * @return a positive number, the distance multiplied by 1000 to avoid floating point arithmetic rounding errors
+     */
+    @JsonIgnore
+    @Override
+    public long getDistanceToNextStandstill() {
+        var next = getNextStandstill();
+        if (next == null && domicile != null) {
+            return getDistanceTo(domicile);
+        } else if (next != null) {
+            return getDistanceTo(next);
+        }
+        return 0L;
     }
 
     /**
