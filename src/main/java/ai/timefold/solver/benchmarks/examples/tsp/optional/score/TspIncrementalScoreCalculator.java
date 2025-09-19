@@ -1,6 +1,5 @@
 package ai.timefold.solver.benchmarks.examples.tsp.optional.score;
 
-import ai.timefold.solver.benchmarks.examples.tsp.domain.Domicile;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.Standstill;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.TspSolution;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.Visit;
@@ -9,14 +8,12 @@ import ai.timefold.solver.core.api.score.calculator.IncrementalScoreCalculator;
 
 public class TspIncrementalScoreCalculator implements IncrementalScoreCalculator<TspSolution, SimpleLongScore> {
 
-    private Domicile domicile;
-
     private long score;
 
     @Override
     public void resetWorkingSolution(TspSolution tspSolution) {
-        domicile = tspSolution.getDomicile();
         score = 0L;
+        insert(tspSolution.getDomicile());
         for (Visit visit : tspSolution.getVisitList()) {
             insert(visit);
         }
@@ -53,23 +50,11 @@ public class TspIncrementalScoreCalculator implements IncrementalScoreCalculator
     }
 
     private void insert(Standstill visit) {
-        Standstill previousStandstill = visit.getPreviousStandstill();
-        if (previousStandstill != null) {
-            score -= visit.getDistanceFromPreviousStandstill();
-            // HACK: This counts too much, but the insert/retracts balance each other out
-            score += previousStandstill.getDistanceTo(domicile);
-            score -= visit.getDistanceTo(domicile);
-        }
+        score -= visit.getDistanceToNextStandstill();
     }
 
     private void retract(Standstill visit) {
-        Standstill previousStandstill = visit.getPreviousStandstill();
-        if (previousStandstill != null) {
-            score += visit.getDistanceFromPreviousStandstill();
-            // HACK: This counts too much, but the insert/retracts balance each other out
-            score -= previousStandstill.getDistanceTo(domicile);
-            score += visit.getDistanceTo(domicile);
-        }
+        score += visit.getDistanceToNextStandstill();
     }
 
     @Override

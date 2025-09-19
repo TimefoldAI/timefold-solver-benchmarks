@@ -14,16 +14,6 @@ public class Domicile extends Standstill {
     }
 
     @Override
-    public Standstill getPreviousStandstill() {
-        return null;
-    }
-
-    @Override
-    public long getDistanceFromPreviousStandstill() {
-        return 0;
-    }
-
-    @Override
     public long getDistanceToNextStandstill() {
         var next = getNextStandstill();
         if (next == null) {
