@@ -71,7 +71,7 @@ jobs:
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
-          mvn clean install -B -Dquickly -Dversion.ai.timefold.solver=${{ github.event.inputs.baseline }}
+          ./mvnw clean install -B -Dquickly -Dversion.ai.timefold.solver=${{ github.event.inputs.baseline }}
           mv target/benchmarks.jar ../benchmarks-baseline.jar
 
       - name: (SUT) Checkout timefold-solver
@@ -84,7 +84,7 @@ jobs:
       - name: (SUT) Quickly build timefold-solver
         working-directory: ./timefold-solver
         shell: bash
-        run: mvn -B -Dquickly clean install
+        run: ./mvnw -B -Dquickly clean install
 
       # Clone timefold-solver-enterprise
       - name: (SUT) Checkout timefold-solver-enterprise (Specified)
@@ -124,7 +124,7 @@ jobs:
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
-          mvn clean install -B -Dquickly
+          ./mvnw clean install -B -Dquickly
           mv target/benchmarks.jar ../benchmarks-sut.jar
 
       - name: Upload the binaries

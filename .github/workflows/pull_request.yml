@@ -86,7 +86,7 @@ jobs:
       - name: Quickly build timefold-solver
         working-directory: ./timefold-solver
         shell: bash
-        run: mvn -B -Dquickly clean install
+        run: ./mvnw -B -Dquickly clean install
 
       # Clone timefold-solver-enterprise
       # Need to check for stale repo, since Github is not aware of the build chain and therefore doesn't automate it.
@@ -113,7 +113,7 @@ jobs:
       - name: Quickly build timefold-solver-enterprise
         working-directory: ./timefold-solver-enterprise
         shell: bash
-        run: mvn -B -Dquickly clean install
+        run: ./mvnw -B -Dquickly clean install
 
       # Clone timefold-solver-benchmarks
       - name: Checkout timefold-solver-benchmarks
@@ -125,4 +125,4 @@ jobs:
       - name: Build and test timefold-solver-benchmarks
         working-directory: ./timefold-solver-benchmarks
         shell: bash
-        run: mvn -B clean verify
+        run: ./mvnw -B clean verify
