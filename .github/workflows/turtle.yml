@@ -31,7 +31,7 @@ jobs:
       - name: Quickly build timefold-solver
         working-directory: ./timefold-solver
         shell: bash
-        run: mvn -B -Dquickly clean install
+        run: ./mvnw -B -Dquickly clean install
 
       # Clone timefold-solver-enterprise
       - name: Checkout timefold-solver-enterprise
@@ -43,7 +43,7 @@ jobs:
       - name: Quickly build timefold-solver-enterprise
         working-directory: ./timefold-solver-enterprise
         shell: bash
-        run: mvn -B -Dquickly clean install
+        run: ./mvnw -B -Dquickly clean install
 
       # Clone timefold-solver-benchmarks
       - name: Checkout timefold-solver-benchmarks
@@ -54,4 +54,4 @@ jobs:
       - name: Run and test timefold-solver-benchmarks per example
         working-directory: ./timefold-solver-benchmarks
         shell: bash
-        run: mvn -B -Dai.timefold.solver.benchmarks.examples.turtle=${{matrix.example}} -Dai.timefold.solver.benchmarks.examples.turtle.runTimeLimitMinutes=300 test
+        run: ./mvnw -B -Dai.timefold.solver.benchmarks.examples.turtle=${{matrix.example}} -Dai.timefold.solver.benchmarks.examples.turtle.runTimeLimitMinutes=300 test
