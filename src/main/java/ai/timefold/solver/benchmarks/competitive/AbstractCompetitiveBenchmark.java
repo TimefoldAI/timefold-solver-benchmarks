@@ -41,11 +41,11 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
 
     protected abstract Score_ extractScore(Solution_ solution);
 
-    protected abstract BigDecimal extractDistance(Dataset_ dataset, Score_ score);
+    protected abstract BigDecimal extractResult(Dataset_ dataset, Score_ score);
 
-    protected abstract int countLocations(Solution_ solution);
+    protected abstract int countValues(Solution_ solution);
 
-    protected abstract int countVehicles(Solution_ solution);
+    protected abstract int countEntities(Solution_ solution);
 
     protected abstract AbstractSolutionImporter<Solution_> createImporter();
 
@@ -82,12 +82,12 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                         quote(datasetName),
                         communityResult.locationCount(),
                         communityResult.vehicleCount(),
-                        roundToOneDecimal(dataset.getBestKnownDistance()),
-                        roundToOneDecimal(extractDistance(dataset, communityInnerScore.raw())),
+                        roundToOneDecimal(dataset.getBestKnownSolution()),
+                        roundToOneDecimal(extractResult(dataset, communityInnerScore.raw())),
                         communityRuntime,
                         communityGap,
                         quote(communityHealth),
-                        roundToOneDecimal(extractDistance(dataset, enterpriseInnerScore.raw())),
+                        roundToOneDecimal(extractResult(dataset, enterpriseInnerScore.raw())),
                         enterpriseRuntime,
                         enterpriseTweakedGap,
                         quote(enterpriseHealth)));
@@ -139,8 +139,8 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
     }
 
     private BigDecimal computeGap(Dataset_ dataset, Score_ actual) {
-        var bestKnownDistance = dataset.getBestKnownDistance();
-        var actualDistance = extractDistance(dataset, actual);
+        var bestKnownDistance = dataset.getBestKnownSolution();
+        var actualDistance = extractResult(dataset, actual);
         return actualDistance.subtract(bestKnownDistance)
                 .divide(bestKnownDistance, 4, RoundingMode.HALF_EVEN);
     }
@@ -157,12 +157,12 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         if (!actualScore.isFeasible()) {
             return "Infeasible.";
         }
-        var bestKnownDistance = dataset.getBestKnownDistance();
-        var actualDistance = extractDistance(dataset, actualScore);
+        var bestKnownDistance = dataset.getBestKnownSolution();
+        var actualDistance = extractResult(dataset, actualScore);
         var comparison = actualDistance.compareTo(bestKnownDistance);
         if (comparison == 0) {
             return "Optimal.";
-        } else if (comparison < 0 && dataset.isBestKnownDistanceOptimal()) {
+        } else if (comparison < 0 && dataset.isBestKnownSolutionOptimal()) {
             return "Suspicious (%s better than optimal)."
                     .formatted(roundToOneDecimal(bestKnownDistance.subtract(actualDistance).doubleValue()));
         } else {
@@ -205,8 +205,8 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         var runtime = Duration.ofNanos(System.nanoTime() - nanotime);
         var health = determineHealth(dataset, innerScore, runtime, true);
         LOGGER.info("Solved {} in {} ms with a distance of {}; verdict: {}", dataset.name(), runtime.toMillis(),
-                roundToOneDecimal(extractDistance(dataset, actualDistance)), health);
-        return new Result<>(dataset, innerScore, countLocations(bestSolution) + 1, countVehicles(bestSolution), runtime);
+                roundToOneDecimal(extractResult(dataset, actualDistance)), health);
+        return new Result<>(dataset, innerScore, countValues(bestSolution) + 1, countEntities(bestSolution), runtime);
     }
 
 }

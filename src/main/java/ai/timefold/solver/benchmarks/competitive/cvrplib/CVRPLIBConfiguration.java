@@ -49,7 +49,7 @@ public enum CVRPLIBConfiguration implements Configuration<CVRPLIBDataset> {
     }
 
     private static SolverConfig getCommunityEditionSolverConfig(CVRPLIBDataset dataset) {
-        var threshold = dataset.getBestKnownDistance()
+        var threshold = dataset.getBestKnownSolution()
                 .multiply(BigDecimal.valueOf(AirLocation.MULTIPLIER))
                 .setScale(0, RoundingMode.HALF_EVEN)
                 .negate();

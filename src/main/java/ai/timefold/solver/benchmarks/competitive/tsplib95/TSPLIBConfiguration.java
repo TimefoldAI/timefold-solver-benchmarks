@@ -44,7 +44,7 @@ public enum TSPLIBConfiguration implements Configuration<TSPLIBDataset> {
     }
 
     private static SolverConfig getCommunityEditionSolverConfig(TSPLIBDataset dataset) {
-        var threshold = dataset.getBestKnownDistance().negate()
+        var threshold = dataset.getBestKnownSolution().negate()
                 .setScale(0, RoundingMode.HALF_EVEN);
         var terminationConfig = new TerminationConfig()
                 .withSecondsSpentLimit(AbstractCompetitiveBenchmark.MAX_SECONDS)

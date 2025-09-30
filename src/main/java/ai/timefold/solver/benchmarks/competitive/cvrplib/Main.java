@@ -31,18 +31,18 @@ public class Main
     }
 
     @Override
-    protected BigDecimal extractDistance(CVRPLIBDataset dataset, HardSoftLongScore score) {
+    protected BigDecimal extractResult(CVRPLIBDataset dataset, HardSoftLongScore score) {
         return BigDecimal.valueOf(-score.softScore())
                 .divide(BigDecimal.valueOf(AirLocation.MULTIPLIER), 1, RoundingMode.HALF_EVEN);
     }
 
     @Override
-    protected int countLocations(VehicleRoutingSolution vehicleRoutingSolution) {
+    protected int countValues(VehicleRoutingSolution vehicleRoutingSolution) {
         return vehicleRoutingSolution.getCustomerList().size();
     }
 
     @Override
-    protected int countVehicles(VehicleRoutingSolution vehicleRoutingSolution) {
+    protected int countEntities(VehicleRoutingSolution vehicleRoutingSolution) {
         return vehicleRoutingSolution.getVehicleList().size();
     }
 

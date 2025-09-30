@@ -182,7 +182,7 @@ public enum TSPLIBDataset implements Dataset<TSPLIBDataset> {
     }
 
     @Override
-    public BigDecimal getBestKnownDistance() {
+    public BigDecimal getBestKnownSolution() {
         return BigDecimal.valueOf(bestKnownDistance);
     }
 
@@ -196,7 +196,7 @@ public enum TSPLIBDataset implements Dataset<TSPLIBDataset> {
     }
 
     @Override
-    public boolean isBestKnownDistanceOptimal() {
+    public boolean isBestKnownSolutionOptimal() {
         return true;
     }
 

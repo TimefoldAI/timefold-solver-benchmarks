@@ -638,7 +638,7 @@ public enum CVRPLIBDataset implements Dataset<CVRPLIBDataset> {
     }
 
     @Override
-    public BigDecimal getBestKnownDistance() {
+    public BigDecimal getBestKnownSolution() {
         return bestKnownDistance;
     }
 
@@ -648,7 +648,7 @@ public enum CVRPLIBDataset implements Dataset<CVRPLIBDataset> {
     }
 
     @Override
-    public boolean isBestKnownDistanceOptimal() {
+    public boolean isBestKnownSolutionOptimal() {
         return bestKnownDistanceOptimal;
     }
 
