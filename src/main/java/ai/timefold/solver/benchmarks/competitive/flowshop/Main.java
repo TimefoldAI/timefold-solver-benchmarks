@@ -24,7 +24,7 @@ public class Main extends
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
         var benchmark = new Main();
         benchmark.run(FlowShopConfiguration.COMMUNITY_EDITION, FlowShopConfiguration.ENTERPRISE_EDITION,
-                FlowShopDataset.Ta120);
+                FlowShopDataset.values());
     }
 
     private static void generateDatasetEnum() {
@@ -38,7 +38,7 @@ public class Main extends
                     var line = reader.readLine();
                     try (var scanner = new Scanner(line)) {
                         // Number of jobs
-                        scanner.next();
+                        var jobs = scanner.nextInt();
                         // Number of machines
                         scanner.next();
                         // Seed
@@ -46,7 +46,7 @@ public class Main extends
                         // Upper bound
                         var upperBound = scanner.nextInt();
                         String name = file.getName().substring(0, file.getName().lastIndexOf('.'));
-                        System.out.printf("%s(\"taillard93\", \"%s\", %d),%n", name, file.getName(), upperBound);
+                        System.out.printf("%s(\"taillard93\", \"%s\", %d, %d),%n", name, file.getName(), jobs, upperBound);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
