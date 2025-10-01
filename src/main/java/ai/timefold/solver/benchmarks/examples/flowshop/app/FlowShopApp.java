@@ -22,15 +22,16 @@ public class FlowShopApp extends CommonApp<JobScheduleSolution> {
     }
 
     public FlowShopApp() {
-        super("FlowShop Scheduling Problem", """
-                Assign jobs to a machine.
+        super("FlowShop Scheduling Problem",
+                """
+                        Assign jobs to a machine.
 
-                All jobs must be assigned.
-                
-                A machine can run only one job at the time.
-                
-                A job can only begin on the machine once it has completed on the previous machine or after the prior job has finished.
-                """,
+                        All jobs must be assigned.
+
+                        A machine can run only one job at the time.
+
+                        A job can only begin on the machine once it has completed on the previous machine or after the prior job has finished.
+                        """,
                 SOLVER_CONFIG, DATA_DIR_NAME);
     }
 

@@ -20,6 +20,6 @@ class FlowShopSmokeTest extends SolverSmokeTest<JobScheduleSolution, HardSoftLon
         return Stream.of(
                 TestData.of(UNSOLVED_DATA_FILE,
                         HardSoftLongScore.of(0, -1278),
-                        HardSoftLongScore.of(0,-1278)));
+                        HardSoftLongScore.of(0, -1278)));
     }
 }
