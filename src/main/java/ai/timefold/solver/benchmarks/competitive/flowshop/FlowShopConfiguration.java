@@ -5,11 +5,10 @@ import ai.timefold.solver.benchmarks.competitive.Configuration;
 import ai.timefold.solver.benchmarks.examples.flowshop.domain.Job;
 import ai.timefold.solver.benchmarks.examples.flowshop.domain.JobScheduleSolution;
 import ai.timefold.solver.benchmarks.examples.flowshop.domain.Machine;
-import ai.timefold.solver.benchmarks.examples.flowshop.score.FlowshopConstraintProvider;
+import ai.timefold.solver.benchmarks.examples.flowshop.score.FlowShopConstraintProvider;
 import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
 import ai.timefold.solver.core.config.constructionheuristic.ConstructionHeuristicPhaseConfig;
 import ai.timefold.solver.core.config.localsearch.LocalSearchPhaseConfig;
-import ai.timefold.solver.core.config.solver.EnvironmentMode;
 import ai.timefold.solver.core.config.solver.SolverConfig;
 import ai.timefold.solver.core.config.solver.termination.TerminationConfig;
 
@@ -47,14 +46,12 @@ public enum FlowShopConfiguration implements Configuration<FlowShopDataset> {
         var threshold = dataset.getBestKnownSolution()
                 .negate();
         var terminationConfig = new TerminationConfig()
-                .withSecondsSpentLimit(AbstractCompetitiveBenchmark.MAX_SECONDS)
-                .withUnimprovedSecondsSpentLimit(AbstractCompetitiveBenchmark.MAX_SECONDS)
+                .withSecondsSpentLimit(10L)
                 .withBestScoreLimit(HardSoftLongScore.ofSoft(threshold.longValue()).toString());
         return new SolverConfig()
-                .withEnvironmentMode(EnvironmentMode.TRACKED_FULL_ASSERT)
                 .withSolutionClass(JobScheduleSolution.class)
                 .withEntityClasses(Machine.class, Job.class)
-                .withConstraintProviderClass(FlowshopConstraintProvider.class)
+                .withConstraintProviderClass(FlowShopConstraintProvider.class)
                 .withTerminationConfig(terminationConfig)
                 .withPhases(new ConstructionHeuristicPhaseConfig(), new LocalSearchPhaseConfig());
 

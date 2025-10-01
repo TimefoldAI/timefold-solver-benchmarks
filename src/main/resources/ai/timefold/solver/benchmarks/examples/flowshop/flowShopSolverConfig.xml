@@ -11,7 +11,7 @@
     <entityClass>ai.timefold.solver.benchmarks.examples.flowshop.domain.Machine</entityClass>
 
     <scoreDirectorFactory>
-        <constraintProviderClass>ai.timefold.solver.benchmarks.examples.flowshop.score.FlowshopConstraintProvider
+        <constraintProviderClass>ai.timefold.solver.benchmarks.examples.flowshop.score.FlowShopConstraintProvider
         </constraintProviderClass>
         <initializingScoreTrend>ONLY_DOWN</initializingScoreTrend>
     </scoreDirectorFactory>
