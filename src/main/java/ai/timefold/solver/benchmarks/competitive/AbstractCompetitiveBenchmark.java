@@ -73,11 +73,13 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                 var communityInnerScore = communityResult.score();
                 var communityRuntime = communityResult.runtime().toMillis();
                 var communityGap = computeGap(dataset, communityInnerScore.raw());
-                var communityHealth = determineHealth(dataset, communityInnerScore, communityResult.runtime());
+                var communityHealth =
+                        determineHealth(communityEdition, dataset, communityInnerScore, communityResult.runtime());
                 var enterpriseInnerScore = enterpriseResult.score();
                 var enterpriseRuntime = enterpriseResult.runtime().toMillis();
                 var enterpriseTweakedGap = computeGap(dataset, enterpriseInnerScore.raw());
-                var enterpriseHealth = determineHealth(dataset, enterpriseInnerScore, enterpriseResult.runtime());
+                var enterpriseHealth =
+                        determineHealth(enterpriseEdition, dataset, enterpriseInnerScore, enterpriseResult.runtime());
                 result.append(line.formatted(
                         quote(datasetName),
                         communityResult.locationCount(),
@@ -145,11 +147,13 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                 .divide(bestKnownDistance, 4, RoundingMode.HALF_EVEN);
     }
 
-    private String determineHealth(Dataset_ dataset, InnerScore<Score_> actual, Duration runTime) {
-        return determineHealth(dataset, actual, runTime, false);
+    private String determineHealth(Configuration_ configuration, Dataset_ dataset, InnerScore<Score_> actual,
+            Duration runTime) {
+        return determineHealth(configuration, dataset, actual, runTime, false);
     }
 
-    private String determineHealth(Dataset_ dataset, InnerScore<Score_> actualInnerScore, Duration runTime, boolean addGap) {
+    private String determineHealth(Configuration_ configuration, Dataset_ dataset, InnerScore<Score_> actualInnerScore,
+            Duration runTime, boolean addGap) {
         if (!actualInnerScore.isFullyAssigned()) {
             return "Uninitialized.";
         }
@@ -166,7 +170,8 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
             return "Suspicious (%s better than optimal)."
                     .formatted(roundToOneDecimal(bestKnownDistance.subtract(actualDistance).doubleValue()));
         } else {
-            var cutoff = MAX_SECONDS * 1000 - 100; // Give some leeway before declaring flat line.
+            var cutoff = configuration.getMaximumDurationPerDataset()
+                    .toMillis() - 100; // Give some leeway before declaring flat line.
             var gapString = addGap ? (" " + getGapString(dataset, actualScore)) : "";
             if (runTime.toMillis() < cutoff) {
                 var actualRunTime = (int) Math.round((runTime.toMillis() - (UNIMPROVED_SECONDS_TERMINATION * 1000)) / 1000.0);
@@ -192,7 +197,8 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         var remainingDatasets = totalDatasetCount - dataset.ordinal();
         var parallelSolverCount = determineParallelSolverCount(configuration);
         var remainingCycles = (long) Math.ceil(remainingDatasets / (double) parallelSolverCount);
-        var minutesRemaining = Duration.ofSeconds(MAX_SECONDS * remainingCycles)
+        var minutesRemaining = configuration.getMaximumDurationPerDataset()
+                .multipliedBy(remainingCycles)
                 .toMinutes();
         LOGGER.info("Started {} ({} / {}), ~{} minute(s) remain in {}.", dataset.name(), dataset.ordinal() + 1,
                 totalDatasetCount, minutesRemaining, configuration.name());
@@ -203,7 +209,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         var innerScore = initializationStatistics.isInitialized() ? InnerScore.fullyAssigned(actualDistance)
                 : InnerScore.withUnassignedCount(actualDistance, initializationStatistics.getInitCount());
         var runtime = Duration.ofNanos(System.nanoTime() - nanotime);
-        var health = determineHealth(dataset, innerScore, runtime, true);
+        var health = determineHealth(configuration, dataset, innerScore, runtime, true);
         LOGGER.info("Solved {} in {} ms with a distance of {}; verdict: {}", dataset.name(), runtime.toMillis(),
                 roundToOneDecimal(extractResult(dataset, actualDistance)), health);
         return new Result<>(dataset, innerScore, countValues(bestSolution) + 1, countEntities(bestSolution), runtime);

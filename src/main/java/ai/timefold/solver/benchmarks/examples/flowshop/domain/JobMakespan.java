@@ -10,8 +10,8 @@ public class JobMakespan {
         this.makespanPerMachine = new int[numberOfMachines];
     }
 
-    public void setMakespan(int machineId, int value) {
-        makespanPerMachine[machineId] = value;
+    public int setMakespan(int machineId, int value) {
+        return makespanPerMachine[machineId] = value;
     }
 
     public int getMakespan(int machineId) {

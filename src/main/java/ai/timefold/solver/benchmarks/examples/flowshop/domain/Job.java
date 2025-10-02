@@ -73,15 +73,15 @@ public class Job {
         // and a job can only start on one machine after finishing the process at the previous machine.
         // The makespan of this job in the first machine depends only on the previous job makespan.
         // It can only start after the previous job is completed.
-        newMakespan.setMakespan(0, getPreviousMakespan(0) + allMachines[0].getProcessTime(id));
+        var newPreviousMakespan = newMakespan.setMakespan(0, getPreviousMakespan(0) + allMachines[0].getProcessTime(id));
         for (var i = 1; i < allMachines.length; i++) {
             // The job execution for the following machines relies on the makespan of either the previous job
             // or the previous machine,
             // depending on which is greater. 
             // That way, the job can only begin on the machine once it has completed on the previous machine
             // or after the prior job has finished.
-            newMakespan.setMakespan(i,
-                    Math.max(getPreviousMakespan(i), newMakespan.getMakespan(i - 1)) + allMachines[i].getProcessTime(id));
+            newPreviousMakespan = newMakespan.setMakespan(i,
+                    Math.max(getPreviousMakespan(i), newPreviousMakespan) + allMachines[i].getProcessTime(id));
         }
         return newMakespan;
     }

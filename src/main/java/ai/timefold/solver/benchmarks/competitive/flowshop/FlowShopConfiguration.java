@@ -1,5 +1,7 @@
 package ai.timefold.solver.benchmarks.competitive.flowshop;
 
+import java.time.Duration;
+
 import ai.timefold.solver.benchmarks.competitive.AbstractCompetitiveBenchmark;
 import ai.timefold.solver.benchmarks.competitive.Configuration;
 import ai.timefold.solver.benchmarks.examples.flowshop.domain.Job;
@@ -38,15 +40,20 @@ public enum FlowShopConfiguration implements Configuration<FlowShopDataset> {
     }
 
     @Override
+    public Duration getMaximumDurationPerDataset() {
+        return Duration.ofSeconds(10);
+    }
+
+    @Override
     public boolean usesEnterprise() {
         return usesEnterprise;
     }
 
-    private static SolverConfig getCommunityEditionSolverConfig(FlowShopDataset dataset) {
+    private SolverConfig getCommunityEditionSolverConfig(FlowShopDataset dataset) {
         var threshold = dataset.getBestKnownSolution()
                 .negate();
         var terminationConfig = new TerminationConfig()
-                .withSecondsSpentLimit(10L)
+                .withSpentLimit(getMaximumDurationPerDataset())
                 .withBestScoreLimit(HardSoftLongScore.ofSoft(threshold.longValue()).toString());
         return new SolverConfig()
                 .withSolutionClass(JobScheduleSolution.class)
@@ -57,7 +64,7 @@ public enum FlowShopConfiguration implements Configuration<FlowShopDataset> {
 
     }
 
-    private static SolverConfig getEnterpriseEditionSolverConfig(FlowShopDataset dataset) {
+    private SolverConfig getEnterpriseEditionSolverConfig(FlowShopDataset dataset) {
         // Inherit community config, add move thread count
         return getCommunityEditionSolverConfig(dataset)
                 .withMoveThreadCount(Integer.toString(AbstractCompetitiveBenchmark.ENTERPRISE_MOVE_THREAD_COUNT));
