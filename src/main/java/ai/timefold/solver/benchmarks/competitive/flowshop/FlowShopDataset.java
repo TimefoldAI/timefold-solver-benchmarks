@@ -625,13 +625,17 @@ public enum FlowShopDataset implements Dataset<FlowShopDataset> {
     private final String module;
     private final String filename;
     private final BigDecimal bestSolution;
-    private final boolean large;
+    private final int jobs;
 
     FlowShopDataset(String module, String filename, int jobs, int bestSolution) {
         this.module = module;
         this.filename = filename;
         this.bestSolution = BigDecimal.valueOf(bestSolution);
-        this.large = jobs >= 100;
+        this.jobs = jobs;
+    }
+
+    public int getJobs() {
+        return jobs;
     }
 
     @Override
@@ -641,7 +645,7 @@ public enum FlowShopDataset implements Dataset<FlowShopDataset> {
 
     @Override
     public boolean isLarge() {
-        return this.large;
+        return this.jobs > 100;
     }
 
     @Override

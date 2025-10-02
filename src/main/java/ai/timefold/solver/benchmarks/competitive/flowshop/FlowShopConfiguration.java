@@ -1,6 +1,7 @@
 package ai.timefold.solver.benchmarks.competitive.flowshop;
 
 import java.time.Duration;
+import java.util.List;
 
 import ai.timefold.solver.benchmarks.competitive.AbstractCompetitiveBenchmark;
 import ai.timefold.solver.benchmarks.competitive.Configuration;
@@ -10,7 +11,10 @@ import ai.timefold.solver.benchmarks.examples.flowshop.domain.Machine;
 import ai.timefold.solver.benchmarks.examples.flowshop.score.FlowShopConstraintProvider;
 import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
 import ai.timefold.solver.core.config.constructionheuristic.ConstructionHeuristicPhaseConfig;
+import ai.timefold.solver.core.config.constructionheuristic.decider.forager.ConstructionHeuristicForagerConfig;
+import ai.timefold.solver.core.config.constructionheuristic.decider.forager.ConstructionHeuristicPickEarlyType;
 import ai.timefold.solver.core.config.localsearch.LocalSearchPhaseConfig;
+import ai.timefold.solver.core.config.phase.PhaseConfig;
 import ai.timefold.solver.core.config.solver.SolverConfig;
 import ai.timefold.solver.core.config.solver.termination.TerminationConfig;
 
@@ -55,19 +59,27 @@ public enum FlowShopConfiguration implements Configuration<FlowShopDataset> {
         var terminationConfig = new TerminationConfig()
                 .withSpentLimit(getMaximumDurationPerDataset())
                 .withBestScoreLimit(HardSoftLongScore.ofSoft(threshold.longValue()).toString());
+        var phasesList = List.<PhaseConfig> of(new ConstructionHeuristicPhaseConfig(), new LocalSearchPhaseConfig());
+        if (dataset.getJobs() > 400) {
+            // We make CH to execute faster for problems with more than 400 jobs
+            ConstructionHeuristicPhaseConfig constructionHeuristicConfig = (ConstructionHeuristicPhaseConfig) phasesList.get(0);
+            constructionHeuristicConfig.setForagerConfig(new ConstructionHeuristicForagerConfig()
+                    .withPickEarlyType(ConstructionHeuristicPickEarlyType.FIRST_FEASIBLE_SCORE_OR_NON_DETERIORATING_HARD));
+        }
         return new SolverConfig()
                 .withSolutionClass(JobScheduleSolution.class)
                 .withEntityClasses(Machine.class, Job.class)
                 .withConstraintProviderClass(FlowShopConstraintProvider.class)
                 .withTerminationConfig(terminationConfig)
-                .withPhases(new ConstructionHeuristicPhaseConfig(), new LocalSearchPhaseConfig());
+                .withPhaseList(phasesList);
 
     }
 
     private SolverConfig getEnterpriseEditionSolverConfig(FlowShopDataset dataset) {
         // Inherit community config, add move thread count
         return getCommunityEditionSolverConfig(dataset)
-                .withMoveThreadCount(Integer.toString(AbstractCompetitiveBenchmark.ENTERPRISE_MOVE_THREAD_COUNT));
+                .withMoveThreadCount(Integer.toString(AbstractCompetitiveBenchmark.ENTERPRISE_MOVE_THREAD_COUNT))
+                .withPhases(new ConstructionHeuristicPhaseConfig(), new LocalSearchPhaseConfig());
     }
 
 }
