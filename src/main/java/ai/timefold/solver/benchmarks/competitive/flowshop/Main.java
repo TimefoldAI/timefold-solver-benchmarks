@@ -113,6 +113,8 @@ public class Main extends
         enumList.addAll(generateDatasetEnum("data/flowshop/import/taillard93", "taillard93"));
         enumList.add("// 240 instances - VFR-small2015");
         enumList.addAll(generateDatasetEnum("data/flowshop/import/vfr-small2015", "vfr-small2015"));
+        enumList.add("// 240 instances - VFR-large2015");
+        enumList.addAll(generateDatasetEnum("data/flowshop/import/vfr-large2015", "vfr-large2015"));
         System.out.println(enumList.stream().collect(Collectors.joining("\n")));
     }
 
