@@ -49,4 +49,9 @@ public class Main extends AbstractCompetitiveBenchmark<TSPLIBDataset, TSPLIBConf
         return new TspImporter();
     }
 
+    @Override
+    public void enrichSolution(TspSolution tspSolution) {
+        // No changes are applied to the solution
+    }
+
 }

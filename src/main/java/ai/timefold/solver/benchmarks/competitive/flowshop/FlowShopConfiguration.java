@@ -76,10 +76,18 @@ public enum FlowShopConfiguration implements Configuration<FlowShopDataset> {
     }
 
     private SolverConfig getEnterpriseEditionSolverConfig(FlowShopDataset dataset) {
+        var phasesList = List.<PhaseConfig> of(new ConstructionHeuristicPhaseConfig(), new LocalSearchPhaseConfig());
+        if (dataset.getJobs() > 700) {
+            // We make CH to execute faster for problems with more than 700 jobs
+            ConstructionHeuristicPhaseConfig constructionHeuristicConfig = (ConstructionHeuristicPhaseConfig) phasesList.get(0);
+            constructionHeuristicConfig.setForagerConfig(new ConstructionHeuristicForagerConfig()
+                    .withPickEarlyType(ConstructionHeuristicPickEarlyType.FIRST_FEASIBLE_SCORE_OR_NON_DETERIORATING_HARD));
+        }
         // Inherit community config, add move thread count
         return getCommunityEditionSolverConfig(dataset)
                 .withMoveThreadCount(Integer.toString(AbstractCompetitiveBenchmark.ENTERPRISE_MOVE_THREAD_COUNT))
-                .withPhases(new ConstructionHeuristicPhaseConfig(), new LocalSearchPhaseConfig());
+                .withPhases(new ConstructionHeuristicPhaseConfig(), new LocalSearchPhaseConfig())
+                .withPhaseList(phasesList);
     }
 
 }

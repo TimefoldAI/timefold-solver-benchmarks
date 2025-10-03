@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 import ai.timefold.solver.benchmarks.competitive.AbstractCompetitiveBenchmark;
 import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutionImporter;
+import ai.timefold.solver.benchmarks.examples.flowshop.domain.Job;
 import ai.timefold.solver.benchmarks.examples.flowshop.domain.JobScheduleSolution;
 import ai.timefold.solver.benchmarks.examples.flowshop.persistence.TaillardImporter;
 import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
@@ -175,5 +176,12 @@ public class Main extends
     @Override
     protected AbstractSolutionImporter<JobScheduleSolution> createImporter() {
         return new TaillardImporter();
+    }
+
+    @Override
+    public void enrichSolution(JobScheduleSolution solution) {
+        // Sort the jobs according to the sum of processing times in decreasing order
+        // Sorting the jobs makes the CH perform as the NEH constructive single-criterion heuristic
+        solution.getJobs().sort(Comparator.comparingInt(Job::getProcessingTimeSum).reversed());
     }
 }

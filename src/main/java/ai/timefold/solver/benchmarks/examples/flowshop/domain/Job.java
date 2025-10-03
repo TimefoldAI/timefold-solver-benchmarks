@@ -29,6 +29,7 @@ public class Job {
     @ShadowVariable(supplierName = "updateMakespan")
     @JsonIgnore
     private JobMakespan makespan;
+    private int processTimeSum = 0;
 
     public Job() {
     }
@@ -60,6 +61,15 @@ public class Job {
 
     public void setMakespan(JobMakespan makespan) {
         this.makespan = makespan;
+    }
+
+    public int getProcessingTimeSum() {
+        if (processTimeSum == 0) {
+            for (Machine allMachine : allMachines) {
+                processTimeSum += allMachine.getProcessTime(id);
+            }
+        }
+        return processTimeSum;
     }
 
     @JsonIgnore

@@ -191,6 +191,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
             int totalDatasetCount) {
         var importer = createImporter();
         var solution = importer.readSolution(dataset.getPath().toFile());
+        enrichSolution(solution);
         var solverFactory = SolverFactory.<Solution_> create(solverConfig);
         var solver = solverFactory.buildSolver();
         var nanotime = System.nanoTime();
@@ -214,5 +215,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                 roundToOneDecimal(extractResult(dataset, actualDistance)), health);
         return new Result<>(dataset, innerScore, countValues(bestSolution) + 1, countEntities(bestSolution), runtime);
     }
+
+    public abstract void enrichSolution(Solution_ solution);
 
 }

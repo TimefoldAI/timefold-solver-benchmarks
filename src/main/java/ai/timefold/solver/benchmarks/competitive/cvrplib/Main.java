@@ -50,4 +50,9 @@ public class Main
     protected AbstractSolutionImporter<VehicleRoutingSolution> createImporter() {
         return new VehicleRoutingImporter();
     }
+
+    @Override
+    public void enrichSolution(VehicleRoutingSolution vehicleRoutingSolution) {
+        // No changes are applied to the solution
+    }
 }
