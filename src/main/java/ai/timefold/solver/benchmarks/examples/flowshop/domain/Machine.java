@@ -63,6 +63,6 @@ public class Machine {
 
     @Override
     public String toString() {
-        return "Machine " + (id + 1);
+        return "Machine " + id;
     }
 }

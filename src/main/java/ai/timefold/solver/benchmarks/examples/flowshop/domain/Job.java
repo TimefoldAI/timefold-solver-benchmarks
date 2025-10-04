@@ -72,6 +72,10 @@ public class Job {
         return processTimeSum;
     }
 
+    public int getProcessingTime(int machineId) {
+        return allMachines[machineId].getProcessTime(id);
+    }
+
     @JsonIgnore
     @ShadowSources(value = { "previousJob.makespan", "index" })
     public JobMakespan updateMakespan() {
@@ -123,6 +127,6 @@ public class Job {
 
     @Override
     public String toString() {
-        return "Job " + (id + 1);
+        return "Job " + id;
     }
 }
