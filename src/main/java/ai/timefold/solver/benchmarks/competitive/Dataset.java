@@ -10,11 +10,11 @@ public interface Dataset<Dataset_> extends Comparable<Dataset_> {
     int ordinal();
 
     // BigDecimal for precision.
-    BigDecimal getBestKnownDistance();
+    BigDecimal getBestKnownSolution();
 
     boolean isLarge();
 
-    boolean isBestKnownDistanceOptimal();
+    boolean isBestKnownSolutionOptimal();
 
     Path getPath();
 

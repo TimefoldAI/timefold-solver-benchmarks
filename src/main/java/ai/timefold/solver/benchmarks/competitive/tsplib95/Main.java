@@ -29,24 +29,29 @@ public class Main extends AbstractCompetitiveBenchmark<TSPLIBDataset, TSPLIBConf
     }
 
     @Override
-    protected BigDecimal extractDistance(TSPLIBDataset dataset, SimpleLongScore score) {
+    protected BigDecimal extractResult(TSPLIBDataset dataset, SimpleLongScore score) {
         return BigDecimal.valueOf(-score.score())
                 .setScale(0, RoundingMode.HALF_EVEN);
     }
 
     @Override
-    protected int countLocations(TspSolution tspSolution) {
+    protected int countValues(TspSolution tspSolution) {
         return tspSolution.getVisitList().size();
     }
 
     @Override
-    protected int countVehicles(TspSolution tspSolution) {
+    protected int countEntities(TspSolution tspSolution) {
         return 1;
     }
 
     @Override
     protected AbstractSolutionImporter<TspSolution> createImporter() {
         return new TspImporter();
+    }
+
+    @Override
+    public void enrichSolution(TspSolution tspSolution) {
+        // No changes are applied to the solution
     }
 
 }
