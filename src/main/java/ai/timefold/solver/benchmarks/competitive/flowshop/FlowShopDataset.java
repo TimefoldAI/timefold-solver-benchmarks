@@ -14,6 +14,7 @@ import ai.timefold.solver.benchmarks.competitive.Dataset;
  * The datasets in question are:
  * <ul>
  * <li>Benchmarks for basic scheduling problems, E. Taillard</li>
+ * <li>New hard benchmark for flowshop scheduling problems minimising makespan, Vallada et al.</li>
  * </ul>
  */
 public enum FlowShopDataset implements Dataset<FlowShopDataset> {

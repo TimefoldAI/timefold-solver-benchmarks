@@ -75,6 +75,9 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
                     .deleteCharAt(header.length() - 1)
                     .append("\n");
             for (var dataset : datasets) {
+                if (!isDatasetFileExists(dataset)) {
+                    continue;
+                }
                 var datasetName = dataset.name();
                 StringBuilder line = new StringBuilder();
                 line.append(quote(datasetName))
@@ -134,6 +137,11 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         try (var executorService = Executors.newFixedThreadPool(parallelSolverCount)) {
             var resultFutureList = new ArrayList<Future<Result<Dataset_, Score_>>>(datasets.length);
             for (var dataset : datasets) {
+                if (!isDatasetFileExists(dataset)) {
+                    System.out.printf("Skipping dataset %s as the file %s was not found.%n", dataset.name(),
+                            dataset.getPath().toString());
+                    continue;
+                }
                 var solverConfig = configuration.getSolverConfig(dataset);
                 if (seed != null) {
                     solverConfig.setRandomSeed(seed);
@@ -147,6 +155,10 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
             }
         }
         return results;
+    }
+
+    private boolean isDatasetFileExists(Dataset_ dataset) {
+        return Files.exists(dataset.getPath());
     }
 
     private int determineParallelSolverCount(Configuration_ configuration) {
