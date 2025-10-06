@@ -43,6 +43,16 @@ public enum TSPLIBConfiguration implements Configuration<TSPLIBDataset> {
         return usesEnterprise;
     }
 
+    @Override
+    public String entityLabel() {
+        return "Vehicle";
+    }
+
+    @Override
+    public String valueLabel() {
+        return "Location";
+    }
+
     private SolverConfig getCommunityEditionSolverConfig(TSPLIBDataset dataset) {
         var threshold = dataset.getBestKnownSolution().negate()
                 .setScale(0, RoundingMode.HALF_EVEN);

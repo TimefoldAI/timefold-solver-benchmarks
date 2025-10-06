@@ -52,6 +52,16 @@ public enum FlowShopConfiguration implements Configuration<FlowShopDataset> {
         return usesEnterprise;
     }
 
+    @Override
+    public String entityLabel() {
+        return "Machine";
+    }
+
+    @Override
+    public String valueLabel() {
+        return "Job";
+    }
+
     private SolverConfig getCommunityEditionSolverConfig(FlowShopDataset dataset) {
         var threshold = dataset.getBestKnownSolution()
                 .negate();

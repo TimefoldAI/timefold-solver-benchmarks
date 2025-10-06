@@ -16,4 +16,8 @@ public interface Configuration<Dataset_ extends Dataset<Dataset_>> {
 
     boolean usesEnterprise();
 
+    String entityLabel();
+
+    String valueLabel();
+
 }

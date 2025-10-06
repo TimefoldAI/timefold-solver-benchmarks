@@ -28,7 +28,7 @@ public class Main extends
 
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
         var benchmark = new Main();
-        benchmark.run(FlowShopConfiguration.COMMUNITY_EDITION, FlowShopConfiguration.ENTERPRISE_EDITION,
+        benchmark.run(List.of(FlowShopConfiguration.COMMUNITY_EDITION, FlowShopConfiguration.ENTERPRISE_EDITION),
                 FlowShopDataset.values());
     }
 

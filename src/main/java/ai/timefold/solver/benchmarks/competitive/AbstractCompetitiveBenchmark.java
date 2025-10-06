@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
@@ -49,57 +50,66 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
 
     protected abstract AbstractSolutionImporter<Solution_> createImporter();
 
-    public void run(Configuration_ communityEdition, Configuration_ enterpriseEdition,
-            Dataset_... datasets)
+    public void run(List<Configuration_> configurations, Dataset_... datasets)
+            throws IOException, ExecutionException, InterruptedException {
+        run(configurations, null, datasets);
+    }
+
+    public void run(List<Configuration_> configurations, Long seed, Dataset_... datasets)
             throws ExecutionException, InterruptedException, IOException {
-        var communityResultList = run(communityEdition, datasets);
-        var enterpriseResultList = run(enterpriseEdition, datasets);
-
-        var result = new StringBuilder();
+        var resultList = new ArrayList<Map<Dataset_, Result<Dataset_, Score_>>>(configurations.size());
+        for (var configuration : configurations) {
+            resultList.add(run(configuration, seed, datasets));
+        }
+        var rows = new StringBuilder();
         try {
-            String line = """
-                    %s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s
-                    """;
-            String header = line.formatted("Dataset", "Location count", "Vehicle count", "Best known score",
-                    "CE Achieved score", "CE run time (ms)", "CE gap to best (%)", "CE Health",
-                    "EE Achieved score", "EE run time (ms)", "EE gap to best (%)", "EE Health");
-            result.append(header);
-
+            StringBuilder header = new StringBuilder("Dataset;")
+                    .append(configurations.getFirst().valueLabel()).append(" count;")
+                    .append(configurations.getFirst().entityLabel()).append(" count;")
+                    .append("Best known score;");
+            for (Configuration_ configuration : configurations) {
+                header.append("%s Achieved score; %s run time (ms); %s gap to best (%%); %s Health;"
+                        .formatted(configuration.name(), configuration.name(), configuration.name(), configuration.name()));
+            }
+            rows.append(header)
+                    .deleteCharAt(header.length() - 1)
+                    .append("\n");
             for (var dataset : datasets) {
-                var communityResult = communityResultList.get(dataset);
-                var enterpriseResult = enterpriseResultList.get(dataset);
-
                 var datasetName = dataset.name();
-                var communityInnerScore = communityResult.score();
-                var communityRuntime = communityResult.runtime().toMillis();
-                var communityGap = computeGap(dataset, communityInnerScore.raw());
-                var communityHealth =
-                        determineHealth(communityEdition, dataset, communityInnerScore, communityResult.runtime());
-                var enterpriseInnerScore = enterpriseResult.score();
-                var enterpriseRuntime = enterpriseResult.runtime().toMillis();
-                var enterpriseTweakedGap = computeGap(dataset, enterpriseInnerScore.raw());
-                var enterpriseHealth =
-                        determineHealth(enterpriseEdition, dataset, enterpriseInnerScore, enterpriseResult.runtime());
-                result.append(line.formatted(
-                        quote(datasetName),
-                        communityResult.locationCount(),
-                        communityResult.vehicleCount(),
-                        roundToOneDecimal(dataset.getBestKnownSolution()),
-                        roundToOneDecimal(extractResult(dataset, communityInnerScore.raw())),
-                        communityRuntime,
-                        communityGap,
-                        quote(communityHealth),
-                        roundToOneDecimal(extractResult(dataset, enterpriseInnerScore.raw())),
-                        enterpriseRuntime,
-                        enterpriseTweakedGap,
-                        quote(enterpriseHealth)));
+                StringBuilder line = new StringBuilder();
+                line.append(quote(datasetName))
+                        .append(";")
+                        .append(resultList.get(0).get(dataset).valueCount())
+                        .append(";")
+                        .append(resultList.get(0).get(dataset).entityCount())
+                        .append(";")
+                        .append(roundToOneDecimal(dataset.getBestKnownSolution()))
+                        .append(";");
+                for (var i = 0; i < resultList.size(); i++) {
+                    var configuration = configurations.get(i);
+                    var configurationResult = resultList.get(i);
+                    var datasetResult = configurationResult.get(dataset);
+                    var score = datasetResult.score();
+                    var runtime = datasetResult.runtime().toMillis();
+                    var gap = computeGap(dataset, score.raw());
+                    var health = determineHealth(configuration, dataset, score, datasetResult.runtime());
+                    var result = roundToOneDecimal(extractResult(dataset, score.raw()));
+
+                    line.append(result).append(";")
+                            .append(runtime).append(";")
+                            .append(gap).append(";")
+                            .append(quote(health)).append(";");
+                }
+                line.deleteCharAt(line.length() - 1)
+                        .append("\n");
+                rows.append(line);
             }
         } finally { // Do everything possible to not lose the results.
             var filename = "%s-%s.csv"
                     .formatted(getLibraryName(), DateTimeFormatter.ISO_INSTANT.format(Instant.now()));
             var target = Path.of("results", filename);
             target.getParent().toFile().mkdirs();
-            Files.writeString(target, result);
+            Files.writeString(target, rows);
             LOGGER.info("Wrote results to {}.", target);
         }
     }
@@ -116,7 +126,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         return "\"" + s + "\"";
     }
 
-    private Map<Dataset_, Result<Dataset_, Score_>> run(Configuration_ configuration, Dataset_... datasets)
+    private Map<Dataset_, Result<Dataset_, Score_>> run(Configuration_ configuration, Long seed, Dataset_... datasets)
             throws ExecutionException, InterruptedException {
         System.out.println("Running with " + configuration.name() + " solver config");
         var results = new TreeMap<Dataset_, Result<Dataset_, Score_>>();
@@ -125,6 +135,9 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
             var resultFutureList = new ArrayList<Future<Result<Dataset_, Score_>>>(datasets.length);
             for (var dataset : datasets) {
                 var solverConfig = configuration.getSolverConfig(dataset);
+                if (seed != null) {
+                    solverConfig.setRandomSeed(seed);
+                }
                 var future = executorService.submit(() -> solveDataset(configuration, dataset, solverConfig, datasets.length));
                 resultFutureList.add(future);
             }
@@ -201,7 +214,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         var minutesRemaining = configuration.getMaximumDurationPerDataset()
                 .multipliedBy(remainingCycles)
                 .toMinutes();
-        LOGGER.info("Started {} ({} / {}), ~{} minute(s) remain in {}.", dataset.name(), dataset.ordinal() + 1,
+        LOGGER.info("Started {} ({} / {}), ~{} minute(s) remain in {}.", dataset.name(), dataset.ordinal(),
                 totalDatasetCount, minutesRemaining, configuration.name());
         var bestSolution = solver.solve(solution);
         var valueRangeManager = ((DefaultSolver<Solution_>) solver).getSolverScope().getScoreDirector().getValueRangeManager();
@@ -213,7 +226,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
         var health = determineHealth(configuration, dataset, innerScore, runtime, true);
         LOGGER.info("Solved {} in {} ms with a distance of {}; verdict: {}", dataset.name(), runtime.toMillis(),
                 roundToOneDecimal(extractResult(dataset, actualDistance)), health);
-        return new Result<>(dataset, innerScore, countValues(bestSolution) + 1, countEntities(bestSolution), runtime);
+        return new Result<>(dataset, innerScore, countValues(bestSolution), countEntities(bestSolution), runtime);
     }
 
     public abstract void enrichSolution(Solution_ solution);

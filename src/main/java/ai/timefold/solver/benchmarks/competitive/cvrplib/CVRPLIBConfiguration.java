@@ -48,6 +48,16 @@ public enum CVRPLIBConfiguration implements Configuration<CVRPLIBDataset> {
         return usesEnterprise;
     }
 
+    @Override
+    public String entityLabel() {
+        return "Vehicle";
+    }
+
+    @Override
+    public String valueLabel() {
+        return "Location";
+    }
+
     private SolverConfig getCommunityEditionSolverConfig(CVRPLIBDataset dataset) {
         var threshold = dataset.getBestKnownSolution()
                 .multiply(BigDecimal.valueOf(AirLocation.MULTIPLIER))
