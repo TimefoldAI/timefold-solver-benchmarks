@@ -3,6 +3,7 @@ package ai.timefold.solver.benchmarks.competitive.cvrplib;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import ai.timefold.solver.benchmarks.competitive.AbstractCompetitiveBenchmark;
@@ -17,7 +18,8 @@ public class Main
 
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
         var benchmark = new Main();
-        benchmark.run(CVRPLIBConfiguration.COMMUNITY_EDITION, CVRPLIBConfiguration.ENTERPRISE_EDITION, CVRPLIBDataset.values());
+        benchmark.run(List.of(CVRPLIBConfiguration.COMMUNITY_EDITION, CVRPLIBConfiguration.ENTERPRISE_EDITION),
+                CVRPLIBDataset.values());
     }
 
     @Override
@@ -31,23 +33,28 @@ public class Main
     }
 
     @Override
-    protected BigDecimal extractDistance(CVRPLIBDataset dataset, HardSoftLongScore score) {
+    protected BigDecimal extractResult(CVRPLIBDataset dataset, HardSoftLongScore score) {
         return BigDecimal.valueOf(-score.softScore())
                 .divide(BigDecimal.valueOf(AirLocation.MULTIPLIER), 1, RoundingMode.HALF_EVEN);
     }
 
     @Override
-    protected int countLocations(VehicleRoutingSolution vehicleRoutingSolution) {
+    protected int countValues(VehicleRoutingSolution vehicleRoutingSolution) {
         return vehicleRoutingSolution.getCustomerList().size();
     }
 
     @Override
-    protected int countVehicles(VehicleRoutingSolution vehicleRoutingSolution) {
+    protected int countEntities(VehicleRoutingSolution vehicleRoutingSolution) {
         return vehicleRoutingSolution.getVehicleList().size();
     }
 
     @Override
     protected AbstractSolutionImporter<VehicleRoutingSolution> createImporter() {
         return new VehicleRoutingImporter();
+    }
+
+    @Override
+    public void enrichSolution(VehicleRoutingSolution vehicleRoutingSolution) {
+        // No changes are applied to the solution
     }
 }

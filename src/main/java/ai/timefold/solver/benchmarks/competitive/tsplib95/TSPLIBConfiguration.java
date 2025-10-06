@@ -43,11 +43,21 @@ public enum TSPLIBConfiguration implements Configuration<TSPLIBDataset> {
         return usesEnterprise;
     }
 
-    private static SolverConfig getCommunityEditionSolverConfig(TSPLIBDataset dataset) {
-        var threshold = dataset.getBestKnownDistance().negate()
+    @Override
+    public String entityLabel() {
+        return "Vehicle";
+    }
+
+    @Override
+    public String valueLabel() {
+        return "Location";
+    }
+
+    private SolverConfig getCommunityEditionSolverConfig(TSPLIBDataset dataset) {
+        var threshold = dataset.getBestKnownSolution().negate()
                 .setScale(0, RoundingMode.HALF_EVEN);
         var terminationConfig = new TerminationConfig()
-                .withSecondsSpentLimit(AbstractCompetitiveBenchmark.MAX_SECONDS)
+                .withSpentLimit(getMaximumDurationPerDataset())
                 .withUnimprovedSecondsSpentLimit(AbstractCompetitiveBenchmark.UNIMPROVED_SECONDS_TERMINATION)
                 .withBestScoreLimit(Long.toString(threshold.longValue()));
         return new SolverConfig()
@@ -59,7 +69,7 @@ public enum TSPLIBConfiguration implements Configuration<TSPLIBDataset> {
 
     }
 
-    private static SolverConfig getEnterpriseEditionSolverConfig(TSPLIBDataset dataset) {
+    private SolverConfig getEnterpriseEditionSolverConfig(TSPLIBDataset dataset) {
         // Inherit community config, add move thread count and nearby distance meter.
         return getCommunityEditionSolverConfig(dataset)
                 .withMoveThreadCount(Integer.toString(AbstractCompetitiveBenchmark.ENTERPRISE_MOVE_THREAD_COUNT))

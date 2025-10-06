@@ -48,13 +48,23 @@ public enum CVRPLIBConfiguration implements Configuration<CVRPLIBDataset> {
         return usesEnterprise;
     }
 
-    private static SolverConfig getCommunityEditionSolverConfig(CVRPLIBDataset dataset) {
-        var threshold = dataset.getBestKnownDistance()
+    @Override
+    public String entityLabel() {
+        return "Vehicle";
+    }
+
+    @Override
+    public String valueLabel() {
+        return "Location";
+    }
+
+    private SolverConfig getCommunityEditionSolverConfig(CVRPLIBDataset dataset) {
+        var threshold = dataset.getBestKnownSolution()
                 .multiply(BigDecimal.valueOf(AirLocation.MULTIPLIER))
                 .setScale(0, RoundingMode.HALF_EVEN)
                 .negate();
         var terminationConfig = new TerminationConfig()
-                .withSecondsSpentLimit(AbstractCompetitiveBenchmark.MAX_SECONDS)
+                .withSpentLimit(getMaximumDurationPerDataset())
                 .withUnimprovedSecondsSpentLimit(AbstractCompetitiveBenchmark.UNIMPROVED_SECONDS_TERMINATION)
                 .withBestScoreLimit(HardSoftLongScore.ofSoft(threshold.longValue()).toString());
         return new SolverConfig()
@@ -66,7 +76,7 @@ public enum CVRPLIBConfiguration implements Configuration<CVRPLIBDataset> {
 
     }
 
-    private static SolverConfig getEnterpriseEditionSolverConfig(CVRPLIBDataset dataset) {
+    private SolverConfig getEnterpriseEditionSolverConfig(CVRPLIBDataset dataset) {
         // Inherit community config, add move thread count and nearby distance meter class.
         return getCommunityEditionSolverConfig(dataset)
                 .withMoveThreadCount(Integer.toString(AbstractCompetitiveBenchmark.ENTERPRISE_MOVE_THREAD_COUNT))
