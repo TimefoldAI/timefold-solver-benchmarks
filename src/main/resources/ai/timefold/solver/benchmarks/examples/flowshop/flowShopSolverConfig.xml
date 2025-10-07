@@ -18,4 +18,9 @@
     <termination>
         <minutesSpentLimit>2</minutesSpentLimit>
     </termination>
+    <customPhase>
+        <customPhaseCommandClass>ai.timefold.solver.benchmarks.examples.flowshop.phase.NEHCustomPhase
+        </customPhaseCommandClass>
+    </customPhase>
+    <localSearch/>
 </solver>
