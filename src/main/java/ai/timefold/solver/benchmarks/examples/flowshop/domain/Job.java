@@ -85,11 +85,11 @@ public class Job {
         var newCompletionTime = new JobCompletionTime(allMachines.length);
         // A machine can perform only one job at a time,
         // and a job can only start on one machine after finishing the process at the previous machine.
-        // The makespan of this job in the first machine depends only on the previous job makespan.
+        // The completion time of this job in the first machine depends only on the previous job completion time.
         // It can only start after the previous job is completed.
         var previousMachineCompletionTime = newCompletionTime.setCompletionTime(0, getPreviousCompletionTime(0) + allMachines[0].getProcessTime(id));
         for (var i = 1; i < allMachines.length; i++) {
-            // The job execution for the following machines relies on the makespan of either the previous job
+            // The job execution for the following machines relies on the completion time of either the previous job
             // or the previous machine,
             // depending on which is greater. 
             // That way, the job can only begin on the machine once it has completed on the previous machine
@@ -121,7 +121,6 @@ public class Job {
         if (completionTime == null) {
             return 0;
         }
-        // The makespan is given by the makespan of the last machine
         return completionTime.getCompletionTimeLastMachine();
     }
 
