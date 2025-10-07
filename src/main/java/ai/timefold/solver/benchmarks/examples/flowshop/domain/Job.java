@@ -2,7 +2,7 @@ package ai.timefold.solver.benchmarks.examples.flowshop.domain;
 
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
 import ai.timefold.solver.core.api.domain.lookup.PlanningId;
-import ai.timefold.solver.core.api.domain.variable.IndexShadowVariable;
+import ai.timefold.solver.core.api.domain.variable.InverseRelationShadowVariable;
 import ai.timefold.solver.core.api.domain.variable.PreviousElementShadowVariable;
 import ai.timefold.solver.core.api.domain.variable.ShadowSources;
 import ai.timefold.solver.core.api.domain.variable.ShadowVariable;
@@ -20,15 +20,15 @@ public class Job {
     private int id;
     @JsonIdentityReference(alwaysAsId = true)
     private Machine[] allMachines;
-    @IndexShadowVariable(sourceVariableName = "jobs")
+    @InverseRelationShadowVariable(sourceVariableName = "jobs")
     @JsonIgnore
-    private Integer index;
+    private Machine machine;
     @PreviousElementShadowVariable(sourceVariableName = "jobs")
     @JsonIgnore
     private Job previousJob;
-    @ShadowVariable(supplierName = "updateMakespan")
+    @ShadowVariable(supplierName = "updateCompletionTime")
     @JsonIgnore
-    private JobMakespan makespan;
+    private JobCompletionTime completionTime;
     private int processTimeSum = 0;
 
     public Job() {
@@ -55,17 +55,17 @@ public class Job {
         this.previousJob = previousJob;
     }
 
-    public JobMakespan getMakespan() {
-        return makespan;
+    public JobCompletionTime getCompletionTime() {
+        return completionTime;
     }
 
-    public void setMakespan(JobMakespan makespan) {
-        this.makespan = makespan;
+    public void setCompletionTime(JobCompletionTime completionTime) {
+        this.completionTime = completionTime;
     }
 
     public int getProcessingTimeSum() {
         if (processTimeSum == 0) {
-            for (Machine allMachine : allMachines) {
+            for (var allMachine : allMachines) {
                 processTimeSum += allMachine.getProcessTime(id);
             }
         }
@@ -77,52 +77,51 @@ public class Job {
     }
 
     @JsonIgnore
-    @ShadowSources(value = { "previousJob.makespan", "index" })
-    public JobMakespan updateMakespan() {
-        if (index == null) {
+    @ShadowSources(value = { "previousJob.completionTime", "machine" })
+    public JobCompletionTime updateCompletionTime() {
+        if (machine == null) {
             return null;
         }
-        var newMakespan = new JobMakespan(allMachines.length);
+        var newCompletionTime = new JobCompletionTime(allMachines.length);
         // A machine can perform only one job at a time,
         // and a job can only start on one machine after finishing the process at the previous machine.
-        // The makespan of this job in the first machine depends only on the previous job makespan.
+        // The completion time of this job in the first machine depends only on the previous job completion time.
         // It can only start after the previous job is completed.
-        var newPreviousMakespan = newMakespan.setMakespan(0, getPreviousMakespan(0) + allMachines[0].getProcessTime(id));
+        var previousMachineCompletionTime = newCompletionTime.setCompletionTime(0, getPreviousCompletionTime(0) + allMachines[0].getProcessTime(id));
         for (var i = 1; i < allMachines.length; i++) {
-            // The job execution for the following machines relies on the makespan of either the previous job
+            // The job execution for the following machines relies on the completion time of either the previous job
             // or the previous machine,
             // depending on which is greater. 
             // That way, the job can only begin on the machine once it has completed on the previous machine
             // or after the prior job has finished.
-            newPreviousMakespan = newMakespan.setMakespan(i,
-                    Math.max(getPreviousMakespan(i), newPreviousMakespan) + allMachines[i].getProcessTime(id));
+            previousMachineCompletionTime = newCompletionTime.setCompletionTime(i,
+                    Math.max(getPreviousCompletionTime(i), previousMachineCompletionTime) + allMachines[i].getProcessTime(id));
         }
-        return newMakespan;
+        return newCompletionTime;
     }
 
     @JsonIgnore
-    private int getPreviousMakespan(int machineId) {
+    private int getPreviousCompletionTime(int machineId) {
         if (previousJob != null) {
-            return previousJob.getMakespan(machineId);
+            return previousJob.getCompletionTime(machineId);
         }
         return 0;
     }
 
     @JsonIgnore
-    public int getMakespan(int machineId) {
-        if (makespan == null) {
+    public int getCompletionTime(int machineId) {
+        if (completionTime == null) {
             return 0;
         }
-        return makespan.getMakespan(machineId);
+        return completionTime.getCompletionTime(machineId);
     }
 
     @JsonIgnore
-    public int getLastMachineMakespan() {
-        if (makespan == null) {
+    public int getCompletionTimeLastMachine() {
+        if (completionTime == null) {
             return 0;
         }
-        // The makespan is given by the makespan of the last machine
-        return makespan.getLastMachineMakespan();
+        return completionTime.getCompletionTimeLastMachine();
     }
 
     @Override

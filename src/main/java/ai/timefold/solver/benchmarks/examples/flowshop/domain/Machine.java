@@ -58,7 +58,7 @@ public class Machine {
         if (jobs.isEmpty()) {
             return 0;
         }
-        return jobs.getLast().getLastMachineMakespan();
+        return jobs.getLast().getCompletionTimeLastMachine();
     }
 
     @Override
