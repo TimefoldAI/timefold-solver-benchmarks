@@ -1,6 +1,8 @@
 package ai.timefold.solver.benchmarks.examples.flowshop.score;
 
-import ai.timefold.solver.benchmarks.examples.flowshop.domain.Machine;
+import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.max;
+
+import ai.timefold.solver.benchmarks.examples.flowshop.domain.Job;
 import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
 import ai.timefold.solver.core.api.score.stream.Constraint;
 import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
@@ -20,8 +22,9 @@ public class FlowShopConstraintProvider implements ConstraintProvider {
     // ************************************************************************
 
     protected Constraint makespan(ConstraintFactory factory) {
-        return factory.forEach(Machine.class)
-                .penalizeLong(HardSoftLongScore.ONE_SOFT, Machine::getMakespan)
+        return factory.forEach(Job.class)
+                .groupBy(max(Job::getJobEndTime))
+                .penalizeLong(HardSoftLongScore.ONE_SOFT, end -> end)
                 .asConstraint("makespan");
     }
 }

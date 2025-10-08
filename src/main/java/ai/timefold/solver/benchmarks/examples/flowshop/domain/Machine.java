@@ -54,13 +54,6 @@ public class Machine {
         return processTime[jobId];
     }
 
-    public int getMakespan() {
-        if (jobs.isEmpty()) {
-            return 0;
-        }
-        return jobs.getLast().getCompletionTimeLastMachine();
-    }
-
     @Override
     public String toString() {
         return "Machine " + id;

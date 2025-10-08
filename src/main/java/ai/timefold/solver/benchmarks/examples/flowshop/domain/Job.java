@@ -26,9 +26,12 @@ public class Job {
     @PreviousElementShadowVariable(sourceVariableName = "jobs")
     @JsonIgnore
     private Job previousJob;
-    @ShadowVariable(supplierName = "updateCompletionTime")
+    @ShadowVariable(supplierName = "updateStartTime")
     @JsonIgnore
-    private JobCompletionTime completionTime;
+    private JobMachineTime start;
+    @ShadowVariable(supplierName = "updateEndTime")
+    @JsonIgnore
+    private JobMachineTime end;
     private int processTimeSum = 0;
 
     public Job() {
@@ -37,6 +40,9 @@ public class Job {
     public Job(int id, Machine[] allMachines) {
         this.id = id;
         this.allMachines = allMachines;
+        for (var allMachine : allMachines) {
+            processTimeSum += allMachine.getProcessTime(id);
+        }
     }
 
     public int getId() {
@@ -55,20 +61,23 @@ public class Job {
         this.previousJob = previousJob;
     }
 
-    public JobCompletionTime getCompletionTime() {
-        return completionTime;
+    public JobMachineTime getStart() {
+        return start;
     }
 
-    public void setCompletionTime(JobCompletionTime completionTime) {
-        this.completionTime = completionTime;
+    public void setStart(JobMachineTime start) {
+        this.start = start;
+    }
+
+    public JobMachineTime getEnd() {
+        return end;
+    }
+
+    public void setEnd(JobMachineTime end) {
+        this.end = end;
     }
 
     public int getProcessingTimeSum() {
-        if (processTimeSum == 0) {
-            for (var allMachine : allMachines) {
-                processTimeSum += allMachine.getProcessTime(id);
-            }
-        }
         return processTimeSum;
     }
 
@@ -77,51 +86,64 @@ public class Job {
     }
 
     @JsonIgnore
-    @ShadowSources(value = { "previousJob.completionTime", "machine" })
-    public JobCompletionTime updateCompletionTime() {
+    @ShadowSources(value = { "previousJob.end", "machine" })
+    public JobMachineTime updateStartTime() {
         if (machine == null) {
             return null;
         }
-        var newCompletionTime = new JobCompletionTime(allMachines.length);
+        var newStartTime = new JobMachineTime(allMachines.length);
         // A machine can perform only one job at a time,
         // and a job can only start on one machine after finishing the process at the previous machine.
         // The completion time of this job in the first machine depends only on the previous job completion time.
         // It can only start after the previous job is completed.
-        var previousMachineCompletionTime = newCompletionTime.setCompletionTime(0, getPreviousCompletionTime(0) + allMachines[0].getProcessTime(id));
+        var previousMachineTime = newStartTime.setTime(0, getPreviousEnd(0));
         for (var i = 1; i < allMachines.length; i++) {
             // The job execution for the following machines relies on the completion time of either the previous job
             // or the previous machine,
             // depending on which is greater. 
             // That way, the job can only begin on the machine once it has completed on the previous machine
             // or after the prior job has finished.
-            previousMachineCompletionTime = newCompletionTime.setCompletionTime(i,
-                    Math.max(getPreviousCompletionTime(i), previousMachineCompletionTime) + allMachines[i].getProcessTime(id));
+            previousMachineTime = newStartTime.setTime(i, Math.max(getPreviousEnd(i), previousMachineTime));
         }
-        return newCompletionTime;
+        return newStartTime;
     }
 
     @JsonIgnore
-    private int getPreviousCompletionTime(int machineId) {
+    @ShadowSources(value = { "start" })
+    public JobMachineTime updateEndTime() {
+        if (start == null) {
+            return null;
+        }
+        var newEndTime = new JobMachineTime(allMachines.length);
+        var previousMachineTime = 0;
+        for (var i = 0; i < allMachines.length; i++) {
+            previousMachineTime = newEndTime.setTime(i, Math.max(previousMachineTime, start.getTime(i)) + allMachines[i].getProcessTime(id));
+        }
+        return newEndTime;
+    }
+
+    @JsonIgnore
+    private int getPreviousEnd(int machineId) {
         if (previousJob != null) {
-            return previousJob.getCompletionTime(machineId);
+            return previousJob.getEnd(machineId);
         }
         return 0;
     }
 
     @JsonIgnore
-    public int getCompletionTime(int machineId) {
-        if (completionTime == null) {
+    public int getEnd(int machineId) {
+        if (end == null) {
             return 0;
         }
-        return completionTime.getCompletionTime(machineId);
+        return end.getTime(machineId);
     }
 
     @JsonIgnore
-    public int getCompletionTimeLastMachine() {
-        if (completionTime == null) {
+    public int getJobEndTime() {
+        if (end == null) {
             return 0;
         }
-        return completionTime.getCompletionTimeLastMachine();
+        return end.getLastMachineTime();
     }
 
     @Override

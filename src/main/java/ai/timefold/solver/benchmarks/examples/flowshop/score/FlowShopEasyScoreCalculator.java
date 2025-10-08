@@ -10,6 +10,6 @@ public class FlowShopEasyScoreCalculator implements EasyScoreCalculator<JobSched
 
     @Override
     public @NonNull HardSoftLongScore calculateScore(@NonNull JobScheduleSolution solution) {
-        return HardSoftLongScore.ofSoft(-solution.getMachine().getMakespan());
+        return HardSoftLongScore.ofSoft(-solution.getMachine().getJobs().getLast().getJobEndTime());
     }
 }
