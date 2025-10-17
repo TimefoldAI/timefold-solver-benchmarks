@@ -1,11 +1,5 @@
 package ai.timefold.solver.benchmarks.examples.machinereassignment.score;
 
-import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.sumLong;
-import static ai.timefold.solver.core.api.score.stream.Joiners.equal;
-import static ai.timefold.solver.core.api.score.stream.Joiners.filtering;
-
-import java.util.function.BiFunction;
-
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrBalancePenalty;
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrGlobalPenaltyInfo;
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrMachine;
@@ -13,11 +7,18 @@ import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrMachi
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrProcessAssignment;
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrService;
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.solver.MrServiceDependency;
+import ai.timefold.solver.core.api.function.TriFunction;
 import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
 import ai.timefold.solver.core.api.score.stream.Constraint;
 import ai.timefold.solver.core.api.score.stream.ConstraintCollectors;
 import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
+import ai.timefold.solver.core.api.score.stream.PrecomputeFactory;
+import ai.timefold.solver.core.api.score.stream.bi.BiConstraintStream;
+
+import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.sumLong;
+import static ai.timefold.solver.core.api.score.stream.Joiners.equal;
+import static ai.timefold.solver.core.api.score.stream.Joiners.filtering;
 
 public class MachineReassignmentConstraintProvider implements ConstraintProvider {
 
@@ -144,14 +145,20 @@ public class MachineReassignmentConstraintProvider implements ConstraintProvider
      * balanceCost = sum(max(0, multiplier * availability(m, r1) - availability(m, r2)))
      */
     protected Constraint balanceCost(ConstraintFactory factory) {
-        return factory.forEach(MrBalancePenalty.class)
-                .join(MrProcessAssignment.class)
+        return factory.precompute(MachineReassignmentConstraintProvider::balancePenaltyAndProcessJoin)
+                .filter((penalty, processAssignment) -> processAssignment.getMachine() != null)
                 .groupBy((penalty, processAssignment) -> penalty,
                         (penalty, processAssignment) -> processAssignment.getMachine(),
                         sumLong((penalty, processAssignment) -> processAssignment.getUsage(penalty.getOriginResource())),
                         sumLong((penalty, processAssignment) -> processAssignment.getUsage(penalty.getTargetResource())))
                 .penalizeLong(HardSoftLongScore.ONE_SOFT, this::balanceCost)
                 .asConstraint(MrConstraints.BALANCE_COST);
+    }
+
+    private static BiConstraintStream<MrBalancePenalty, MrProcessAssignment>
+            balancePenaltyAndProcessJoin(PrecomputeFactory factory) {
+        return factory.forEachUnfiltered(MrBalancePenalty.class)
+                .join(MrProcessAssignment.class);
     }
 
     private long balanceCost(MrBalancePenalty penalty, MrMachine machine, long originalUsage, long targetUsage) {
@@ -169,41 +176,63 @@ public class MachineReassignmentConstraintProvider implements ConstraintProvider
      * Process move cost: A process has a move cost.
      */
     protected Constraint processMoveCost(ConstraintFactory factory) {
-        return factory.forEach(MrProcessAssignment.class)
-                .filter(processAssignment -> processAssignment.isMoved() && processAssignment.getProcessMoveCost() > 0)
-                .join(MrGlobalPenaltyInfo.class,
-                        filtering((processAssignment, penalty) -> penalty.getProcessMoveCostWeight() > 0))
+        return factory.precompute(MachineReassignmentConstraintProvider::processMoveCostJoin)
+                .filter((penalty, processAssignment) -> processAssignment.isMoved()
+                        && processAssignment.getProcessMoveCost() > 0)
                 .penalize(HardSoftLongScore.ONE_SOFT,
-                        (processAssignment, penalty) -> processAssignment.getProcessMoveCost() * penalty
-                                .getProcessMoveCostWeight())
+                        (penalty, processAssignment) -> processAssignment.getProcessMoveCost()
+                                * penalty.getProcessMoveCostWeight())
                 .asConstraint(MrConstraints.PROCESS_MOVE_COST);
+    }
+
+    private static BiConstraintStream<MrGlobalPenaltyInfo, MrProcessAssignment> processMoveCostJoin(PrecomputeFactory factory) {
+        return factory.forEachUnfiltered(MrGlobalPenaltyInfo.class)
+                .filter(penalty -> penalty.getProcessMoveCostWeight() > 0)
+                .join(MrProcessAssignment.class);
     }
 
     /**
      * Service move cost: A service has a move cost.
      */
     protected Constraint serviceMoveCost(ConstraintFactory factory) {
-        return factory.forEach(MrProcessAssignment.class)
-                .filter(MrProcessAssignment::isMoved)
-                .groupBy(MrProcessAssignment::getService, ConstraintCollectors.count())
-                .groupBy(ConstraintCollectors.max((BiFunction<MrService, Integer, Integer>) (service, count) -> count))
-                .join(MrGlobalPenaltyInfo.class)
+        return factory.precompute(MachineReassignmentConstraintProvider::serviceMoveCostJoin)
+                .filter((penalty, processAssignment) -> processAssignment.isMoved())
+                // MrGlobalPenaltyInfo is a singleton,
+                // therefore we can use it as a key safely without creating additional groups.
+                .groupBy((penalty, processAssignment) -> penalty,
+                        (penalty, processAssignment) -> processAssignment.getService(),
+                        ConstraintCollectors.countBi())
+                .groupBy((penalty, processAssignmentService, count) -> penalty,
+                        ConstraintCollectors.max((TriFunction<MrGlobalPenaltyInfo, MrService, Integer, Integer>) (penalty,
+                                service, count) -> count))
                 .penalize(HardSoftLongScore.ONE_SOFT,
-                        (count, penalty) -> count * penalty.getServiceMoveCostWeight())
+                        (penalty, count) -> count * penalty.getServiceMoveCostWeight())
                 .asConstraint(MrConstraints.SERVICE_MOVE_COST);
+    }
+
+    private static BiConstraintStream<MrGlobalPenaltyInfo, MrProcessAssignment> serviceMoveCostJoin(PrecomputeFactory factory) {
+        return factory.forEachUnfiltered(MrGlobalPenaltyInfo.class)
+                .filter(penalty -> penalty.getServiceMoveCostWeight() > 0)
+                .join(MrProcessAssignment.class);
     }
 
     /**
      * Machine move cost: Moving a process from machine A to machine B has another A-B specific move cost.
      */
     protected Constraint machineMoveCost(ConstraintFactory factory) {
-        return factory.forEach(MrProcessAssignment.class)
-                .filter(processAssignment -> processAssignment.isMoved() && processAssignment.getMachineMoveCost() > 0)
-                .join(MrGlobalPenaltyInfo.class,
-                        filtering((processAssignment, penalty) -> penalty.getMachineMoveCostWeight() > 0))
+        return factory.precompute(MachineReassignmentConstraintProvider::machineMoveCostJoin)
+                .filter((penalty, processAssignment) -> processAssignment.isMoved()
+                        && processAssignment.getMachineMoveCost() > 0)
                 .penalize(HardSoftLongScore.ONE_SOFT,
-                        (processAssignment, penalty) -> processAssignment.getMachineMoveCost()
+                        (penalty, processAssignment) -> processAssignment.getMachineMoveCost()
                                 * penalty.getMachineMoveCostWeight())
                 .asConstraint(MrConstraints.MACHINE_MOVE_COST);
     }
+
+    private static BiConstraintStream<MrGlobalPenaltyInfo, MrProcessAssignment> machineMoveCostJoin(PrecomputeFactory factory) {
+        return factory.forEachUnfiltered(MrGlobalPenaltyInfo.class)
+                .filter(penalty -> penalty.getMachineMoveCostWeight() > 0)
+                .join(MrProcessAssignment.class);
+    }
+
 }
