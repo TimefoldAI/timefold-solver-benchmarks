@@ -121,7 +121,7 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
 
     // Min/Max consecutive working days
     Constraint consecutiveWorkingDays(ConstraintFactory constraintFactory) {
-        return constraintFactory.precompute(f -> minMaxContractAssignmentJoin(f, ContractLineType.CONSECUTIVE_WORKING_DAYS))
+        return minMaxContractAssignmentJoin(constraintFactory, ContractLineType.CONSECUTIVE_WORKING_DAYS)
                 .filter((contract, shift) -> shift.getEmployee() != null)
                 .groupBy((contract, shift) -> shift.getEmployee(),
                         (contract, shift) -> contract,
@@ -138,8 +138,8 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
     }
 
     private static BiConstraintStream<MinMaxContractLine, ShiftAssignment>
-            minMaxContractAssignmentJoin(PrecomputeFactory factory, ContractLineType type) {
-        return factory.forEachUnfiltered(MinMaxContractLine.class)
+            minMaxContractAssignmentJoin(ConstraintFactory factory, ContractLineType type) {
+        return factory.forEach(MinMaxContractLine.class)
                 .filter(minMaxContractLine -> minMaxContractLine.getContractLineType() == type
                         && minMaxContractLine.isEnabled())
                 .join(ShiftAssignment.class,
@@ -148,7 +148,7 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
 
     // Min/Max consecutive free days
     Constraint consecutiveFreeDays(ConstraintFactory constraintFactory) {
-        return constraintFactory.precompute(f -> minMaxContractAssignmentJoin(f, ContractLineType.CONSECUTIVE_FREE_DAYS))
+        return minMaxContractAssignmentJoin(constraintFactory, ContractLineType.CONSECUTIVE_FREE_DAYS)
                 .filter((contract, shift) -> shift.getEmployee() != null)
                 .groupBy((contract, shift) -> shift.getEmployee(),
                         (contract, shift) -> contract,
@@ -201,7 +201,7 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
 
     // Min/Max consecutive working weekends
     Constraint consecutiveWorkingWeekends(ConstraintFactory constraintFactory) {
-        return constraintFactory.precompute(NurseRosteringConstraintProvider::minMaxContractWeekendAssignmentJoin)
+        return minMaxContractWeekendAssignmentJoin(constraintFactory)
                 .filter((contract, shift) -> shift.getEmployee() != null)
                 .groupBy((contract, shift) -> shift.getEmployee(),
                         (contract, shift) -> contract,
@@ -218,8 +218,8 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
     }
 
     private static BiConstraintStream<MinMaxContractLine, ShiftAssignment>
-            minMaxContractWeekendAssignmentJoin(PrecomputeFactory factory) {
-        return factory.forEachUnfiltered(MinMaxContractLine.class)
+            minMaxContractWeekendAssignmentJoin(ConstraintFactory factory) {
+        return factory.forEach(MinMaxContractLine.class)
                 .filter(minMaxContractLine -> minMaxContractLine
                         .getContractLineType() == ContractLineType.CONSECUTIVE_WORKING_WEEKENDS
                         && minMaxContractLine.isEnabled())
@@ -230,7 +230,7 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
 
     // Complete Weekends
     Constraint startOnNotFirstDayOfWeekend(ConstraintFactory constraintFactory) {
-        return constraintFactory.precompute(f -> booleanContractAssignmentJoin(f, ContractLineType.COMPLETE_WEEKENDS))
+        return booleanContractAssignmentJoin(constraintFactory, ContractLineType.COMPLETE_WEEKENDS)
                 .filter((contract, shift) -> shift.getEmployee() != null)
                 .groupBy((contract, shift) -> shift.getEmployee(),
                         (contract, shift) -> contract,
@@ -247,8 +247,8 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
     }
 
     private static BiConstraintStream<BooleanContractLine, ShiftAssignment>
-            booleanContractAssignmentJoin(PrecomputeFactory factory, ContractLineType type) {
-        return factory.forEachUnfiltered(BooleanContractLine.class)
+            booleanContractAssignmentJoin(ConstraintFactory factory, ContractLineType type) {
+        return factory.forEach(BooleanContractLine.class)
                 .filter(booleanContractLine -> booleanContractLine.getContractLineType() == type
                         && booleanContractLine.isEnabled())
                 .join(ShiftAssignment.class,
@@ -256,7 +256,7 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
     }
 
     Constraint endOnNotLastDayOfWeekend(ConstraintFactory constraintFactory) {
-        return constraintFactory.precompute(f -> booleanContractAssignmentJoin(f, ContractLineType.COMPLETE_WEEKENDS))
+        return booleanContractAssignmentJoin(constraintFactory, ContractLineType.COMPLETE_WEEKENDS)
                 .filter((contract, shift) -> shift.getEmployee() != null)
                 .groupBy((contract, shift) -> shift.getEmployee(),
                         (contract, shift) -> contract,
