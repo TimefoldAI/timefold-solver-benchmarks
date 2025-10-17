@@ -1,5 +1,14 @@
 package ai.timefold.solver.benchmarks.examples.examination.score;
 
+import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.sum;
+import static ai.timefold.solver.core.api.score.stream.Joiners.equal;
+import static ai.timefold.solver.core.api.score.stream.Joiners.filtering;
+import static ai.timefold.solver.core.api.score.stream.Joiners.greaterThan;
+import static ai.timefold.solver.core.api.score.stream.Joiners.lessThan;
+import static ai.timefold.solver.core.api.score.stream.Joiners.lessThanOrEqual;
+
+import java.util.function.Function;
+
 import ai.timefold.solver.benchmarks.examples.examination.domain.Exam;
 import ai.timefold.solver.benchmarks.examples.examination.domain.ExaminationConstraintProperties;
 import ai.timefold.solver.benchmarks.examples.examination.domain.Period;
@@ -16,15 +25,6 @@ import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
 import ai.timefold.solver.core.api.score.stream.PrecomputeFactory;
 import ai.timefold.solver.core.api.score.stream.bi.BiConstraintStream;
 import ai.timefold.solver.core.api.score.stream.tri.TriConstraintStream;
-
-import java.util.function.Function;
-
-import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.sum;
-import static ai.timefold.solver.core.api.score.stream.Joiners.equal;
-import static ai.timefold.solver.core.api.score.stream.Joiners.filtering;
-import static ai.timefold.solver.core.api.score.stream.Joiners.greaterThan;
-import static ai.timefold.solver.core.api.score.stream.Joiners.lessThan;
-import static ai.timefold.solver.core.api.score.stream.Joiners.lessThanOrEqual;
 
 public class ExaminationConstraintProvider implements ConstraintProvider {
 

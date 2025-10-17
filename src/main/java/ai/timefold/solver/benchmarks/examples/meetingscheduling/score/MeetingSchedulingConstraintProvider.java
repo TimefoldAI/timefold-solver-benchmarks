@@ -1,5 +1,11 @@
 package ai.timefold.solver.benchmarks.examples.meetingscheduling.score;
 
+import static ai.timefold.solver.core.api.score.stream.Joiners.equal;
+import static ai.timefold.solver.core.api.score.stream.Joiners.filtering;
+import static ai.timefold.solver.core.api.score.stream.Joiners.greaterThan;
+import static ai.timefold.solver.core.api.score.stream.Joiners.lessThan;
+import static ai.timefold.solver.core.api.score.stream.Joiners.overlapping;
+
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.Attendance;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.MeetingAssignment;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.PreferredAttendance;
@@ -12,12 +18,6 @@ import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
 import ai.timefold.solver.core.api.score.stream.PrecomputeFactory;
 import ai.timefold.solver.core.api.score.stream.tri.TriConstraintStream;
-
-import static ai.timefold.solver.core.api.score.stream.Joiners.equal;
-import static ai.timefold.solver.core.api.score.stream.Joiners.filtering;
-import static ai.timefold.solver.core.api.score.stream.Joiners.greaterThan;
-import static ai.timefold.solver.core.api.score.stream.Joiners.lessThan;
-import static ai.timefold.solver.core.api.score.stream.Joiners.overlapping;
 
 public class MeetingSchedulingConstraintProvider implements ConstraintProvider {
 
@@ -232,7 +232,8 @@ public class MeetingSchedulingConstraintProvider implements ConstraintProvider {
         return factory.forEachUnfiltered(Attendance.class)
                 .join(Attendance.class,
                         equal(Attendance::getPerson),
-                        filtering((leftAttendance, rightAttendance) -> leftAttendance.getMeeting() != rightAttendance.getMeeting()))
+                        filtering((leftAttendance,
+                                rightAttendance) -> leftAttendance.getMeeting() != rightAttendance.getMeeting()))
                 .join(MeetingAssignment.class,
                         equal((leftAttendance, rightAttendance) -> leftAttendance.getMeeting(), MeetingAssignment::getMeeting));
     }

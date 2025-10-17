@@ -1,5 +1,9 @@
 package ai.timefold.solver.benchmarks.examples.machinereassignment.score;
 
+import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.sumLong;
+import static ai.timefold.solver.core.api.score.stream.Joiners.equal;
+import static ai.timefold.solver.core.api.score.stream.Joiners.filtering;
+
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrBalancePenalty;
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrGlobalPenaltyInfo;
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrMachine;
@@ -15,10 +19,6 @@ import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
 import ai.timefold.solver.core.api.score.stream.PrecomputeFactory;
 import ai.timefold.solver.core.api.score.stream.bi.BiConstraintStream;
-
-import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.sumLong;
-import static ai.timefold.solver.core.api.score.stream.Joiners.equal;
-import static ai.timefold.solver.core.api.score.stream.Joiners.filtering;
 
 public class MachineReassignmentConstraintProvider implements ConstraintProvider {
 
