@@ -1,5 +1,13 @@
 package ai.timefold.solver.benchmarks.examples.nurserostering.score;
 
+import static ai.timefold.solver.benchmarks.examples.nurserostering.optional.score.EmployeeConsecutiveAssignmentEnd.getDistanceToLastDayOfWeekend;
+import static ai.timefold.solver.benchmarks.examples.nurserostering.optional.score.EmployeeConsecutiveAssignmentEnd.isWeekendAndNotLastDayOfWeekend;
+import static ai.timefold.solver.benchmarks.examples.nurserostering.optional.score.EmployeeConsecutiveAssignmentStart.getDistanceToFirstDayOfWeekend;
+import static ai.timefold.solver.benchmarks.examples.nurserostering.optional.score.EmployeeConsecutiveAssignmentStart.isWeekendAndNotFirstDayOfWeekend;
+
+import java.time.DayOfWeek;
+import java.util.Arrays;
+
 import ai.timefold.solver.benchmarks.examples.nurserostering.domain.Employee;
 import ai.timefold.solver.benchmarks.examples.nurserostering.domain.NurseRosterParametrization;
 import ai.timefold.solver.benchmarks.examples.nurserostering.domain.ShiftAssignment;
@@ -31,14 +39,6 @@ import ai.timefold.solver.core.api.score.stream.common.LoadBalance;
 import ai.timefold.solver.core.api.score.stream.common.SequenceChain;
 import ai.timefold.solver.core.api.score.stream.tri.TriConstraintStream;
 import ai.timefold.solver.core.api.score.stream.tri.TriJoiner;
-
-import java.time.DayOfWeek;
-import java.util.Arrays;
-
-import static ai.timefold.solver.benchmarks.examples.nurserostering.optional.score.EmployeeConsecutiveAssignmentEnd.getDistanceToLastDayOfWeekend;
-import static ai.timefold.solver.benchmarks.examples.nurserostering.optional.score.EmployeeConsecutiveAssignmentEnd.isWeekendAndNotLastDayOfWeekend;
-import static ai.timefold.solver.benchmarks.examples.nurserostering.optional.score.EmployeeConsecutiveAssignmentStart.getDistanceToFirstDayOfWeekend;
-import static ai.timefold.solver.benchmarks.examples.nurserostering.optional.score.EmployeeConsecutiveAssignmentStart.isWeekendAndNotFirstDayOfWeekend;
 
 public class NurseRosteringConstraintProvider implements ConstraintProvider {
 

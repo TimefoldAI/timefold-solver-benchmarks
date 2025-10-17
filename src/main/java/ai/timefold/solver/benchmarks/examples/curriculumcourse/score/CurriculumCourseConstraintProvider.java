@@ -1,5 +1,12 @@
 package ai.timefold.solver.benchmarks.examples.curriculumcourse.score;
 
+import static ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore.ONE_HARD;
+import static ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore.ofHard;
+import static ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore.ofSoft;
+import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.countDistinct;
+import static ai.timefold.solver.core.api.score.stream.Joiners.equal;
+import static ai.timefold.solver.core.api.score.stream.Joiners.filtering;
+
 import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.Curriculum;
 import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.Lecture;
 import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.UnavailablePeriodPenalty;
@@ -10,13 +17,6 @@ import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
 import ai.timefold.solver.core.api.score.stream.PrecomputeFactory;
 import ai.timefold.solver.core.api.score.stream.bi.BiConstraintStream;
-
-import static ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore.ONE_HARD;
-import static ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore.ofHard;
-import static ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore.ofSoft;
-import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.countDistinct;
-import static ai.timefold.solver.core.api.score.stream.Joiners.equal;
-import static ai.timefold.solver.core.api.score.stream.Joiners.filtering;
 
 public class CurriculumCourseConstraintProvider implements ConstraintProvider {
 
