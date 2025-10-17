@@ -33,6 +33,7 @@ import ai.timefold.solver.core.api.score.stream.ConstraintCollectors;
 import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
 import ai.timefold.solver.core.api.score.stream.Joiners;
+import ai.timefold.solver.core.api.score.stream.PrecomputeFactory;
 import ai.timefold.solver.core.api.score.stream.bi.BiConstraintStream;
 import ai.timefold.solver.core.api.score.stream.common.LoadBalance;
 import ai.timefold.solver.core.api.score.stream.common.SequenceChain;
@@ -89,13 +90,8 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
     }
 
     Constraint minimumAndMaximumNumberOfAssignments(ConstraintFactory constraintFactory) {
-        var assignmentLimitedEmployeeStream = constraintFactory
-                .forEach(MinMaxContractLine.class)
-                .filter(minMaxContractLine -> minMaxContractLine
-                        .getContractLineType() == ContractLineType.TOTAL_ASSIGNMENTS && minMaxContractLine.isEnabled())
-                .join(Employee.class,
-                        Joiners.equal(ContractLine::getContract,
-                                Employee::getContract));
+        var assignmentLimitedEmployeeStream =
+                constraintFactory.precompute(f -> minMaxContractEmployeeJoin(f, ContractLineType.TOTAL_ASSIGNMENTS));
         var assignmentLimitedOrUnassignedEmployeeStream =
                 outerJoin(assignmentLimitedEmployeeStream, ShiftAssignment.class,
                         Joiners.equal((contractLine, employee) -> employee, ShiftAssignment::getEmployee));
@@ -114,14 +110,19 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
                 .asConstraint("Minimum and maximum number of assignments");
     }
 
+    private static BiConstraintStream<MinMaxContractLine, Employee> minMaxContractEmployeeJoin(PrecomputeFactory factory,
+            ContractLineType type) {
+        return factory.forEachUnfiltered(MinMaxContractLine.class)
+                .filter(minMaxContractLine -> minMaxContractLine.getContractLineType() == type
+                        && minMaxContractLine.isEnabled())
+                .join(Employee.class,
+                        Joiners.equal(ContractLine::getContract, Employee::getContract));
+    }
+
     // Min/Max consecutive working days
     Constraint consecutiveWorkingDays(ConstraintFactory constraintFactory) {
-        return constraintFactory.forEach(MinMaxContractLine.class)
-                .filter(minMaxContractLine -> minMaxContractLine
-                        .getContractLineType() == ContractLineType.CONSECUTIVE_WORKING_DAYS &&
-                        minMaxContractLine.isEnabled())
-                .join(ShiftAssignment.class,
-                        Joiners.equal(ContractLine::getContract, ShiftAssignment::getContract))
+        return minMaxContractAssignmentJoin(constraintFactory, ContractLineType.CONSECUTIVE_WORKING_DAYS)
+                .filter((contract, shift) -> shift.getEmployee() != null)
                 .groupBy((contract, shift) -> shift.getEmployee(),
                         (contract, shift) -> contract,
                         ConstraintCollectors.toConsecutiveSequences((contract, shift) -> shift.getShiftDate(),
@@ -136,14 +137,19 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
                 .asConstraint("consecutiveWorkingDays");
     }
 
+    private static BiConstraintStream<MinMaxContractLine, ShiftAssignment>
+            minMaxContractAssignmentJoin(ConstraintFactory factory, ContractLineType type) {
+        return factory.forEach(MinMaxContractLine.class)
+                .filter(minMaxContractLine -> minMaxContractLine.getContractLineType() == type
+                        && minMaxContractLine.isEnabled())
+                .join(ShiftAssignment.class,
+                        Joiners.equal(ContractLine::getContract, ShiftAssignment::getContract));
+    }
+
     // Min/Max consecutive free days
     Constraint consecutiveFreeDays(ConstraintFactory constraintFactory) {
-        return constraintFactory.forEach(MinMaxContractLine.class)
-                .filter(minMaxContractLine -> minMaxContractLine
-                        .getContractLineType() == ContractLineType.CONSECUTIVE_FREE_DAYS &&
-                        minMaxContractLine.isEnabled())
-                .join(ShiftAssignment.class,
-                        Joiners.equal(ContractLine::getContract, ShiftAssignment::getContract))
+        return minMaxContractAssignmentJoin(constraintFactory, ContractLineType.CONSECUTIVE_FREE_DAYS)
+                .filter((contract, shift) -> shift.getEmployee() != null)
                 .groupBy((contract, shift) -> shift.getEmployee(),
                         (contract, shift) -> contract,
                         ConstraintCollectors.toConsecutiveSequences((contract, shift) -> shift.getShiftDate(),
@@ -180,13 +186,7 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
     }
 
     Constraint maximumConsecutiveFreeDaysNoAssignments(ConstraintFactory constraintFactory) {
-        return constraintFactory.forEach(MinMaxContractLine.class)
-                .filter(minMaxContractLine -> minMaxContractLine
-                        .getContractLineType() == ContractLineType.CONSECUTIVE_FREE_DAYS &&
-                        minMaxContractLine.isMaximumEnabled())
-                .join(Employee.class,
-                        Joiners.equal(MinMaxContractLine::getContract,
-                                Employee::getContract))
+        return constraintFactory.precompute(f -> minMaxContractEmployeeJoin(f, ContractLineType.CONSECUTIVE_FREE_DAYS))
                 .ifNotExists(ShiftAssignment.class,
                         Joiners.equal((contract, employee) -> employee, ShiftAssignment::getEmployee))
                 .join(NurseRosterParametrization.class,
@@ -201,13 +201,8 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
 
     // Min/Max consecutive working weekends
     Constraint consecutiveWorkingWeekends(ConstraintFactory constraintFactory) {
-        return constraintFactory.forEach(MinMaxContractLine.class)
-                .filter(minMaxContractLine -> minMaxContractLine
-                        .getContractLineType() == ContractLineType.CONSECUTIVE_WORKING_WEEKENDS &&
-                        minMaxContractLine.isEnabled())
-                .join(constraintFactory.forEach(ShiftAssignment.class)
-                        .filter(ShiftAssignment::isWeekend),
-                        Joiners.equal(ContractLine::getContract, ShiftAssignment::getContract))
+        return minMaxContractWeekendAssignmentJoin(constraintFactory)
+                .filter((contract, shift) -> shift.getEmployee() != null)
                 .groupBy((contract, shift) -> shift.getEmployee(),
                         (contract, shift) -> contract,
                         ConstraintCollectors.toConsecutiveSequences((contract, shift) -> shift.getShiftDate(),
@@ -222,13 +217,21 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
                 .asConstraint("consecutiveWorkingWeekends");
     }
 
+    private static BiConstraintStream<MinMaxContractLine, ShiftAssignment>
+            minMaxContractWeekendAssignmentJoin(ConstraintFactory factory) {
+        return factory.forEach(MinMaxContractLine.class)
+                .filter(minMaxContractLine -> minMaxContractLine
+                        .getContractLineType() == ContractLineType.CONSECUTIVE_WORKING_WEEKENDS
+                        && minMaxContractLine.isEnabled())
+                .join(factory.forEachUnfiltered(ShiftAssignment.class)
+                        .filter(ShiftAssignment::isWeekend),
+                        Joiners.equal(ContractLine::getContract, ShiftAssignment::getContract));
+    }
+
     // Complete Weekends
     Constraint startOnNotFirstDayOfWeekend(ConstraintFactory constraintFactory) {
-        return constraintFactory.forEach(BooleanContractLine.class)
-                .filter(booleanContractLine -> booleanContractLine.getContractLineType() == ContractLineType.COMPLETE_WEEKENDS
-                        && booleanContractLine.isEnabled())
-                .join(ShiftAssignment.class,
-                        Joiners.equal(ContractLine::getContract, ShiftAssignment::getContract))
+        return booleanContractAssignmentJoin(constraintFactory, ContractLineType.COMPLETE_WEEKENDS)
+                .filter((contract, shift) -> shift.getEmployee() != null)
                 .groupBy((contract, shift) -> shift.getEmployee(),
                         (contract, shift) -> contract,
                         ConstraintCollectors.toConsecutiveSequences((contract, shift) -> shift.getShiftDate(),
@@ -243,13 +246,18 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
                 .asConstraint("startOnNotFirstDayOfWeekend");
     }
 
-    Constraint endOnNotLastDayOfWeekend(ConstraintFactory constraintFactory) {
-        return constraintFactory.forEach(BooleanContractLine.class)
-                .filter(booleanContractLine -> booleanContractLine
-                        .getContractLineType() == ContractLineType.COMPLETE_WEEKENDS &&
-                        booleanContractLine.isEnabled())
+    private static BiConstraintStream<BooleanContractLine, ShiftAssignment>
+            booleanContractAssignmentJoin(ConstraintFactory factory, ContractLineType type) {
+        return factory.forEach(BooleanContractLine.class)
+                .filter(booleanContractLine -> booleanContractLine.getContractLineType() == type
+                        && booleanContractLine.isEnabled())
                 .join(ShiftAssignment.class,
-                        Joiners.equal(ContractLine::getContract, ShiftAssignment::getContract))
+                        Joiners.equal(ContractLine::getContract, ShiftAssignment::getContract));
+    }
+
+    Constraint endOnNotLastDayOfWeekend(ConstraintFactory constraintFactory) {
+        return booleanContractAssignmentJoin(constraintFactory, ContractLineType.COMPLETE_WEEKENDS)
+                .filter((contract, shift) -> shift.getEmployee() != null)
                 .groupBy((contract, shift) -> shift.getEmployee(),
                         (contract, shift) -> contract,
                         ConstraintCollectors.toConsecutiveSequences((contract, shift) -> shift.getShiftDate(),
