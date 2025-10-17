@@ -1,12 +1,5 @@
 package ai.timefold.solver.benchmarks.examples.curriculumcourse.score;
 
-import static ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore.ONE_HARD;
-import static ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore.ofHard;
-import static ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore.ofSoft;
-import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.countDistinct;
-import static ai.timefold.solver.core.api.score.stream.Joiners.equal;
-import static ai.timefold.solver.core.api.score.stream.Joiners.filtering;
-
 import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.Curriculum;
 import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.Lecture;
 import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.UnavailablePeriodPenalty;
@@ -15,6 +8,15 @@ import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
 import ai.timefold.solver.core.api.score.stream.Constraint;
 import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
+import ai.timefold.solver.core.api.score.stream.PrecomputeFactory;
+import ai.timefold.solver.core.api.score.stream.bi.BiConstraintStream;
+
+import static ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore.ONE_HARD;
+import static ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore.ofHard;
+import static ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore.ofSoft;
+import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.countDistinct;
+import static ai.timefold.solver.core.api.score.stream.Joiners.equal;
+import static ai.timefold.solver.core.api.score.stream.Joiners.filtering;
 
 public class CurriculumCourseConstraintProvider implements ConstraintProvider {
 
@@ -37,9 +39,7 @@ public class CurriculumCourseConstraintProvider implements ConstraintProvider {
     // ************************************************************************
 
     Constraint conflictingLecturesDifferentCourseInSamePeriod(ConstraintFactory factory) {
-        return factory.forEach(CourseConflict.class)
-                .join(Lecture.class,
-                        equal(CourseConflict::getLeftCourse, Lecture::getCourse))
+        return factory.precompute(CurriculumCourseConstraintProvider::conflictingCourseLeft)
                 .join(Lecture.class,
                         equal((courseConflict, lecture1) -> courseConflict.getRightCourse(), Lecture::getCourse),
                         equal((courseConflict, lecture1) -> lecture1.getPeriod(), Lecture::getPeriod))
@@ -47,6 +47,12 @@ public class CurriculumCourseConstraintProvider implements ConstraintProvider {
                 .penalize(ONE_HARD,
                         (courseConflict, lecture1, lecture2) -> courseConflict.getConflictCount())
                 .asConstraint("conflictingLecturesDifferentCourseInSamePeriod");
+    }
+
+    private static BiConstraintStream<CourseConflict, Lecture> conflictingCourseLeft(PrecomputeFactory factory) {
+        return factory.forEachUnfiltered(CourseConflict.class)
+                .join(Lecture.class,
+                        equal(CourseConflict::getLeftCourse, Lecture::getCourse));
     }
 
     Constraint conflictingLecturesSameCourseInSamePeriod(ConstraintFactory factory) {
@@ -97,9 +103,7 @@ public class CurriculumCourseConstraintProvider implements ConstraintProvider {
     }
 
     Constraint curriculumCompactness(ConstraintFactory factory) {
-        return factory.forEach(Curriculum.class)
-                .join(Lecture.class,
-                        filtering((curriculum, lecture) -> lecture.getCurriculumSet().contains(curriculum)))
+        return factory.precompute(CurriculumCourseConstraintProvider::curriculumLectureLeft)
                 .ifNotExists(Lecture.class,
                         equal((curriculum, lecture) -> lecture.getDay(), Lecture::getDay),
                         equal((curriculum, lecture) -> lecture.getTimeslotIndex(), lecture -> lecture.getTimeslotIndex() + 1),
@@ -110,6 +114,12 @@ public class CurriculumCourseConstraintProvider implements ConstraintProvider {
                         filtering((curriculum, lectureA, lectureB) -> lectureB.getCurriculumSet().contains(curriculum)))
                 .penalize(ofSoft(2))
                 .asConstraint("curriculumCompactness");
+    }
+
+    private static BiConstraintStream<Curriculum, Lecture> curriculumLectureLeft(PrecomputeFactory factory) {
+        return factory.forEachUnfiltered(Curriculum.class)
+                .join(Lecture.class,
+                        filtering((curriculum, lecture) -> lecture.getCurriculumSet().contains(curriculum)));
     }
 
     Constraint roomStability(ConstraintFactory factory) {
