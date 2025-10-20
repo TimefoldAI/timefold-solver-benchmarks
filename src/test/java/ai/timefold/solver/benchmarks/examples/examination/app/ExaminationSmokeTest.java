@@ -1,10 +1,10 @@
 package ai.timefold.solver.benchmarks.examples.examination.app;
 
-import java.util.stream.Stream;
-
 import ai.timefold.solver.benchmarks.examples.common.app.SolverSmokeTest;
 import ai.timefold.solver.benchmarks.examples.examination.domain.Examination;
 import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
+
+import java.util.stream.Stream;
 
 class ExaminationSmokeTest extends SolverSmokeTest<Examination, HardSoftScore> {
 
@@ -19,7 +19,7 @@ class ExaminationSmokeTest extends SolverSmokeTest<Examination, HardSoftScore> {
     protected Stream<TestData<HardSoftScore>> testData() {
         return Stream.of(
                 TestData.of(UNSOLVED_DATA_FILE,
-                        HardSoftScore.ofSoft(-4195),
-                        HardSoftScore.ofSoft(-4312)));
+                        HardSoftScore.ofSoft(-4006),
+                        HardSoftScore.ofSoft(-4035)));
     }
 }
