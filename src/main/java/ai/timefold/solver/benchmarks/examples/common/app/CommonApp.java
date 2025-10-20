@@ -1,16 +1,16 @@
 package ai.timefold.solver.benchmarks.examples.common.app;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.Set;
-
 import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutionImporter;
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
 import ai.timefold.solver.core.api.solver.SolverConfigOverride;
 import ai.timefold.solver.core.api.solver.SolverFactory;
 import ai.timefold.solver.core.config.solver.termination.TerminationConfig;
 import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
+
+import java.io.File;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * @param <Solution_> the solution type, the class with the {@link PlanningSolution} annotation
@@ -117,9 +117,17 @@ public abstract class CommonApp<Solution_> extends LoggingMain {
         return solve(datasetName, 1L);
     }
 
+    public final Solution_ solve(Solution_ solution) {
+        return solve(solution, 1L);
+    }
+
     public final Solution_ solve(String datasetName, long minutesSpentLimit) {
         var solutionFileIo = createSolutionFileIO();
         var solution = solutionFileIo.read(Path.of("data", dataDirName, "unsolved", datasetName).toFile().getAbsoluteFile());
+        return solve(solution, minutesSpentLimit);
+    }
+
+    public final Solution_ solve(Solution_ solution, long minutesSpentLimit) {
         var solverFactory = SolverFactory.<Solution_> createFromXmlResource(solverConfigResource);
         var solver = solverFactory.buildSolver(new SolverConfigOverride<Solution_>()
                 .withTerminationConfig(new TerminationConfig()
