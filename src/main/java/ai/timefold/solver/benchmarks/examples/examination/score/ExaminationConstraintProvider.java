@@ -22,9 +22,6 @@ import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
 import ai.timefold.solver.core.api.score.stream.Constraint;
 import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
-import ai.timefold.solver.core.api.score.stream.PrecomputeFactory;
-import ai.timefold.solver.core.api.score.stream.bi.BiConstraintStream;
-import ai.timefold.solver.core.api.score.stream.tri.TriConstraintStream;
 
 public class ExaminationConstraintProvider implements ConstraintProvider {
 
@@ -51,15 +48,12 @@ public class ExaminationConstraintProvider implements ConstraintProvider {
         };
     }
 
-    private static BiConstraintStream<TopicConflict, Exam> conflictingExamLeft(PrecomputeFactory factory) {
-        return factory.forEachUnfiltered(TopicConflict.class)
-                .join(Exam.class,
-                        equal(TopicConflict::getLeftTopic, Exam::getTopic));
-    }
-
     protected Constraint conflictingExamsInSamePeriod(ConstraintFactory constraintFactory) {
-        return constraintFactory.precompute(ExaminationConstraintProvider::conflictingExamLeft)
-                .filter((topicConflict, leftExam) -> leftExam.getPeriod() != null)
+        return constraintFactory.forEach(TopicConflict.class)
+                .join(Exam.class,
+                        equal(TopicConflict::getLeftTopic,
+                                Exam::getTopic),
+                        filtering((topicConflict, leftExam) -> leftExam.getPeriod() != null))
                 .ifExists(Exam.class,
                         equal((topicConflict, leftExam) -> topicConflict.getRightTopic(),
                                 Exam::getTopic),
@@ -89,8 +83,13 @@ public class ExaminationConstraintProvider implements ConstraintProvider {
     }
 
     protected Constraint periodPenaltyExamCoincidence(ConstraintFactory constraintFactory) {
-        return constraintFactory.precompute(ExaminationConstraintProvider::periodPenaltyCoincidenceExamLeft)
-                .filter((periodPenalty, leftExam) -> leftExam.getPeriod() != null)
+        return constraintFactory.forEach(PeriodPenalty.class)
+                .filter(periodPenalty -> periodPenalty
+                        .getPeriodPenaltyType() == PeriodPenaltyType.EXAM_COINCIDENCE)
+                .join(Exam.class,
+                        equal(PeriodPenalty::getLeftTopic,
+                                Exam::getTopic),
+                        filtering((periodPenalty, leftExam) -> leftExam.getPeriod() != null))
                 .join(Exam.class,
                         equal((periodPenalty, leftExam) -> periodPenalty.getRightTopic(),
                                 Exam::getTopic),
@@ -101,16 +100,14 @@ public class ExaminationConstraintProvider implements ConstraintProvider {
                 .asConstraint("periodPenaltyExamCoincidence");
     }
 
-    private static BiConstraintStream<PeriodPenalty, Exam> periodPenaltyCoincidenceExamLeft(PrecomputeFactory factory) {
-        return factory.forEachUnfiltered(PeriodPenalty.class)
-                .filter(periodPenalty -> periodPenalty.getPeriodPenaltyType() == PeriodPenaltyType.EXAM_COINCIDENCE)
-                .join(Exam.class,
-                        equal(PeriodPenalty::getLeftTopic, Exam::getTopic));
-    }
-
     protected Constraint periodPenaltyExclusion(ConstraintFactory constraintFactory) {
-        return constraintFactory.precompute(ExaminationConstraintProvider::periodPenaltyExclusionExamLeft)
-                .filter((periodPenalty, leftExam) -> leftExam.getPeriod() != null)
+        return constraintFactory.forEach(PeriodPenalty.class)
+                .filter(periodPenalty -> periodPenalty
+                        .getPeriodPenaltyType() == PeriodPenaltyType.EXCLUSION)
+                .join(Exam.class,
+                        equal(PeriodPenalty::getLeftTopic,
+                                Exam::getTopic),
+                        filtering((periodPenalty, leftExam) -> leftExam.getPeriod() != null))
                 .join(Exam.class,
                         equal((periodPenalty, leftExam) -> periodPenalty.getRightTopic(),
                                 Exam::getTopic),
@@ -121,16 +118,13 @@ public class ExaminationConstraintProvider implements ConstraintProvider {
                 .asConstraint("periodPenaltyExclusion");
     }
 
-    private static BiConstraintStream<PeriodPenalty, Exam> periodPenaltyExclusionExamLeft(PrecomputeFactory factory) {
-        return factory.forEachUnfiltered(PeriodPenalty.class)
-                .filter(periodPenalty -> periodPenalty.getPeriodPenaltyType() == PeriodPenaltyType.EXCLUSION)
-                .join(Exam.class,
-                        equal(PeriodPenalty::getLeftTopic, Exam::getTopic));
-    }
-
     protected Constraint periodPenaltyAfter(ConstraintFactory constraintFactory) {
-        return constraintFactory.precompute(ExaminationConstraintProvider::periodPenaltyAfterExamLeft)
-                .filter((periodPenalty, leftExam) -> leftExam.getPeriod() != null)
+        return constraintFactory.forEach(PeriodPenalty.class)
+                .filter(periodPenalty -> periodPenalty.getPeriodPenaltyType() == PeriodPenaltyType.AFTER)
+                .join(Exam.class,
+                        equal(PeriodPenalty::getLeftTopic,
+                                Exam::getTopic),
+                        filtering((periodPenalty, leftExam) -> leftExam.getPeriod() != null))
                 .join(Exam.class,
                         equal((periodPenalty, leftExam) -> periodPenalty.getRightTopic(),
                                 Exam::getTopic),
@@ -141,16 +135,12 @@ public class ExaminationConstraintProvider implements ConstraintProvider {
                 .asConstraint("periodPenaltyAfter");
     }
 
-    private static BiConstraintStream<PeriodPenalty, Exam> periodPenaltyAfterExamLeft(PrecomputeFactory factory) {
-        return factory.forEachUnfiltered(PeriodPenalty.class)
-                .filter(periodPenalty -> periodPenalty.getPeriodPenaltyType() == PeriodPenaltyType.AFTER)
-                .join(Exam.class,
-                        equal(PeriodPenalty::getLeftTopic, Exam::getTopic));
-    }
-
     protected Constraint roomPenaltyExclusive(ConstraintFactory constraintFactory) {
-        return constraintFactory.precompute(ExaminationConstraintProvider::roomPenaltyExclusiveExamLeft)
-                .filter((roomPenalty, leftExam) -> leftExam.getPeriod() != null && leftExam.getRoom() != null)
+        return constraintFactory.forEach(RoomPenalty.class)
+                .filter(roomPenalty -> roomPenalty.getRoomPenaltyType() == RoomPenaltyType.ROOM_EXCLUSIVE)
+                .join(Exam.class,
+                        equal(RoomPenalty::getTopic, Exam::getTopic),
+                        filtering((roomPenalty, leftExam) -> leftExam.getPeriod() != null && leftExam.getRoom() != null))
                 .join(Exam.class,
                         equal((roomPenalty, leftExam) -> leftExam.getRoom(),
                                 Exam::getRoom),
@@ -162,16 +152,12 @@ public class ExaminationConstraintProvider implements ConstraintProvider {
                 .asConstraint("roomPenaltyExclusive");
     }
 
-    private static BiConstraintStream<RoomPenalty, Exam> roomPenaltyExclusiveExamLeft(PrecomputeFactory factory) {
-        return factory.forEachUnfiltered(RoomPenalty.class)
-                .filter(roomPenalty -> roomPenalty.getRoomPenaltyType() == RoomPenaltyType.ROOM_EXCLUSIVE)
-                .join(Exam.class,
-                        equal(RoomPenalty::getTopic, Exam::getTopic));
-    }
-
     protected Constraint twoExamsInARow(ConstraintFactory constraintFactory) {
-        return constraintFactory.precompute(ExaminationConstraintProvider::topicConflictExamLeft)
-                .filter((topicConflict, leftExam) -> leftExam.getPeriod() != null)
+        return constraintFactory.forEach(TopicConflict.class)
+                .join(Exam.class,
+                        equal(TopicConflict::getLeftTopic,
+                                Exam::getTopic),
+                        filtering((topicConflict, leftExam) -> leftExam.getPeriod() != null))
                 .join(Exam.class,
                         equal((topicConflict, leftExam) -> topicConflict.getRightTopic(),
                                 Exam::getTopic),
@@ -183,15 +169,12 @@ public class ExaminationConstraintProvider implements ConstraintProvider {
                 .asConstraint("twoExamsInARow");
     }
 
-    private static BiConstraintStream<TopicConflict, Exam> topicConflictExamLeft(PrecomputeFactory factory) {
-        return factory.forEachUnfiltered(TopicConflict.class)
-                .join(Exam.class,
-                        equal(TopicConflict::getLeftTopic, Exam::getTopic));
-    }
-
     protected Constraint twoExamsInADay(ConstraintFactory constraintFactory) {
-        return constraintFactory.precompute(ExaminationConstraintProvider::topicConflictExamLeft)
-                .filter((topicConflict, leftExam) -> leftExam.getPeriod() != null)
+        return constraintFactory.forEach(TopicConflict.class)
+                .join(Exam.class,
+                        equal(TopicConflict::getLeftTopic,
+                                Exam::getTopic),
+                        filtering((topicConflict, leftExam) -> leftExam.getPeriod() != null))
                 .join(Exam.class,
                         equal((topicConflict, leftExam) -> topicConflict.getRightTopic(),
                                 Exam::getTopic),
@@ -205,8 +188,12 @@ public class ExaminationConstraintProvider implements ConstraintProvider {
     }
 
     protected Constraint periodSpread(ConstraintFactory constraintFactory) {
-        return constraintFactory.precompute(ExaminationConstraintProvider::configuredTopicConflictExamLeft)
-                .filter((config, topicConflict, leftExam) -> leftExam.getPeriod() != null)
+        return constraintFactory.forEach(ExaminationConstraintProperties.class)
+                .join(TopicConflict.class)
+                .join(Exam.class,
+                        equal((config, topicConflict) -> topicConflict.getLeftTopic(),
+                                Exam::getTopic),
+                        filtering((config, topicConflict, leftExam) -> leftExam.getPeriod() != null))
                 .join(Exam.class,
                         equal((config, topicConflict, leftExam) -> topicConflict.getRightTopic(),
                                 Exam::getTopic),
@@ -217,14 +204,6 @@ public class ExaminationConstraintProvider implements ConstraintProvider {
                 .penalize(HardSoftScore.ONE_SOFT,
                         (config, topicConflict, leftExam, rightExam) -> topicConflict.getStudentSize())
                 .asConstraint("periodSpread");
-    }
-
-    private static TriConstraintStream<ExaminationConstraintProperties, TopicConflict, Exam>
-            configuredTopicConflictExamLeft(PrecomputeFactory factory) {
-        return factory.forEachUnfiltered(ExaminationConstraintProperties.class)
-                .join(TopicConflict.class)
-                .join(Exam.class,
-                        equal((config, topicConflict) -> topicConflict.getLeftTopic(), Exam::getTopic));
     }
 
     protected Constraint mixedDurations(ConstraintFactory constraintFactory) {
@@ -283,5 +262,4 @@ public class ExaminationConstraintProvider implements ConstraintProvider {
             Exam rightExam) {
         return Math.abs(leftExam.getPeriodIndex() - rightExam.getPeriodIndex());
     }
-
 }
