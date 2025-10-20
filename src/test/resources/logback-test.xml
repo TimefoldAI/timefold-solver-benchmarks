@@ -7,25 +7,14 @@
       <pattern>%d{HH:mm:ss.SSS} [%-12.12t] %-5p %m%n</pattern>
     </encoder>
   </appender>
-  <!--<appender name="fileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">-->
-    <!--<file>local/log/timefold.log</file>-->
-    <!--<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">-->
-      <!--<fileNamePattern>local/log/timefold.%i.log.zip</fileNamePattern>-->
-      <!--<minIndex>1</minIndex>-->
-      <!--<maxIndex>3</maxIndex>-->
-    <!--</rollingPolicy>-->
-    <!--<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">-->
-      <!--<maxFileSize>5MB</maxFileSize>-->
-    <!--</triggeringPolicy>-->
-    <!--<encoder>-->
-      <!--<pattern>%d{HH:mm:ss.SSS} [%t] %-5p %m%n</pattern>-->
-    <!--</encoder>-->
-  <!--</appender>-->
-
-  <logger name="ai.timefold.solver" level="${logback.level.ai.timefold.solver:-info}"/>
-
-  <root level="warn">
+  <appender name="asyncConsoleAppender" class="ch.qos.logback.classic.AsyncAppender">
     <appender-ref ref="consoleAppender" />
+  </appender>
+
+  <logger name="ai.timefold.solver" level="${logback.level.ai.timefold.solver:-debug}"/>
+
+  <root level="debug">
+    <appender-ref ref="asyncConsoleAppender" />
   </root>
 
 </configuration>
