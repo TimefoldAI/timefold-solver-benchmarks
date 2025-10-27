@@ -128,7 +128,7 @@ jobs:
           mv target/benchmarks.jar ../benchmarks-sut.jar
 
       - name: Upload the binaries
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: binaries-${{ matrix.example }}
           path: |
@@ -233,7 +233,7 @@ jobs:
           mv ${{ env.SANITIZED_BRANCH }}/combined.jfr ${{ env.SANITIZED_BRANCH }}/${{ matrix.example }}-${{ env.SANITIZED_BRANCH }}-combined.jfr 
 
       - name: Archive benchmark data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: results-${{ matrix.example }}-${{ env.SANITIZED_BASELINE }}_vs_${{ env.SANITIZED_BRANCH }}
           path: |
