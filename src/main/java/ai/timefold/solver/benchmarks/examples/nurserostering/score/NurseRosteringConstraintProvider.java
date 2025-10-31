@@ -82,12 +82,6 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
     // Soft constraints
     // ############################################################################
 
-    private static <A, B, C> TriConstraintStream<A, B, C> outerJoin(BiConstraintStream<A, B> source,
-            Class<C> joinedClass, TriJoiner<A, B, C> joiner) {
-        return source.join(joinedClass, joiner)
-                .concat(source.ifNotExists(joinedClass, joiner));
-    }
-
     Constraint minimumAndMaximumNumberOfAssignments(ConstraintFactory constraintFactory) {
         var assignmentLimitedEmployeeStream = constraintFactory
                 .forEach(MinMaxContractLine.class)
@@ -112,6 +106,12 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
                 .penalize(HardSoftBigDecimalScore.ONE_SOFT, (employee, contract, violationAmount) -> violationAmount)
                 .indictWith((employee, contract, violationAmount) -> Arrays.asList(employee, contract))
                 .asConstraint("Minimum and maximum number of assignments");
+    }
+
+    private static <A, B, C> TriConstraintStream<A, B, C> outerJoin(BiConstraintStream<A, B> source, Class<C> joinedClass,
+            TriJoiner<A, B, C> joiner) {
+        return source.join(joinedClass, joiner)
+                .concat(source.ifNotExists(joinedClass, joiner));
     }
 
     // Min/Max consecutive working days

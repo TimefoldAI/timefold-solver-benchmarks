@@ -19,7 +19,7 @@ class CurriculumCourseSmokeTest extends SolverSmokeTest<CourseSchedule, HardSoft
     protected Stream<TestData<HardSoftScore>> testData() {
         return Stream.of(
                 TestData.of(UNSOLVED_DATA_FILE,
-                        HardSoftScore.ofSoft(-55),
-                        HardSoftScore.ofSoft(-64)));
+                        HardSoftScore.ofSoft(-20),
+                        HardSoftScore.ofSoft(-21)));
     }
 }

@@ -20,7 +20,7 @@ class ConferenceSchedulingSmokeTest extends SolverSmokeTest<ConferenceSolution, 
     protected Stream<TestData<HardSoftScore>> testData() {
         return Stream.of(
                 TestData.of(UNSOLVED_DATA_FILE,
-                        HardSoftScore.ofSoft(-1025250),
-                        HardSoftScore.ofSoft(-1100400)));
+                        HardSoftScore.ofSoft(-806745),
+                        HardSoftScore.ofSoft(-811140)));
     }
 }

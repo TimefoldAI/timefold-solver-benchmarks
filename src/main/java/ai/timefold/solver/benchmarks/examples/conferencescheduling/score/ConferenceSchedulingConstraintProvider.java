@@ -50,6 +50,8 @@ import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
 import ai.timefold.solver.core.api.score.stream.Constraint;
 import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
+import ai.timefold.solver.core.api.score.stream.PrecomputeFactory;
+import ai.timefold.solver.core.api.score.stream.bi.BiConstraintStream;
 
 /**
  * Provides the constraints for the conference scheduling problem.
@@ -150,13 +152,18 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
     }
 
     Constraint consecutiveTalksPause(ConstraintFactory factory) {
-        return factory.forEachUniquePair(Talk.class,
-                filtering((talk1, talk2) -> talk2.hasMutualSpeaker(talk1)))
+        return factory.precompute(this::speakerTalks)
+                .filter((talk1, talk2) -> talk1.getTimeslot() != null && talk2.getTimeslot() != null)
                 .ifExists(ConferenceConstraintProperties.class,
                         filtering((talk1, talk2, config) -> !talk1.getTimeslot().pauseExists(talk2.getTimeslot(),
                                 config.getMinimumConsecutiveTalksPauseInMinutes())))
                 .penalize(HardSoftScore.ofHard(1), Talk::combinedDurationInMinutes)
                 .asConstraint(CONSECUTIVE_TALKS_PAUSE);
+    }
+
+    private BiConstraintStream<Talk, Talk> speakerTalks(PrecomputeFactory factory) {
+        return factory.forEachUnfilteredUniquePair(Talk.class)
+                .filter(Talk::hasMutualSpeaker);
     }
 
     Constraint crowdControl(ConstraintFactory factory) {

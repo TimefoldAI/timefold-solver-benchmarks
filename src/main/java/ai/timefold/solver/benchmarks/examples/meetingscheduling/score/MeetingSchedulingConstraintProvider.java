@@ -16,6 +16,8 @@ import ai.timefold.solver.core.api.score.buildin.hardmediumsoft.HardMediumSoftSc
 import ai.timefold.solver.core.api.score.stream.Constraint;
 import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
+import ai.timefold.solver.core.api.score.stream.PrecomputeFactory;
+import ai.timefold.solver.core.api.score.stream.tri.TriConstraintStream;
 
 public class MeetingSchedulingConstraintProvider implements ConstraintProvider {
 
@@ -63,12 +65,9 @@ public class MeetingSchedulingConstraintProvider implements ConstraintProvider {
     }
 
     protected Constraint requiredAttendanceConflict(ConstraintFactory constraintFactory) {
-        return constraintFactory
-                .forEachUniquePair(RequiredAttendance.class,
-                        equal(RequiredAttendance::getPerson))
-                .join(MeetingAssignment.class,
-                        equal((leftRequiredAttendance, rightRequiredAttendance) -> leftRequiredAttendance.getMeeting(),
-                                MeetingAssignment::getMeeting))
+        return constraintFactory.precompute(MeetingSchedulingConstraintProvider::requiredAttendanceAssignmentLeft)
+                .filter((leftRequiredAttendance, rightRequiredAttendance,
+                        assignment) -> assignment.getStartingTimeGrain() != null)
                 .join(MeetingAssignment.class,
                         equal((leftRequiredAttendance, rightRequiredAttendance, leftAssignment) -> rightRequiredAttendance
                                 .getMeeting(),
@@ -83,6 +82,15 @@ public class MeetingSchedulingConstraintProvider implements ConstraintProvider {
                         (leftRequiredAttendance, rightRequiredAttendance, leftAssignment, rightAssignment) -> rightAssignment
                                 .calculateOverlap(leftAssignment))
                 .asConstraint("Required attendance conflict");
+    }
+
+    private static TriConstraintStream<RequiredAttendance, RequiredAttendance, MeetingAssignment>
+            requiredAttendanceAssignmentLeft(PrecomputeFactory factory) {
+        return factory.forEachUnfilteredUniquePair(RequiredAttendance.class,
+                equal(RequiredAttendance::getPerson))
+                .join(MeetingAssignment.class,
+                        equal((leftRequiredAttendance, rightRequiredAttendance) -> leftRequiredAttendance.getMeeting(),
+                                MeetingAssignment::getMeeting));
     }
 
     protected Constraint requiredRoomCapacity(ConstraintFactory constraintFactory) {
@@ -109,15 +117,8 @@ public class MeetingSchedulingConstraintProvider implements ConstraintProvider {
     // ************************************************************************
 
     protected Constraint requiredAndPreferredAttendanceConflict(ConstraintFactory constraintFactory) {
-        return constraintFactory
-                .forEach(RequiredAttendance.class)
-                .join(PreferredAttendance.class,
-                        equal(RequiredAttendance::getPerson,
-                                PreferredAttendance::getPerson))
-                .join(constraintFactory.forEachIncludingUnassigned(MeetingAssignment.class)
-                        .filter(assignment -> assignment.getStartingTimeGrain() != null),
-                        equal((requiredAttendance, preferredAttendance) -> requiredAttendance.getMeeting(),
-                                MeetingAssignment::getMeeting))
+        return constraintFactory.precompute(MeetingSchedulingConstraintProvider::requiredAndPreferredAttendanceAssignmentLeft)
+                .filter((requiredAttendance, preferredAttendance, assignment) -> assignment.getStartingTimeGrain() != null)
                 .join(constraintFactory.forEachIncludingUnassigned(MeetingAssignment.class)
                         .filter(assignment -> assignment.getStartingTimeGrain() != null),
                         equal((requiredAttendance, preferredAttendance, leftAssignment) -> preferredAttendance.getMeeting(),
@@ -134,14 +135,20 @@ public class MeetingSchedulingConstraintProvider implements ConstraintProvider {
                 .asConstraint("Required and preferred attendance conflict");
     }
 
+    private static TriConstraintStream<RequiredAttendance, PreferredAttendance, MeetingAssignment>
+            requiredAndPreferredAttendanceAssignmentLeft(PrecomputeFactory factory) {
+        return factory.forEachUnfiltered(RequiredAttendance.class)
+                .join(PreferredAttendance.class,
+                        equal(RequiredAttendance::getPerson, PreferredAttendance::getPerson))
+                .join(MeetingAssignment.class,
+                        equal((requiredAttendance, preferredAttendance) -> requiredAttendance.getMeeting(),
+                                MeetingAssignment::getMeeting));
+    }
+
     protected Constraint preferredAttendanceConflict(ConstraintFactory constraintFactory) {
-        return constraintFactory
-                .forEachUniquePair(PreferredAttendance.class,
-                        equal(PreferredAttendance::getPerson))
-                .join(constraintFactory.forEachIncludingUnassigned(MeetingAssignment.class)
-                        .filter(assignment -> assignment.getStartingTimeGrain() != null),
-                        equal((leftAttendance, rightAttendance) -> leftAttendance.getMeeting(),
-                                MeetingAssignment::getMeeting))
+        return constraintFactory.precompute(MeetingSchedulingConstraintProvider::preferredAttendanceAssignmentLeft)
+                .filter((leftPreferredAttendance, rightPreferredAttendance,
+                        assignment) -> assignment.getStartingTimeGrain() != null)
                 .join(constraintFactory.forEachIncludingUnassigned(MeetingAssignment.class)
                         .filter(assignment -> assignment.getStartingTimeGrain() != null),
                         equal((leftAttendance, rightAttendance, leftAssignment) -> rightAttendance.getMeeting(),
@@ -156,6 +163,14 @@ public class MeetingSchedulingConstraintProvider implements ConstraintProvider {
                         (leftPreferredAttendance, rightPreferredAttendance, leftAssignment, rightAssignment) -> rightAssignment
                                 .calculateOverlap(leftAssignment))
                 .asConstraint("Preferred attendance conflict");
+    }
+
+    private static TriConstraintStream<PreferredAttendance, PreferredAttendance, MeetingAssignment>
+            preferredAttendanceAssignmentLeft(PrecomputeFactory factory) {
+        return factory.forEachUnfilteredUniquePair(PreferredAttendance.class,
+                equal(PreferredAttendance::getPerson))
+                .join(MeetingAssignment.class,
+                        equal((leftAttendance, rightAttendance) -> leftAttendance.getMeeting(), MeetingAssignment::getMeeting));
     }
 
     // ************************************************************************
@@ -205,14 +220,9 @@ public class MeetingSchedulingConstraintProvider implements ConstraintProvider {
     }
 
     protected Constraint roomStability(ConstraintFactory constraintFactory) {
-        return constraintFactory.forEach(Attendance.class)
-                .join(Attendance.class,
-                        equal(Attendance::getPerson),
-                        filtering((leftAttendance,
-                                rightAttendance) -> leftAttendance.getMeeting() != rightAttendance.getMeeting()))
-                .join(MeetingAssignment.class,
-                        equal((leftAttendance, rightAttendance) -> leftAttendance.getMeeting(),
-                                MeetingAssignment::getMeeting))
+        return constraintFactory.precompute(MeetingSchedulingConstraintProvider::roomStabilityJoin)
+                .filter((leftAttendance, rightAttendance, assignment) -> assignment.getStartingTimeGrain() != null
+                        && assignment.getRoom() != null)
                 .join(MeetingAssignment.class,
                         equal((leftAttendance, rightAttendance, leftAssignment) -> rightAttendance.getMeeting(),
                                 MeetingAssignment::getMeeting),
@@ -227,4 +237,15 @@ public class MeetingSchedulingConstraintProvider implements ConstraintProvider {
                 .penalize(HardMediumSoftScore.ONE_SOFT)
                 .asConstraint("Room stability");
     }
+
+    private static TriConstraintStream<Attendance, Attendance, MeetingAssignment> roomStabilityJoin(PrecomputeFactory factory) {
+        return factory.forEachUnfiltered(Attendance.class)
+                .join(Attendance.class,
+                        equal(Attendance::getPerson),
+                        filtering((leftAttendance,
+                                rightAttendance) -> leftAttendance.getMeeting() != rightAttendance.getMeeting()))
+                .join(MeetingAssignment.class,
+                        equal((leftAttendance, rightAttendance) -> leftAttendance.getMeeting(), MeetingAssignment::getMeeting));
+    }
+
 }
