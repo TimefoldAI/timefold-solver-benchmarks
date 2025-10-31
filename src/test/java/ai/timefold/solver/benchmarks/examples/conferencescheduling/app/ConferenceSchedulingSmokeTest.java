@@ -1,11 +1,11 @@
 
 package ai.timefold.solver.benchmarks.examples.conferencescheduling.app;
 
-import java.util.stream.Stream;
-
 import ai.timefold.solver.benchmarks.examples.common.app.SolverSmokeTest;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceSolution;
 import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
+
+import java.util.stream.Stream;
 
 class ConferenceSchedulingSmokeTest extends SolverSmokeTest<ConferenceSolution, HardSoftScore> {
 
@@ -20,7 +20,7 @@ class ConferenceSchedulingSmokeTest extends SolverSmokeTest<ConferenceSolution, 
     protected Stream<TestData<HardSoftScore>> testData() {
         return Stream.of(
                 TestData.of(UNSOLVED_DATA_FILE,
-                        HardSoftScore.ofSoft(-1025250),
-                        HardSoftScore.ofSoft(-1100400)));
+                        HardSoftScore.ofSoft(-806745),
+                        HardSoftScore.ofSoft(-811140)));
     }
 }

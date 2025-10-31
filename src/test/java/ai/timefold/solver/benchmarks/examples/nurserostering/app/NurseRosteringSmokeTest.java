@@ -20,7 +20,7 @@ class NurseRosteringSmokeTest extends SolverSmokeTest<NurseRoster, HardSoftBigDe
     protected Stream<TestData<HardSoftBigDecimalScore>> testData() {
         return Stream.of(
                 TestData.of(UNSOLVED_DATA_FILE,
-                        HardSoftBigDecimalScore.ofSoft(BigDecimal.valueOf(-393.9548)),
-                        HardSoftBigDecimalScore.ofSoft(BigDecimal.valueOf(-406.0724))));
+                        HardSoftBigDecimalScore.ofSoft(BigDecimal.valueOf(-384.0724)),
+                        HardSoftBigDecimalScore.ofSoft(BigDecimal.valueOf(-391.3628))));
     }
 }

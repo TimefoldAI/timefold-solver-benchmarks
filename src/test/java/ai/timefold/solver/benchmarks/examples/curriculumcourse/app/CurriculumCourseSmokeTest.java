@@ -1,10 +1,10 @@
 package ai.timefold.solver.benchmarks.examples.curriculumcourse.app;
 
+import java.util.stream.Stream;
+
 import ai.timefold.solver.benchmarks.examples.common.app.SolverSmokeTest;
 import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.CourseSchedule;
 import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
-
-import java.util.stream.Stream;
 
 class CurriculumCourseSmokeTest extends SolverSmokeTest<CourseSchedule, HardSoftScore> {
 

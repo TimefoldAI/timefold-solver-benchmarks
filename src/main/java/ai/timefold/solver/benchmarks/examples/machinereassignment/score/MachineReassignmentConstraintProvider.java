@@ -1,5 +1,11 @@
 package ai.timefold.solver.benchmarks.examples.machinereassignment.score;
 
+import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.sumLong;
+import static ai.timefold.solver.core.api.score.stream.Joiners.equal;
+import static ai.timefold.solver.core.api.score.stream.Joiners.filtering;
+
+import java.util.function.BiFunction;
+
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrBalancePenalty;
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrGlobalPenaltyInfo;
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrMachine;
@@ -12,12 +18,6 @@ import ai.timefold.solver.core.api.score.stream.Constraint;
 import ai.timefold.solver.core.api.score.stream.ConstraintCollectors;
 import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
-
-import java.util.function.BiFunction;
-
-import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.sumLong;
-import static ai.timefold.solver.core.api.score.stream.Joiners.equal;
-import static ai.timefold.solver.core.api.score.stream.Joiners.filtering;
 
 public class MachineReassignmentConstraintProvider implements ConstraintProvider {
 
@@ -63,8 +63,8 @@ public class MachineReassignmentConstraintProvider implements ConstraintProvider
 
     protected Constraint serviceConflict(ConstraintFactory factory) {
         return factory.forEachUniquePair(MrProcessAssignment.class,
-                        equal(MrProcessAssignment::getMachine, MrProcessAssignment::getMachine),
-                        equal(MrProcessAssignment::getService, MrProcessAssignment::getService))
+                equal(MrProcessAssignment::getMachine, MrProcessAssignment::getMachine),
+                equal(MrProcessAssignment::getService, MrProcessAssignment::getService))
                 .penalize(HardSoftLongScore.ONE_HARD)
                 .asConstraint(MrConstraints.SERVICE_CONFLICT);
     }
@@ -94,7 +94,7 @@ public class MachineReassignmentConstraintProvider implements ConstraintProvider
                         equal((serviceDependency, processFrom) -> serviceDependency.getToService(),
                                 MrProcessAssignment::getService),
                         filtering((serviceDependency, processFrom,
-                                   processTo) -> !processFrom.getNeighborhood().equals(processTo.getNeighborhood())))
+                                processTo) -> !processFrom.getNeighborhood().equals(processTo.getNeighborhood())))
                 .penalize(HardSoftLongScore.ONE_HARD)
                 .asConstraint(MrConstraints.SERVICE_DEPENDENCY);
     }
@@ -107,7 +107,7 @@ public class MachineReassignmentConstraintProvider implements ConstraintProvider
         return factory.forEach(MrMachineCapacity.class)
                 .filter(MrMachineCapacity::isTransientlyConsumed)
                 .join(factory.forEach(MrProcessAssignment.class)
-                                .filter(MrProcessAssignment::isMoved),
+                        .filter(MrProcessAssignment::isMoved),
                         equal(MrMachineCapacity::getMachine, MrProcessAssignment::getOriginalMachine))
                 .groupBy((machineCapacity, processAssignment) -> machineCapacity,
                         sumLong((machineCapacity, processAssignment) -> processAssignment

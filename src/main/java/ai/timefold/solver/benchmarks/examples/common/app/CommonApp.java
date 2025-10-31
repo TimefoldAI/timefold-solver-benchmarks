@@ -1,16 +1,16 @@
 package ai.timefold.solver.benchmarks.examples.common.app;
 
+import java.io.File;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Set;
+
 import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutionImporter;
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
 import ai.timefold.solver.core.api.solver.SolverConfigOverride;
 import ai.timefold.solver.core.api.solver.SolverFactory;
 import ai.timefold.solver.core.config.solver.termination.TerminationConfig;
 import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
-
-import java.io.File;
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.Set;
 
 /**
  * @param <Solution_> the solution type, the class with the {@link PlanningSolution} annotation
