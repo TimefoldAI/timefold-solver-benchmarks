@@ -87,7 +87,8 @@ public class Job {
         // and a job can only start on one machine after finishing the process at the previous machine.
         // The completion time of this job in the first machine depends only on the previous job completion time.
         // It can only start after the previous job is completed.
-        var previousMachineCompletionTime = newCompletionTime.setCompletionTime(0, getPreviousCompletionTime(0) + allMachines[0].getProcessTime(id));
+        var previousMachineCompletionTime =
+                newCompletionTime.setCompletionTime(0, getPreviousCompletionTime(0) + allMachines[0].getProcessTime(id));
         for (var i = 1; i < allMachines.length; i++) {
             // The job execution for the following machines relies on the completion time of either the previous job
             // or the previous machine,

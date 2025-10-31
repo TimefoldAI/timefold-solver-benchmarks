@@ -7,6 +7,8 @@ import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.coun
 import static ai.timefold.solver.core.api.score.stream.Joiners.equal;
 import static ai.timefold.solver.core.api.score.stream.Joiners.filtering;
 
+import java.util.Objects;
+
 import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.Curriculum;
 import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.Lecture;
 import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.UnavailablePeriodPenalty;
@@ -17,6 +19,7 @@ import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
 import ai.timefold.solver.core.api.score.stream.PrecomputeFactory;
 import ai.timefold.solver.core.api.score.stream.bi.BiConstraintStream;
+import ai.timefold.solver.core.api.score.stream.tri.TriConstraintStream;
 
 public class CurriculumCourseConstraintProvider implements ConstraintProvider {
 
@@ -40,19 +43,19 @@ public class CurriculumCourseConstraintProvider implements ConstraintProvider {
 
     Constraint conflictingLecturesDifferentCourseInSamePeriod(ConstraintFactory factory) {
         return factory.precompute(CurriculumCourseConstraintProvider::conflictingCourseLeft)
-                .join(Lecture.class,
-                        equal((courseConflict, lecture1) -> courseConflict.getRightCourse(), Lecture::getCourse),
-                        equal((courseConflict, lecture1) -> lecture1.getPeriod(), Lecture::getPeriod))
-                .filter(((courseConflict, lecture1, lecture2) -> lecture1 != lecture2))
+                .filter(((courseConflict, lecture1, lecture2) -> Objects.equals(lecture1.getPeriod(), lecture2.getPeriod())))
                 .penalize(ONE_HARD,
                         (courseConflict, lecture1, lecture2) -> courseConflict.getConflictCount())
                 .asConstraint("conflictingLecturesDifferentCourseInSamePeriod");
     }
 
-    private static BiConstraintStream<CourseConflict, Lecture> conflictingCourseLeft(PrecomputeFactory factory) {
+    private static TriConstraintStream<CourseConflict, Lecture, Lecture> conflictingCourseLeft(PrecomputeFactory factory) {
         return factory.forEachUnfiltered(CourseConflict.class)
                 .join(Lecture.class,
-                        equal(CourseConflict::getLeftCourse, Lecture::getCourse));
+                        equal(CourseConflict::getLeftCourse, Lecture::getCourse))
+                .join(Lecture.class,
+                        equal((courseConflict, lecture1) -> courseConflict.getRightCourse(), Lecture::getCourse),
+                        filtering((courseConflict, lecture1, lecture2) -> lecture1 != lecture2));
     }
 
     Constraint conflictingLecturesSameCourseInSamePeriod(ConstraintFactory factory) {
