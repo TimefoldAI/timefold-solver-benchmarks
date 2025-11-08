@@ -21,15 +21,15 @@ on:
         default: '25'
         required: true
       baseline:
-        description: 'Timefold Solver release'
-        default: '1.27.0'
+        description: 'Baseline ref'
+        default: 'v1.27.0'
         required: true
       jdk_branch:
         description: 'JDK version'
         default: '25'
         required: true
       branch:
-        description: 'Branch to benchmark (needs to use 999-SNAPSHOT)'
+        description: 'Ref to benchmark (needs to use 999-SNAPSHOT)'
         default: 'main'
         required: true
       branch_owner:
