@@ -21,7 +21,7 @@ on:
         default: '25'
         required: true
       baseline:
-        description: 'Baseline ref'
+        description: 'Baseline branch or tag (branches need to use 999-SNAPSHOT)'
         default: 'main'
         required: true
       jdk_branch:
@@ -29,7 +29,7 @@ on:
         default: '25'
         required: true
       branch:
-        description: 'Ref to benchmark (needs to use 999-SNAPSHOT)'
+        description: 'Branch to benchmark (needs to use 999-SNAPSHOT)'
         default: 'index'
         required: true
       branch_owner:
@@ -92,10 +92,10 @@ jobs:
           server-password: 'MVN_PASSWORD'
 
       # Only build the snapshots if determined by the decisions job.
-      - name: (SUT) Checkout timefold-solver
+      - name: (Basline) Checkout timefold-solver
         uses: actions/checkout@v5
         with:
-          repository: ${{ github.event.inputs.branch_owner }}/timefold-solver
+          repository: TimefoldAI/timefold-solver
           ref: ${{ github.event.inputs.baseline }}
           path: ./timefold-solver
       - name: (Baseline) Quickly build timefold-solver
