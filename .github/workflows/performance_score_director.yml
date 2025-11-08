@@ -40,7 +40,7 @@ on:
         default: 'triceo'
         required: true
 
-run-name: "TimefoldAI's ${{ github.event.inputs.baseline }} vs. '${{ github.event.inputs.branch_owner }}/${{ github.event.inputs.branch }}' (Java ${{ github.event.inputs.jdk_baseline }} vs. ${{ github.event.inputs.jdk_branch }})"
+run-name: "TimefoldAI's ${{ github.event.inputs.baseline }} vs. ${{ github.event.inputs.branch_owner }}'s ${{ github.event.inputs.branch }}' (Java ${{ github.event.inputs.jdk_baseline }} vs. ${{ github.event.inputs.jdk_branch }})"
 
 jobs:
   decisions:
@@ -135,7 +135,7 @@ jobs:
       - name: Upload the binaries
         uses: actions/upload-artifact@v5
         with:
-          name: binaries-${{ matrix.example }}
+          name: ${{ matrix.example }}-sut-binary
           path: |
             ./benchmarks-baseline.jar
           if-no-files-found: error
@@ -222,7 +222,7 @@ jobs:
       - name: Upload the binaries
         uses: actions/upload-artifact@v5
         with:
-          name: binaries-${{ matrix.example }}
+          name: ${{ matrix.example }}-baseline-binary
           path: |
             ./benchmarks-sut.jar
           if-no-files-found: error
@@ -262,7 +262,12 @@ jobs:
       - name: Download the benchmark binaries
         uses: actions/download-artifact@v6
         with:
-          name: binaries-${{ matrix.example }}
+          name: ${{ matrix.example }}-baseline-binary
+          path: ./timefold-solver-benchmarks
+      - name: Download the benchmark binaries
+        uses: actions/download-artifact@v6
+        with:
+          name: ${{ matrix.example }}-sut-binary
           path: ./timefold-solver-benchmarks
 
       # Fine-tuned for stability on GHA.
@@ -354,6 +359,7 @@ jobs:
           
           if (( $(echo "$DIFF_MID >= 97.00" | bc -l) && $(echo "$DIFF_MID <= 103.00"|bc -l) )); then
             # Ignore differences of up to 3 %; we can't expect that level of precision anyway.
+            echo "### ✅ Within tolerance" >> $GITHUB_STEP_SUMMARY
             exit 0
           elif [ "$SUT_RANGE_START" -gt "$BASELINE_RANGE_END" ]; then
             echo "### 🚀🚀🚀 Statistically significant improvement 🚀🚀🚀" >> $GITHUB_STEP_SUMMARY
@@ -361,6 +367,7 @@ jobs:
             echo "### ‼️‼️‼️ Statistically significant regression ‼️‼️‼️" >> $GITHUB_STEP_SUMMARY
             export FAIL=true
           else
+            echo "### 🌟 All good" >> $GITHUB_STEP_SUMMARY
             exit 0
           fi          
           
