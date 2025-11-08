@@ -37,7 +37,7 @@ on:
         default: 'triceo'
         required: true
 
-run-name: "Timefold Solver v${{ github.event.inputs.baseline }} vs. ${{ github.event.inputs.branch_owner }}/${{ github.event.inputs.branch }} (Java ${{ github.event.inputs.jdk_baseline }} vs. ${{ github.event.inputs.jdk_branch }})"
+run-name: "Timefold Solver TimefoldAI's ${{ github.event.inputs.baseline }} vs. '${{ github.event.inputs.branch_owner }}/${{ github.event.inputs.branch }}' (Java ${{ github.event.inputs.jdk_baseline }} vs. ${{ github.event.inputs.jdk_branch }})"
 
 jobs:
   decisions:
@@ -102,7 +102,7 @@ jobs:
         if: needs.decisions.outputs.needs_snapshot_built == 'true'
         working-directory: ./timefold-solver
         shell: bash
-        run: ./mvnw -B -Dquickly clean install
+        run: ./mvnw -T 1C -B -Dquickly clean install
       - name: (Baseline) Checkout timefold-solver-enterprise
         if: needs.decisions.outputs.needs_snapshot_built == 'true'
         uses: actions/checkout@v5
@@ -115,7 +115,7 @@ jobs:
         if: needs.decisions.outputs.needs_snapshot_built == 'true'
         working-directory: ./timefold-solver-enterprise
         shell: bash
-        run: mvn -B -Dquickly clean install
+        run: ./mvnw -T 1C -B -Dquickly clean install
       - name: (Baseline) Delete checkouts
         shell: bash
         run: |
@@ -124,9 +124,11 @@ jobs:
 
       - name: (Baseline) Compile the benchmark
         working-directory: ./timefold-solver-benchmarks
+        env:
+          BASELINE: ${{ needs.decisions.outputs.baseline_solver_version }}
         shell: bash
         run: |
-          ./mvnw clean install -B -Dquickly -Dversion.ai.timefold.solver=${{ needs.decisions.outputs.baseline_solver_version }}
+          ./mvnw clean install -B -Dquickly -Dversion.ai.timefold.solver=$BASELINE
           mv target/benchmarks.jar ../benchmarks-baseline.jar
 
       - name: (SUT) Checkout timefold-solver
@@ -139,7 +141,7 @@ jobs:
       - name: (SUT) Quickly build timefold-solver
         working-directory: ./timefold-solver
         shell: bash
-        run: ./mvnw -B -Dquickly clean install
+        run: ./mvnw -T 1C -B -Dquickly clean install
 
       # Clone timefold-solver-enterprise
       - name: (SUT) Checkout timefold-solver-enterprise (Specified)
@@ -163,7 +165,7 @@ jobs:
       - name: (SUT) Quickly build timefold-solver-enterprise
         working-directory: ./timefold-solver-enterprise
         shell: bash
-        run: mvn -B -Dquickly clean install
+        run: ./mvnw -T 1C -B -Dquickly clean install
 
       # Sometimes changes may be incompatible with the tag.
       # If the branch doesn't exist, we assume that the changes are compatible and move on.
