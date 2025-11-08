@@ -22,7 +22,7 @@ on:
         required: true
       baseline:
         description: 'Baseline ref'
-        default: 'v1.27.0'
+        default: 'main'
         required: true
       jdk_branch:
         description: 'JDK version'
@@ -30,11 +30,11 @@ on:
         required: true
       branch:
         description: 'Ref to benchmark (needs to use 999-SNAPSHOT)'
-        default: 'main'
+        default: 'index'
         required: true
       branch_owner:
         description: 'User owning the branch'
-        default: 'TimefoldAI'
+        default: 'triceo'
         required: true
 
 run-name: "Timefold Solver v${{ github.event.inputs.baseline }} vs. ${{ github.event.inputs.branch_owner }}/${{ github.event.inputs.branch }} (Java ${{ github.event.inputs.jdk_baseline }} vs. ${{ github.event.inputs.jdk_branch }})"
