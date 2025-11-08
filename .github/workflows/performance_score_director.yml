@@ -48,7 +48,6 @@ jobs:
     steps:
       - name: Determine the baseline
         id: step1
-        working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
           if [[ "${{ github.event.inputs.baseline }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
