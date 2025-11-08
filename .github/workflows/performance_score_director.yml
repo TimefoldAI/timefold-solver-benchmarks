@@ -1,6 +1,9 @@
-# Both baseline and SUT (Software Under Test) are built from source first,
+# Both baseline and SUT (Software Under Test) are built from source first*,
 # with their binaries uploaded as artifacts.
 # This is done on GitHub infrastructure, to achieve maximum parallelization.
+#
+#   * Unless the baseline is a release tag,
+#     in which case its binaries are downloaded from a repository.
 #
 # The benchmark job downloads the binaries and runs them.
 # The baseline is established first, then the SUT is measured.
@@ -11,7 +14,7 @@
 # Each benchmark gives a 99.9 % confidence interval.
 # The confidence intervals are compared to determine if the branch under test is a regression or an improvement.
 # The error threshold is expected to be below +/- 2.0 %.
-name: Performance Regression Test - Score Director
+name: Timefold Solver ScoreDirector Perf Regression Test
 
 on:
   workflow_dispatch:
@@ -37,7 +40,7 @@ on:
         default: 'triceo'
         required: true
 
-run-name: "Timefold Solver TimefoldAI's ${{ github.event.inputs.baseline }} vs. '${{ github.event.inputs.branch_owner }}/${{ github.event.inputs.branch }}' (Java ${{ github.event.inputs.jdk_baseline }} vs. ${{ github.event.inputs.jdk_branch }})"
+run-name: "TimefoldAI's ${{ github.event.inputs.baseline }} vs. '${{ github.event.inputs.branch_owner }}/${{ github.event.inputs.branch }}' (Java ${{ github.event.inputs.jdk_baseline }} vs. ${{ github.event.inputs.jdk_branch }})"
 
 jobs:
   decisions:
@@ -102,7 +105,7 @@ jobs:
         if: needs.decisions.outputs.needs_snapshot_built == 'true'
         working-directory: ./timefold-solver
         shell: bash
-        run: ./mvnw -T 1C -B -Dquickly clean install
+        run: ./mvnw -B -Dquickly clean install
       - name: (Baseline) Checkout timefold-solver-enterprise
         if: needs.decisions.outputs.needs_snapshot_built == 'true'
         uses: actions/checkout@v5
@@ -115,7 +118,7 @@ jobs:
         if: needs.decisions.outputs.needs_snapshot_built == 'true'
         working-directory: ./timefold-solver-enterprise
         shell: bash
-        run: ./mvnw -T 1C -B -Dquickly clean install
+        run: ./mvnw -B -Dquickly clean install
       - name: (Baseline) Delete checkouts
         shell: bash
         run: |
@@ -141,7 +144,7 @@ jobs:
       - name: (SUT) Quickly build timefold-solver
         working-directory: ./timefold-solver
         shell: bash
-        run: ./mvnw -T 1C -B -Dquickly clean install
+        run: ./mvnw -B -Dquickly clean install
 
       # Clone timefold-solver-enterprise
       - name: (SUT) Checkout timefold-solver-enterprise (Specified)
@@ -165,7 +168,7 @@ jobs:
       - name: (SUT) Quickly build timefold-solver-enterprise
         working-directory: ./timefold-solver-enterprise
         shell: bash
-        run: ./mvnw -T 1C -B -Dquickly clean install
+        run: ./mvnw -B -Dquickly clean install
 
       # Sometimes changes may be incompatible with the tag.
       # If the branch doesn't exist, we assume that the changes are compatible and move on.
