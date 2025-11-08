@@ -281,9 +281,9 @@ jobs:
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
-          echo "forks=2" > scoredirector-benchmark.properties
-          echo "warmup_iterations=1" >> scoredirector-benchmark.properties
-          echo "measurement_iterations=1" >> scoredirector-benchmark.properties
+          echo "forks=20" > scoredirector-benchmark.properties
+          echo "warmup_iterations=5" >> scoredirector-benchmark.properties
+          echo "measurement_iterations=5" >> scoredirector-benchmark.properties
           echo "relative_score_error_threshold=0.02" >> scoredirector-benchmark.properties
           echo "score_director_type=cs" >> scoredirector-benchmark.properties
           echo "example=${{ matrix.example }}" >> scoredirector-benchmark.properties
@@ -372,13 +372,14 @@ jobs:
             echo "### ‼️ Statistically significant regression ‼️" >> $GITHUB_STEP_SUMMARY
             FAIL=true
           else
-            echo "### 🌟 All good" >> $GITHUB_STEP_SUMMARY
+            echo "### ⁉️ Undetermined result ⁉️" >> $GITHUB_STEP_SUMMARY
+            FAIL=true
           fi          
           
           if [[ "${{ github.event.inputs.baseline }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             BASELINE_URL="https://github.com/TimefoldAI/timefold-solver/releases/tag/${{ github.event.inputs.baseline }}"
           else
-            BASELINE_URL="https://github.com/TimefoldAI/timefold-solver/tree/${{ github.event.inputs.branch }}"
+            BASELINE_URL="https://github.com/TimefoldAI/timefold-solver/tree/${{ github.event.inputs.baseline }}"
           fi
           SUT_URL="https://github.com/${{ github.event.inputs.branch_owner }}/timefold-solver/tree/${{ github.event.inputs.branch }}"
           
