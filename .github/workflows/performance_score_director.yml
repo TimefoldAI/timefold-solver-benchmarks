@@ -40,7 +40,32 @@ on:
 run-name: "Timefold Solver v${{ github.event.inputs.baseline }} vs. ${{ github.event.inputs.branch_owner }}/${{ github.event.inputs.branch }} (Java ${{ github.event.inputs.jdk_baseline }} vs. ${{ github.event.inputs.jdk_branch }})"
 
 jobs:
+  decisions:
+    runs-on: ubuntu-latest
+    outputs:
+      baseline_solver_version: ${{ steps.step1.outputs.version }}
+      needs_snapshot_built: ${{ steps.step1.outputs.needs_snapshot_built }}
+    steps:
+      - name: Determine the baseline
+        id: step1
+        working-directory: ./timefold-solver-benchmarks
+        shell: bash
+        run: |
+          if [[ "${{ github.event.inputs.baseline }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            VERSION="${BASH_REMATCH[0]}"
+            NEEDS_SNAPSHOT_BUILT=false
+            echo "Baseline is a release tag."
+          else
+            # We're testing against a tag.
+            VERSION="999-SNAPSHOT"
+            NEEDS_SNAPSHOT_BUILT=true
+            echo "Baseline is a random branch."
+          fi
+            
+          echo "version=$BASELINE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "needs_snapshot_built=$NEEDS_SNAPSHOT_BUILT" >> "$GITHUB_OUTPUT"
   build:
+    needs: decisions
     runs-on: ubuntu-latest # Leverage massive parallelization of Github-hosted runners.
     strategy:
       fail-fast: true # If one compilation fails, abort everything.
@@ -67,11 +92,42 @@ jobs:
           server-username: 'MVN_USERNAME'
           server-password: 'MVN_PASSWORD'
 
+      # Only build the snapshots if determined by the decisions job.
+      - name: (SUT) Checkout timefold-solver
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ github.event.inputs.branch_owner }}/timefold-solver
+          ref: ${{ github.event.inputs.baseline }}
+          path: ./timefold-solver
+      - name: (Baseline) Quickly build timefold-solver
+        if: needs.decisions.outputs.needs_snapshot_built == 'true'
+        working-directory: ./timefold-solver
+        shell: bash
+        run: ./mvnw -B -Dquickly clean install
+      - name: (Baseline) Checkout timefold-solver-enterprise
+        if: needs.decisions.outputs.needs_snapshot_built == 'true'
+        uses: actions/checkout@v5
+        with:
+          repository: TimefoldAI/timefold-solver-enterprise
+          ref: ${{ github.event.inputs.baseline }}
+          token: ${{ secrets.BENCHMARK_PUBLISH_TOKEN }}
+          path: ./timefold-solver-enterprise
+      - name: (Baseline) Quickly build timefold-solver-enterprise
+        if: needs.decisions.outputs.needs_snapshot_built == 'true'
+        working-directory: ./timefold-solver-enterprise
+        shell: bash
+        run: mvn -B -Dquickly clean install
+      - name: (Baseline) Delete checkouts
+        shell: bash
+        run: |
+          rm -rf ./timefold-solver
+          rm -rf ./timefold-solver-enterprise
+
       - name: (Baseline) Compile the benchmark
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
-          ./mvnw clean install -B -Dquickly -Dversion.ai.timefold.solver=${{ github.event.inputs.baseline }}
+          ./mvnw clean install -B -Dquickly -Dversion.ai.timefold.solver=${{ needs.decisions.outputs.baseline_solver_version }}
           mv target/benchmarks.jar ../benchmarks-baseline.jar
 
       - name: (SUT) Checkout timefold-solver
