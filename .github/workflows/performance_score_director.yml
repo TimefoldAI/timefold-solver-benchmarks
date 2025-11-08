@@ -366,7 +366,6 @@ jobs:
           if (( $(echo "$DIFF_MID >= 97.00" | bc -l) && $(echo "$DIFF_MID <= 103.00"|bc -l) )); then
             # Ignore differences of up to 3 %; we can't expect that level of precision anyway.
             echo "### ✅ Within tolerance" >> $GITHUB_STEP_SUMMARY
-            exit 0
           elif [ "$SUT_RANGE_START" -gt "$BASELINE_RANGE_END" ]; then
             echo "### 🚀 Statistically significant improvement" >> $GITHUB_STEP_SUMMARY
           elif [ "$BASELINE_RANGE_START" -gt "$SUT_RANGE_END" ]; then
@@ -374,7 +373,6 @@ jobs:
             FAIL=true
           else
             echo "### 🌟 All good" >> $GITHUB_STEP_SUMMARY
-            exit 0
           fi          
           
           if [[ "${{ github.event.inputs.baseline }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
