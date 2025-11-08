@@ -1,19 +1,19 @@
-# Both baseline and SUT (Software Under Test) are built from source first*,
+# Both baseline and SUT (Software Under Test) are built from source first [1],
 # with their binaries uploaded as artifacts.
 # This is done on GitHub infrastructure, to achieve maximum parallelization.
-#
-#   * Unless the baseline is a release tag,
-#     in which case its binaries are downloaded from a repository.
 #
 # The benchmark job downloads the binaries and runs them.
 # The baseline is established first, then the SUT is measured.
 # They both run in the same job,
-# to guarantee they ran on the same machine with the same performance characteristics.
+# to guarantee they run on the same machine with the same performance characteristics.
 # This is done on a self-hosted runner which we completely control.
 #
 # Each benchmark gives a 99.9 % confidence interval.
 # The confidence intervals are compared to determine if the branch under test is a regression or an improvement.
 # The error threshold is expected to be below +/- 2.0 %.
+#
+# [1] Unless the baseline is a release tag, in which case its binaries are downloaded from a repository.
+#
 name: ScoreDirector Perf Regression Test
 
 on:
@@ -25,7 +25,7 @@ on:
         required: true
       baseline:
         description: 'Baseline branch or tag (branches need to use 999-SNAPSHOT)'
-        default: 'main'
+        default: 'v1.27.0'
         required: true
       jdk_branch:
         description: 'JDK version'
@@ -33,14 +33,14 @@ on:
         required: true
       branch:
         description: 'Branch to benchmark (needs to use 999-SNAPSHOT)'
-        default: 'index'
+        default: 'main'
         required: true
       branch_owner:
         description: 'User owning the branch'
-        default: 'triceo'
+        default: 'TimefoldAI'
         required: true
 
-run-name: "TimefoldAI's ${{ github.event.inputs.baseline }} vs. ${{ github.event.inputs.branch_owner }}'s ${{ github.event.inputs.branch }}' (Java ${{ github.event.inputs.jdk_baseline }} vs. ${{ github.event.inputs.jdk_branch }})"
+run-name: "TimefoldAI's ${{ github.event.inputs.baseline }} vs. ${{ github.event.inputs.branch_owner }}'s ${{ github.event.inputs.branch }} (Java ${{ github.event.inputs.jdk_baseline }} vs. ${{ github.event.inputs.jdk_branch }})"
 
 jobs:
   decisions:
@@ -122,6 +122,7 @@ jobs:
         working-directory: ./timefold-solver-enterprise
         shell: bash
         run: ./mvnw -B -Dquickly clean install
+
       - name: Switch to correct Benchmarks branch if it exists
         if: needs.decisions.outputs.needs_snapshot_built == 'true'
         working-directory: ./timefold-solver-benchmarks
@@ -336,7 +337,7 @@ jobs:
       - name: Archive benchmark data
         uses: actions/upload-artifact@v5
         with:
-          name: results-${{ matrix.example }}-${{ env.SANITIZED_BASELINE }}_vs_${{ env.SANITIZED_BRANCH }}
+          name: assets-${{ matrix.example }}-${{ env.SANITIZED_BASELINE }}_vs_${{ env.SANITIZED_BRANCH }}
           path: |
             ./timefold-solver-benchmarks/scoredirector-benchmark.properties
             ./timefold-solver-benchmarks/${{ env.SANITIZED_BASELINE }}/*combined.jfr
@@ -367,9 +368,9 @@ jobs:
             echo "### ✅ Within tolerance" >> $GITHUB_STEP_SUMMARY
             exit 0
           elif [ "$SUT_RANGE_START" -gt "$BASELINE_RANGE_END" ]; then
-            echo "### 🚀🚀🚀 Statistically significant improvement 🚀🚀🚀" >> $GITHUB_STEP_SUMMARY
+            echo "### 🚀 Statistically significant improvement" >> $GITHUB_STEP_SUMMARY
           elif [ "$BASELINE_RANGE_START" -gt "$SUT_RANGE_END" ]; then
-            echo "### ‼️‼️‼️ Statistically significant regression ‼️‼️‼️" >> $GITHUB_STEP_SUMMARY
+            echo "### ‼️ Statistically significant regression ‼️" >> $GITHUB_STEP_SUMMARY
             export FAIL=true
           else
             echo "### 🌟 All good" >> $GITHUB_STEP_SUMMARY
