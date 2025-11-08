@@ -64,9 +64,9 @@ jobs:
             echo "Baseline is a random branch."
           fi
             
-          echo "version=$BASELINE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "needs_snapshot_built=$NEEDS_SNAPSHOT_BUILT" >> "$GITHUB_OUTPUT"
-  build:
+  build_baseline:
     needs: decisions
     runs-on: ubuntu-latest # Leverage massive parallelization of Github-hosted runners.
     strategy:
@@ -95,7 +95,7 @@ jobs:
           server-password: 'MVN_PASSWORD'
 
       # Only build the snapshots if determined by the decisions job.
-      - name: (Basline) Checkout timefold-solver
+      - name: (Baseline) Checkout timefold-solver
         uses: actions/checkout@v5
         with:
           repository: TimefoldAI/timefold-solver
@@ -127,12 +127,44 @@ jobs:
 
       - name: (Baseline) Compile the benchmark
         working-directory: ./timefold-solver-benchmarks
-        env:
-          BASELINE: ${{ needs.decisions.outputs.baseline_solver_version }}
         shell: bash
         run: |
-          ./mvnw clean install -B -Dquickly -Dversion.ai.timefold.solver=$BASELINE
+          ./mvnw clean install -B -Dquickly -Dversion.ai.timefold.solver=${{ needs.decisions.outputs.baseline_solver_version }}
           mv target/benchmarks.jar ../benchmarks-baseline.jar
+
+      - name: Upload the binaries
+        uses: actions/upload-artifact@v5
+        with:
+          name: binaries-${{ matrix.example }}
+          path: |
+            ./benchmarks-baseline.jar
+          if-no-files-found: error
+  build_sut:
+    runs-on: ubuntu-latest # Leverage massive parallelization of Github-hosted runners.
+    strategy:
+      fail-fast: true # If one compilation fails, abort everything.
+      matrix:
+        example: [cloud_balancing, conference_scheduling, curriculum_course, examination, machine_reassignment, meeting_scheduling, nurse_rostering, patient_admission_scheduling, task_assigning, traveling_tournament, tsp, vehicle_routing]
+    env:
+      MVN_USERNAME: '${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_USERNAME }}'
+      MVN_PASSWORD: '${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_TOKEN }}'
+    steps:
+      - name: Checkout timefold-solver-benchmarks
+        uses: actions/checkout@v5
+        with:
+          repository: TimefoldAI/timefold-solver-benchmarks
+          path: ./timefold-solver-benchmarks
+          ref: main # Assume the version of main is compatible with the tagged Solver.
+
+      - name: Setup JDK and Maven
+        uses: actions/setup-java@v5
+        with:
+          java-version: 25 # Always build with the least recent supported JDK.
+          distribution: 'temurin'
+          cache: 'maven'
+          server-id: 'timefold-solver-enterprise'
+          server-username: 'MVN_USERNAME'
+          server-password: 'MVN_PASSWORD'
 
       - name: (SUT) Checkout timefold-solver
         uses: actions/checkout@v5
@@ -192,12 +224,11 @@ jobs:
         with:
           name: binaries-${{ matrix.example }}
           path: |
-            ./benchmarks-baseline.jar
             ./benchmarks-sut.jar
           if-no-files-found: error
 
   benchmark:
-    needs: build
+    needs: [ build_baseline, build_sut ]
     runs-on: self-hosted # We need a stable machine to actually run the benchmarks.
     strategy:
       fail-fast: false # Jobs fail if the benchmark error is over predefined thresholds; other benchmarks continue.
