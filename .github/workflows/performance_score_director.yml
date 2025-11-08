@@ -14,7 +14,7 @@
 # Each benchmark gives a 99.9 % confidence interval.
 # The confidence intervals are compared to determine if the branch under test is a regression or an improvement.
 # The error threshold is expected to be below +/- 2.0 %.
-name: Timefold Solver ScoreDirector Perf Regression Test
+name: ScoreDirector Perf Regression Test
 
 on:
   workflow_dispatch:
@@ -66,12 +66,14 @@ jobs:
             
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "needs_snapshot_built=$NEEDS_SNAPSHOT_BUILT" >> "$GITHUB_OUTPUT"
+
   build_baseline:
     needs: decisions
     runs-on: ubuntu-latest # Leverage massive parallelization of Github-hosted runners.
     strategy:
       fail-fast: true # If one compilation fails, abort everything.
       matrix:
+        # When updating this list, use find-and-replace in the entire file to keep all such lists identical.
         example: [cloud_balancing, conference_scheduling, curriculum_course, examination, machine_reassignment, meeting_scheduling, nurse_rostering, patient_admission_scheduling, task_assigning, traveling_tournament, tsp, vehicle_routing]
     env:
       MVN_USERNAME: '${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_USERNAME }}'
@@ -82,7 +84,7 @@ jobs:
         with:
           repository: TimefoldAI/timefold-solver-benchmarks
           path: ./timefold-solver-benchmarks
-          ref: main # Assume the version of main is compatible with the tagged Solver.
+          ref: main # Assume the ref is compatible with both baseline and SUT
 
       - name: Setup JDK and Maven
         uses: actions/setup-java@v5
@@ -95,18 +97,19 @@ jobs:
           server-password: 'MVN_PASSWORD'
 
       # Only build the snapshots if determined by the decisions job.
-      - name: (Baseline) Checkout timefold-solver
+      - name: Checkout timefold-solver
+        if: needs.decisions.outputs.needs_snapshot_built == 'true'
         uses: actions/checkout@v5
         with:
           repository: TimefoldAI/timefold-solver
           ref: ${{ github.event.inputs.baseline }}
           path: ./timefold-solver
-      - name: (Baseline) Quickly build timefold-solver
+      - name: Quickly build timefold-solver
         if: needs.decisions.outputs.needs_snapshot_built == 'true'
         working-directory: ./timefold-solver
         shell: bash
         run: ./mvnw -B -Dquickly clean install
-      - name: (Baseline) Checkout timefold-solver-enterprise
+      - name: Checkout timefold-solver-enterprise
         if: needs.decisions.outputs.needs_snapshot_built == 'true'
         uses: actions/checkout@v5
         with:
@@ -114,13 +117,21 @@ jobs:
           ref: ${{ github.event.inputs.baseline }}
           token: ${{ secrets.BENCHMARK_PUBLISH_TOKEN }}
           path: ./timefold-solver-enterprise
-      - name: (Baseline) Quickly build timefold-solver-enterprise
+      - name: Quickly build timefold-solver-enterprise
         if: needs.decisions.outputs.needs_snapshot_built == 'true'
         working-directory: ./timefold-solver-enterprise
         shell: bash
         run: ./mvnw -B -Dquickly clean install
-
-      - name: (Baseline) Compile the benchmark
+      - name: Switch to correct Benchmarks branch if it exists
+        if: needs.decisions.outputs.needs_snapshot_built == 'true'
+        working-directory: ./timefold-solver-benchmarks
+        shell: bash
+        run: |
+          if git branch --list "${{ github.event.inputs.baseline }}" | grep -q .; then
+            git checkout ${{ github.event.inputs.baseline }}
+          fi
+          git status
+      - name: Compile the benchmark
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
@@ -134,11 +145,13 @@ jobs:
           path: |
             ./benchmarks-baseline.jar
           if-no-files-found: error
+
   build_sut:
     runs-on: ubuntu-latest # Leverage massive parallelization of Github-hosted runners.
     strategy:
       fail-fast: true # If one compilation fails, abort everything.
       matrix:
+        # When updating this list, use find-and-replace in the entire file to keep all such lists identical.
         example: [cloud_balancing, conference_scheduling, curriculum_course, examination, machine_reassignment, meeting_scheduling, nurse_rostering, patient_admission_scheduling, task_assigning, traveling_tournament, tsp, vehicle_routing]
     env:
       MVN_USERNAME: '${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_USERNAME }}'
@@ -149,7 +162,7 @@ jobs:
         with:
           repository: TimefoldAI/timefold-solver-benchmarks
           path: ./timefold-solver-benchmarks
-          ref: main # Assume the version of main is compatible with the tagged Solver.
+          ref: main # Assume the ref is compatible with both baseline and SUIT
 
       - name: Setup JDK and Maven
         uses: actions/setup-java@v5
@@ -161,46 +174,49 @@ jobs:
           server-username: 'MVN_USERNAME'
           server-password: 'MVN_PASSWORD'
 
-      - name: (SUT) Checkout timefold-solver
+      - name: Checkout timefold-solver
         uses: actions/checkout@v5
         with:
           repository: ${{ github.event.inputs.branch_owner }}/timefold-solver
           ref: ${{ github.event.inputs.branch }}
           path: ./timefold-solver
-      - name: (SUT) Quickly build timefold-solver
+      - name: Quickly build timefold-solver
         working-directory: ./timefold-solver
         shell: bash
         run: ./mvnw -B -Dquickly clean install
 
       # Clone timefold-solver-enterprise
-      - name: (SUT) Checkout timefold-solver-enterprise (Fallback)
+      - name: Checkout timefold-solver-enterprise
         uses: actions/checkout@v5
         with:
           repository: TimefoldAI/timefold-solver-enterprise
+          ref: main
           token: ${{ secrets.BENCHMARK_PUBLISH_TOKEN }}
           path: ./timefold-solver-enterprise
-      - name: (SUT) Switch to correct branch if it exists
+      - name: Switch to correct Enterprise branch if it exists
         working-directory: ./timefold-solver-enterprise
         shell: bash
         run: |
           if git branch --list "${{ github.event.inputs.branch }}" | grep -q .; then
             git checkout ${{ github.event.inputs.branch }}
           fi
-      - name: (SUT) Quickly build timefold-solver-enterprise
+          git status
+      - name: Quickly build timefold-solver-enterprise
         working-directory: ./timefold-solver-enterprise
         shell: bash
         run: ./mvnw -B -Dquickly clean install
 
       # Sometimes changes may be incompatible with the tag.
       # If the branch doesn't exist, we assume that the changes are compatible and move on.
-      - name: (SUT) Checkout timefold-solver-benchmarks
-        uses: actions/checkout@v5
-        continue-on-error: true
-        with:
-          repository: TimefoldAI/timefold-solver-benchmarks
-          path: ./timefold-solver-benchmarks
-          ref: ${{ github.event.inputs.branch }}
-      - name: (SUT) Compile the benchmarks
+      - name: Switch to correct Benchmarks branch if it exists
+        working-directory: ./timefold-solver-benchmarks
+        shell: bash
+        run: |
+          if git branch --list "${{ github.event.inputs.branch }}" | grep -q .; then
+            git checkout ${{ github.event.inputs.branch }}
+          fi
+          git status
+      - name: Compile the benchmarks
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
@@ -221,6 +237,7 @@ jobs:
     strategy:
       fail-fast: false # Jobs fail if the benchmark error is over predefined thresholds; other benchmarks continue.
       matrix:
+        # When updating this list, use find-and-replace in the entire file to keep all such lists identical.
         example: [cloud_balancing, conference_scheduling, curriculum_course, examination, machine_reassignment, meeting_scheduling, nurse_rostering, patient_admission_scheduling, task_assigning, traveling_tournament, tsp, vehicle_routing]
     env:
       MVN_USERNAME: '${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_USERNAME }}'
@@ -272,7 +289,7 @@ jobs:
           cat scoredirector-benchmark.properties
           chmod +x run-scoredirector.sh
 
-      - name: (Baseline) Run the benchmark
+      - name: Run the benchmark
         working-directory: ./timefold-solver-benchmarks
         id: benchmark_baseline
         env:
@@ -286,14 +303,14 @@ jobs:
           echo "RANGE_END=$(jq '.[0].primaryMetric.scoreConfidence[1]|round' results/scoredirector/${{ env.RUN_ID }}/results.json)" >> "$GITHUB_OUTPUT"
           echo "RANGE_MID=$(jq '.[0].primaryMetric.score|round' results/scoredirector/${{ env.RUN_ID }}/results.json)" >> "$GITHUB_OUTPUT"
 
-      - name: (SUT) Setup JDK and Maven
+      - name: Setup JDK and Maven
         uses: actions/setup-java@v5
         with:
           java-version: ${{ github.event.inputs.jdk_branch }}
           distribution: 'temurin'
           check-latest: true
 
-      - name: (SUT) Run the benchmark
+      - name: Run the benchmark
         id: benchmark_sut
         working-directory: ./timefold-solver-benchmarks
         env:
