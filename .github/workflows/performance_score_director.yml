@@ -119,11 +119,6 @@ jobs:
         working-directory: ./timefold-solver-enterprise
         shell: bash
         run: ./mvnw -B -Dquickly clean install
-      - name: (Baseline) Delete checkouts
-        shell: bash
-        run: |
-          rm -rf ./timefold-solver
-          rm -rf ./timefold-solver-enterprise
 
       - name: (Baseline) Compile the benchmark
         working-directory: ./timefold-solver-benchmarks
@@ -135,7 +130,7 @@ jobs:
       - name: Upload the binaries
         uses: actions/upload-artifact@v5
         with:
-          name: ${{ matrix.example }}-sut-binary
+          name: ${{ matrix.example }}-sut
           path: |
             ./benchmarks-baseline.jar
           if-no-files-found: error
@@ -172,31 +167,25 @@ jobs:
           repository: ${{ github.event.inputs.branch_owner }}/timefold-solver
           ref: ${{ github.event.inputs.branch }}
           path: ./timefold-solver
-
       - name: (SUT) Quickly build timefold-solver
         working-directory: ./timefold-solver
         shell: bash
         run: ./mvnw -B -Dquickly clean install
 
       # Clone timefold-solver-enterprise
-      - name: (SUT) Checkout timefold-solver-enterprise (Specified)
-        id: checkout-solver-enterprise
-        uses: actions/checkout@v5
-        continue-on-error: true
-        with:
-          repository: TimefoldAI/timefold-solver-enterprise
-          ref: ${{ github.event.inputs.branch }}
-          token: ${{ secrets.BENCHMARK_PUBLISH_TOKEN }}
-          path: ./timefold-solver-enterprise
       - name: (SUT) Checkout timefold-solver-enterprise (Fallback)
-        if: steps.checkout-solver-enterprise.outcome != 'success'
         uses: actions/checkout@v5
         with:
           repository: TimefoldAI/timefold-solver-enterprise
-          ref: main
           token: ${{ secrets.BENCHMARK_PUBLISH_TOKEN }}
           path: ./timefold-solver-enterprise
-
+      - name: (SUT) Switch to correct branch if it exists
+        working-directory: ./timefold-solver-enterprise
+        shell: bash
+        run: |
+          if git branch --list "${{ github.event.inputs.branch }}" | grep -q .; then
+            git checkout ${{ github.event.inputs.branch }}
+          fi
       - name: (SUT) Quickly build timefold-solver-enterprise
         working-directory: ./timefold-solver-enterprise
         shell: bash
@@ -211,7 +200,6 @@ jobs:
           repository: TimefoldAI/timefold-solver-benchmarks
           path: ./timefold-solver-benchmarks
           ref: ${{ github.event.inputs.branch }}
-
       - name: (SUT) Compile the benchmarks
         working-directory: ./timefold-solver-benchmarks
         shell: bash
@@ -222,7 +210,7 @@ jobs:
       - name: Upload the binaries
         uses: actions/upload-artifact@v5
         with:
-          name: ${{ matrix.example }}-baseline-binary
+          name: ${{ matrix.example }}-baseline
           path: |
             ./benchmarks-sut.jar
           if-no-files-found: error
@@ -262,12 +250,12 @@ jobs:
       - name: Download the benchmark binaries
         uses: actions/download-artifact@v6
         with:
-          name: ${{ matrix.example }}-baseline-binary
+          name: ${{ matrix.example }}-baseline
           path: ./timefold-solver-benchmarks
       - name: Download the benchmark binaries
         uses: actions/download-artifact@v6
         with:
-          name: ${{ matrix.example }}-sut-binary
+          name: ${{ matrix.example }}-sut
           path: ./timefold-solver-benchmarks
 
       # Fine-tuned for stability on GHA.
