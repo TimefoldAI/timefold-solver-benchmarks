@@ -55,10 +55,10 @@ jobs:
         id: step1
         shell: bash
         run: |
-          if [[ "${{ github.event.inputs.baseline }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            VERSION="${BASH_REMATCH[0]}"
+          if [[ "${{ github.event.inputs.baseline }}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            VERSION="${BASH_REMATCH[1]}"
             NEEDS_SNAPSHOT_BUILT=false
-            echo "Baseline is a release tag."
+            echo "Baseline is a release tag ($VERSION)."
           else
             # We're testing against a tag.
             VERSION="999-SNAPSHOT"
