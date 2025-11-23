@@ -31,6 +31,15 @@
 
 package ai.timefold.solver.benchmarks.micro.common;
 
+import one.convert.Arguments;
+import one.profiler.AsyncProfilerLoader;
+import org.openjdk.jmh.profile.AsyncProfiler;
+import org.openjdk.jmh.results.format.ResultFormatType;
+import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
+import org.openjdk.jmh.runner.options.OptionsBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -41,16 +50,6 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
-
-import org.openjdk.jmh.profile.AsyncProfiler;
-import org.openjdk.jmh.results.format.ResultFormatType;
-import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
-import org.openjdk.jmh.runner.options.OptionsBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import one.convert.Arguments;
-import one.profiler.AsyncProfilerLoader;
 
 public abstract class AbstractMain<C extends AbstractConfiguration> {
 
@@ -195,7 +194,7 @@ public abstract class AbstractMain<C extends AbstractConfiguration> {
                 .forks(configuration.getForkCount())
                 .warmupIterations(configuration.getWarmupIterations())
                 .measurementIterations(configuration.getMeasurementIterations())
-                .jvmArgs("-XX:+UseParallelGC", "-Xmx2g") // Throughput-focused GC.
+                .jvmArgs("-XX:+UseParallelGC", "-Xms4g", "-Xmx4g") // Throughput-focused GC.
                 .result(resultsDirectory.resolve("results.json").toAbsolutePath().toString())
                 .resultFormat(ResultFormatType.JSON)
                 .shouldDoGC(true);
