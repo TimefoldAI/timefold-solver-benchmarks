@@ -82,7 +82,7 @@ jobs:
       MVN_PASSWORD: '${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_TOKEN }}'
     steps:
       - name: Checkout timefold-solver-benchmarks
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: TimefoldAI/timefold-solver-benchmarks
           path: ./timefold-solver-benchmarks
@@ -101,7 +101,7 @@ jobs:
       # Only build the snapshots if determined by the decisions job.
       - name: Checkout timefold-solver
         if: needs.decisions.outputs.needs_snapshot_built == 'true'
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: TimefoldAI/timefold-solver
           ref: ${{ github.event.inputs.baseline }}
@@ -113,7 +113,7 @@ jobs:
         run: ./mvnw -B -Dquickly clean install
       - name: Checkout timefold-solver-enterprise
         if: needs.decisions.outputs.needs_snapshot_built == 'true'
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: TimefoldAI/timefold-solver-enterprise
           ref: ${{ github.event.inputs.baseline }}
@@ -161,7 +161,7 @@ jobs:
       MVN_PASSWORD: '${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_TOKEN }}'
     steps:
       - name: Checkout timefold-solver-benchmarks
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: TimefoldAI/timefold-solver-benchmarks
           path: ./timefold-solver-benchmarks
@@ -178,7 +178,7 @@ jobs:
           server-password: 'MVN_PASSWORD'
 
       - name: Checkout timefold-solver
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: ${{ github.event.inputs.branch_owner }}/timefold-solver
           ref: ${{ github.event.inputs.branch }}
@@ -190,7 +190,7 @@ jobs:
 
       # Clone timefold-solver-enterprise
       - name: Checkout timefold-solver-enterprise
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: TimefoldAI/timefold-solver-enterprise
           ref: main
@@ -252,7 +252,7 @@ jobs:
           echo "SANITIZED_BRANCH=$(echo "${{ github.event.inputs.branch }}" | sed 's/\//\-/g')" >> $GITHUB_ENV
 
       - name: Checkout timefold-solver-benchmarks
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: TimefoldAI/timefold-solver-benchmarks
           path: ./timefold-solver-benchmarks
