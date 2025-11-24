@@ -9,12 +9,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout timefold-solver-benchmarks
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: ./timefold-solver-benchmarks
           repository: TimefoldAI/timefold-solver-benchmarks
       - name: Checkout timefold-solver
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: ./timefold-solver
           repository: TimefoldAI/timefold-solver
