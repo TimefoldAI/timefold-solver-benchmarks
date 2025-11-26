@@ -248,8 +248,11 @@ jobs:
         run: |
           rm -rf timefold-solver-benchmarks
           # GitHub expressions can't do this, so we need to hack this in shell.
+          # DIRs are different, so that we can run "main" against "main" and have separate results.
           echo "SANITIZED_BASELINE=$(echo "${{ github.event.inputs.baseline }}" | sed 's/\//\-/g')" >> $GITHUB_ENV
+          echo "BASELINE_DIR=baseline_$(echo "${{ github.event.inputs.baseline }}" | sed 's/\//\-/g')" >> $GITHUB_ENV
           echo "SANITIZED_BRANCH=$(echo "${{ github.event.inputs.branch }}" | sed 's/\//\-/g')" >> $GITHUB_ENV
+          echo "SUT_DIR=sut_$(echo "${{ github.event.inputs.branch }}" | sed 's/\//\-/g')" >> $GITHUB_ENV
 
       - name: Checkout timefold-solver-benchmarks
         uses: actions/checkout@v6
@@ -293,7 +296,7 @@ jobs:
         working-directory: ./timefold-solver-benchmarks
         id: benchmark_baseline
         env:
-          RUN_ID: ${{ env.SANITIZED_BASELINE }}
+          RUN_ID: ${{ env.BASELINE_DIR }}
         shell: bash
         run: |
           mkdir target
@@ -314,7 +317,7 @@ jobs:
         id: benchmark_sut
         working-directory: ./timefold-solver-benchmarks
         env:
-          RUN_ID: ${{ env.SANITIZED_BRANCH }}
+          RUN_ID: ${{ env.SUT_DIR }}
         shell: bash
         run: |
           rm target/benchmarks.jar
@@ -328,10 +331,10 @@ jobs:
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
-          mv results/scoredirector/${{ env.SANITIZED_BASELINE }} .
-          mv ${{ env.SANITIZED_BASELINE }}/combined.jfr ${{ env.SANITIZED_BASELINE }}/${{ matrix.example }}-${{ env.SANITIZED_BASELINE }}-combined.jfr 
-          mv results/scoredirector/${{ env.SANITIZED_BRANCH }} .
-          mv ${{ env.SANITIZED_BRANCH }}/combined.jfr ${{ env.SANITIZED_BRANCH }}/${{ matrix.example }}-${{ env.SANITIZED_BRANCH }}-combined.jfr 
+          mv results/scoredirector/${{ env.BASELINE_DIR }} .
+          mv ${{ env.BASELINE_DIR }}/combined.jfr ${{ env.BASELINE_DIR }}/${{ matrix.example }}-${{ env.BASELINE_DIR }}-combined.jfr 
+          mv results/scoredirector/${{ env.SUT_DIR }} .
+          mv ${{ env.SUT_DIR }}/combined.jfr ${{ env.SUT_DIR }}/${{ matrix.example }}-${{ env.SUT_DIR }}-combined.jfr 
 
       - name: Archive benchmark data
         uses: actions/upload-artifact@v5
@@ -339,12 +342,12 @@ jobs:
           name: assets-${{ matrix.example }}-${{ env.SANITIZED_BASELINE }}_vs_${{ env.SANITIZED_BRANCH }}
           path: |
             ./timefold-solver-benchmarks/scoredirector-benchmark.properties
-            ./timefold-solver-benchmarks/${{ env.SANITIZED_BASELINE }}/*combined.jfr
-            ./timefold-solver-benchmarks/${{ env.SANITIZED_BASELINE }}/*.html
-            ./timefold-solver-benchmarks/${{ env.SANITIZED_BASELINE }}/*.json
-            ./timefold-solver-benchmarks/${{ env.SANITIZED_BRANCH }}/*combined.jfr
-            ./timefold-solver-benchmarks/${{ env.SANITIZED_BRANCH }}/*.html
-            ./timefold-solver-benchmarks/${{ env.SANITIZED_BRANCH }}/*.json
+            ./timefold-solver-benchmarks/${{ env.BASELINE_DIR }}/*combined.jfr
+            ./timefold-solver-benchmarks/${{ env.BASELINE_DIR }}/*.html
+            ./timefold-solver-benchmarks/${{ env.BASELINE_DIR }}/*.json
+            ./timefold-solver-benchmarks/${{ env.SUT_DIR }}/*combined.jfr
+            ./timefold-solver-benchmarks/${{ env.SUT_DIR }}/*.html
+            ./timefold-solver-benchmarks/${{ env.SUT_DIR }}/*.json
 
       - name: Report results
         working-directory: ./timefold-solver-benchmarks
