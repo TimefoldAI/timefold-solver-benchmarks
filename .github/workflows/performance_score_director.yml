@@ -275,12 +275,12 @@ jobs:
           chmod +x run-scoredirector.sh
 
       - name: Download the baseline binary
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: ${{ matrix.example }}-baseline
           path: ./timefold-solver-benchmarks
       - name: Download the SUT binary
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: ${{ matrix.example }}-sut
           path: ./timefold-solver-benchmarks
