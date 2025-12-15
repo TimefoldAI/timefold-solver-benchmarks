@@ -15,10 +15,12 @@ import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.Unavailabl
 import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.solver.CourseConflict;
 import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
 import ai.timefold.solver.core.api.score.stream.Constraint;
+import ai.timefold.solver.core.api.score.stream.ConstraintCollectors;
 import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
 import ai.timefold.solver.core.api.score.stream.PrecomputeFactory;
 import ai.timefold.solver.core.api.score.stream.bi.BiConstraintStream;
+import ai.timefold.solver.core.api.score.stream.common.SequenceChain;
 import ai.timefold.solver.core.api.score.stream.tri.TriConstraintStream;
 
 public class CurriculumCourseConstraintProvider implements ConstraintProvider {
@@ -107,14 +109,15 @@ public class CurriculumCourseConstraintProvider implements ConstraintProvider {
 
     Constraint curriculumCompactness(ConstraintFactory factory) {
         return factory.precompute(CurriculumCourseConstraintProvider::curriculumLectureLeft)
-                .ifNotExists(Lecture.class,
-                        equal((curriculum, lecture) -> lecture.getDay(), Lecture::getDay),
-                        equal((curriculum, lecture) -> lecture.getTimeslotIndex(), lecture -> lecture.getTimeslotIndex() + 1),
-                        filtering((curriculum, lectureA, lectureB) -> lectureB.getCurriculumSet().contains(curriculum)))
-                .ifNotExists(Lecture.class,
-                        equal((curriculum, lecture) -> lecture.getDay(), Lecture::getDay),
-                        equal((curriculum, lecture) -> lecture.getTimeslotIndex(), lecture -> lecture.getTimeslotIndex() - 1),
-                        filtering((curriculum, lectureA, lectureB) -> lectureB.getCurriculumSet().contains(curriculum)))
+                .groupBy((c, l) -> c,
+                        (c, l) -> l.getDay(),
+                        ConstraintCollectors.conditionally(
+                                (c, l) -> l.getDay() != null,
+                                ConstraintCollectors.toConsecutiveSequences(
+                                        (Curriculum c, Lecture l) -> l,
+                                        Lecture::getTimeslotIndex)))
+                .flattenLast(SequenceChain::getConsecutiveSequences)
+                .filter((curriculum, day, sequence) -> sequence.getLength() == 1)
                 .penalize(ofSoft(2))
                 .asConstraint("curriculumCompactness");
     }
