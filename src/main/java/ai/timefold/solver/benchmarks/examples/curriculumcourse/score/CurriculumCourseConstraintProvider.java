@@ -3,6 +3,7 @@ package ai.timefold.solver.benchmarks.examples.curriculumcourse.score;
 import static ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore.ONE_HARD;
 import static ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore.ofHard;
 import static ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore.ofSoft;
+import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.count;
 import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.countDistinct;
 import static ai.timefold.solver.core.api.score.stream.Joiners.equal;
 import static ai.timefold.solver.core.api.score.stream.Joiners.filtering;
@@ -69,12 +70,40 @@ public class CurriculumCourseConstraintProvider implements ConstraintProvider {
                 .asConstraint("conflictingLecturesSameCourseInSamePeriod");
     }
 
-    Constraint roomOccupancy(ConstraintFactory factory) {
-        return factory.forEachUniquePair(Lecture.class,
-                equal(Lecture::getRoom),
-                equal(Lecture::getPeriod))
-                .penalize(ONE_HARD)
+    Constraint roomOccupancy(ConstraintFactory factory) { // Faster than a simpler forEachUniquePair(Lecture.class).
+        return factory.forEach(Lecture.class)
+                .groupBy(Lecture::getRoom, Lecture::getPeriod, count())
+                .filter((room, period, count) -> count > 1)
+                .penalize(ONE_HARD, (room, period, count) -> {
+                    var n = 2; // We're looking for unique pairs.
+                    var nominator = factorial(count);
+                    var denominator = factorial(n) * factorial(count - n);
+                    return nominator / denominator;
+                })
                 .asConstraint("roomOccupancy");
+    }
+
+    private static final int MAX_ANTICIPATED_CONFLICTING_LESSONS = 20; // Arbitrary limit for caching.
+    private static final int[] FACTORIAL_CACHE = new int[MAX_ANTICIPATED_CONFLICTING_LESSONS];
+
+    private static int factorial(int number) {
+        if (number < MAX_ANTICIPATED_CONFLICTING_LESSONS) {
+            var cache = FACTORIAL_CACHE[number];
+            if (cache == 0) {
+                cache = factorialUncached(number);
+                FACTORIAL_CACHE[number] = cache;
+            }
+            return cache;
+        }
+        return factorialUncached(number);
+    }
+
+    private static int factorialUncached(int number) {
+        return switch (number) {
+            case 0, 1 -> 1;
+            case 2 -> 2;
+            default -> number * factorial(number - 1);
+        };
     }
 
     Constraint unavailablePeriodPenalty(ConstraintFactory factory) {
