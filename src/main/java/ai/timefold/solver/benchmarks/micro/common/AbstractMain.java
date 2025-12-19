@@ -100,7 +100,8 @@ public abstract class AbstractMain<C extends AbstractConfiguration> {
                             "event=cpu;alloc;" +
                                     "output=jfr;" +
                                     "dir=" + resultsDirectory.toAbsolutePath() + ";" +
-                                    "libPath=" + asyncProfilerPath);
+                                    "libPath=" + asyncProfilerPath + ";" +
+                                    "rawCommand=features=vtable");
                 }).orElseGet(() -> {
                     LOGGER.warn("Async profiler not found.");
                     return options;
