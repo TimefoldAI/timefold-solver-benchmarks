@@ -331,10 +331,15 @@ jobs:
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
-          mv results/scoredirector/${{ env.BASELINE_DIR }} .
-          mv ${{ env.BASELINE_DIR }}/jfr-cpu.jfr ${{ env.BASELINE_DIR }}/${{ matrix.example }}-${{ env.BASELINE_DIR }}.jfr 
-          mv results/scoredirector/${{ env.SUT_DIR }} .
-          mv ${{ env.SUT_DIR }}/jfr-cpu.jfr ${{ env.SUT_DIR }}/${{ matrix.example }}-${{ env.SUT_DIR }}.jfr 
+          cd results/scoredirector/${{ env.BASELINE_DIR }}
+          mv $(find . -maxdepth 1 -mindepth 1 -type d -print -quit) ../../../${{ env.BASELINE_DIR }}
+          cd ../../../
+          mv ${{ env.BASELINE_DIR }}/jfr-cpu.jfr ${{ env.BASELINE_DIR }}/${{ matrix.example }}-${{ env.BASELINE_DIR }}.jfr
+
+          cd results/scoredirector/${{ env.SUT_DIR }}
+          mv $(find . -maxdepth 1 -mindepth 1 -type d -print -quit) ../../../${{ env.SUT_DIR }}
+          cd ../../../
+          mv ${{ env.SUT_DIR }}/jfr-cpu.jfr ${{ env.SUT_DIR }}/${{ matrix.example }}-${{ env.SUT_DIR }}.jfr
 
       - name: Archive benchmark data
         uses: actions/upload-artifact@v6
