@@ -332,9 +332,9 @@ jobs:
         shell: bash
         run: |
           mv results/scoredirector/${{ env.BASELINE_DIR }} .
-          mv ${{ env.BASELINE_DIR }}/combined.jfr ${{ env.BASELINE_DIR }}/${{ matrix.example }}-${{ env.BASELINE_DIR }}-combined.jfr 
+          mv ${{ env.BASELINE_DIR }}/jfr-cpu.jfr ${{ env.BASELINE_DIR }}/${{ matrix.example }}-${{ env.BASELINE_DIR }}.jfr 
           mv results/scoredirector/${{ env.SUT_DIR }} .
-          mv ${{ env.SUT_DIR }}/combined.jfr ${{ env.SUT_DIR }}/${{ matrix.example }}-${{ env.SUT_DIR }}-combined.jfr 
+          mv ${{ env.SUT_DIR }}/jfr-cpu.jfr ${{ env.SUT_DIR }}/${{ matrix.example }}-${{ env.SUT_DIR }}.jfr 
 
       - name: Archive benchmark data
         uses: actions/upload-artifact@v6
@@ -342,10 +342,10 @@ jobs:
           name: assets-${{ matrix.example }}-${{ env.SANITIZED_BASELINE }}_vs_${{ env.SANITIZED_BRANCH }}
           path: |
             ./timefold-solver-benchmarks/scoredirector-benchmark.properties
-            ./timefold-solver-benchmarks/${{ env.BASELINE_DIR }}/*combined.jfr
+            ./timefold-solver-benchmarks/${{ env.BASELINE_DIR }}/*.jfr
             ./timefold-solver-benchmarks/${{ env.BASELINE_DIR }}/*.html
             ./timefold-solver-benchmarks/${{ env.BASELINE_DIR }}/*.json
-            ./timefold-solver-benchmarks/${{ env.SUT_DIR }}/*combined.jfr
+            ./timefold-solver-benchmarks/${{ env.SUT_DIR }}/*.jfr
             ./timefold-solver-benchmarks/${{ env.SUT_DIR }}/*.html
             ./timefold-solver-benchmarks/${{ env.SUT_DIR }}/*.json
 

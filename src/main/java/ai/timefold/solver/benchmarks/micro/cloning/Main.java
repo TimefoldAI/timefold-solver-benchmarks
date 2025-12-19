@@ -5,8 +5,8 @@ import java.io.InputStream;
 
 import ai.timefold.solver.benchmarks.micro.cloning.jmh.CloningBenchmark;
 import ai.timefold.solver.benchmarks.micro.common.AbstractMain;
-import ai.timefold.solver.benchmarks.micro.common.ResultCapturingJMHRunner;
 
+import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
 
@@ -36,9 +36,9 @@ public final class Main extends AbstractMain<Configuration> {
         options = processBenchmark(options, configuration);
         options = initAsyncProfiler(options);
 
-        var runner = new ResultCapturingJMHRunner(resultsDirectory, options.build());
+        var runner = new Runner(options.build());
         var runResults = runner.run();
-        visualizeJfr();
+        convertJfrToFlameGraphs();
 
         var relativeScoreErrorThreshold = configuration.getRelativeScoreErrorThreshold();
         var thresholdForPrint = ((int) Math.round(relativeScoreErrorThreshold * 10_000)) / 100.0D;
