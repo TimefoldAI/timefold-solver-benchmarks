@@ -20,10 +20,6 @@ public class TaskAssigningConstraintProvider implements ConstraintProvider {
                 noMissingSkills(constraintFactory),
                 minimizeUnassignedTasks(constraintFactory),
                 minimizeMakespan(constraintFactory),
-                /*
-                 * TODO potential for performance improvements through API enhancements,
-                 * see https://issues.redhat.com/browse/PLANNER-1604.
-                 */
                 criticalPriorityBasedTaskEndTime(constraintFactory),
                 majorPriorityTaskEndTime(constraintFactory),
                 minorPriorityTaskEndTime(constraintFactory)

@@ -28,6 +28,11 @@ public class Task extends AbstractPersistable {
     @CascadingUpdateShadowVariable(targetMethodName = "updateStartTime")
     private Integer startTime; // In minutes
 
+    @JsonIgnore
+    private Employee lastSeenEmployee;
+    @JsonIgnore
+    private int missingSkillCountCache = -1;
+
     public Task() {
     }
 
@@ -113,13 +118,17 @@ public class Task extends AbstractPersistable {
     public int getMissingSkillCount() {
         if (employee == null) {
             return 0;
+        } else if (employee == lastSeenEmployee && missingSkillCountCache >= 0) {
+            return missingSkillCountCache;
         }
-        int count = 0;
-        for (Skill skill : taskType.getRequiredSkillList()) {
+        var count = 0;
+        for (var skill : taskType.getRequiredSkillList()) {
             if (!employee.getSkillSet().contains(skill)) {
                 count++;
             }
         }
+        lastSeenEmployee = employee;
+        missingSkillCountCache = count;
         return count;
     }
 
@@ -130,7 +139,7 @@ public class Task extends AbstractPersistable {
      */
     @JsonIgnore
     public int getDuration() {
-        Affinity affinity = getAffinity();
+        var affinity = getAffinity();
         return taskType.getBaseDuration() * affinity.getDurationMultiplier();
     }
 
