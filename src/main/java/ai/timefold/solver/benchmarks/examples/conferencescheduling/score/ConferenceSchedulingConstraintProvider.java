@@ -1,5 +1,21 @@
 package ai.timefold.solver.benchmarks.examples.conferencescheduling.score;
 
+import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties;
+import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Speaker;
+import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Talk;
+import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
+import ai.timefold.solver.core.api.score.stream.Constraint;
+import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
+import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
+import ai.timefold.solver.core.api.score.stream.Joiners;
+import ai.timefold.solver.core.api.score.stream.PrecomputeFactory;
+import ai.timefold.solver.core.api.score.stream.bi.BiConstraintStream;
+
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.Objects;
+import java.util.function.Function;
+
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.AUDIENCE_LEVEL_DIVERSITY;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.AUDIENCE_TYPE_DIVERSITY;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.AUDIENCE_TYPE_THEME_TRACK_CONFLICT;
@@ -38,20 +54,6 @@ import static ai.timefold.solver.core.api.score.stream.Joiners.filtering;
 import static ai.timefold.solver.core.api.score.stream.Joiners.greaterThan;
 import static ai.timefold.solver.core.api.score.stream.Joiners.lessThan;
 import static ai.timefold.solver.core.api.score.stream.Joiners.overlapping;
-
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.util.Objects;
-
-import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties;
-import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Speaker;
-import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Talk;
-import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
-import ai.timefold.solver.core.api.score.stream.Constraint;
-import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
-import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
-import ai.timefold.solver.core.api.score.stream.PrecomputeFactory;
-import ai.timefold.solver.core.api.score.stream.bi.BiConstraintStream;
 
 /**
  * Provides the constraints for the conference scheduling problem.
@@ -117,8 +119,8 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
         return factory.forEachIncludingUnassigned(Talk.class)
                 .filter(talk -> talk.getTimeslot() != null)
                 .join(Speaker.class,
-                        filtering((talk, speaker) -> talk.hasSpeaker(speaker)
-                                && speaker.getUnavailableTimeslotSet().contains(talk.getTimeslot())))
+                        Joiners.contain(Talk::getSpeakerList, Function.identity()),
+                        Joiners.containedIn(Talk::getTimeslot, Speaker::getUnavailableTimeslotSet))
                 .penalize(HardSoftScore.ofHard(100), (talk, speaker) -> talk.getDurationInMinutes())
                 .asConstraint(SPEAKER_UNAVAILABLE_TIMESLOT);
     }
@@ -136,7 +138,7 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
         return factory.forEach(Talk.class)
                 .join(Talk.class,
                         greaterThan(t -> t.getTimeslot().getEndDateTime(), t -> t.getTimeslot().getStartDateTime()),
-                        filtering((talk1, talk2) -> talk2.getPrerequisiteTalkSet().contains(talk1)))
+                        Joiners.containedIn(Function.identity(), Talk::getPrerequisiteTalkSet))
                 .penalize(HardSoftScore.ofHard(10), Talk::combinedDurationInMinutes)
                 .asConstraint(TALK_PREREQUISITE_TALKS);
     }
@@ -395,7 +397,7 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
     Constraint speakerMakespan(ConstraintFactory factory) {
         return factory.forEach(Speaker.class)
                 .join(Talk.class,
-                        filtering((speaker, talk) -> talk.hasSpeaker(speaker)))
+                        Joiners.containedIn(Function.identity(), Talk::getSpeakerList))
                 .groupBy((speaker, talk) -> speaker,
                         compose(
                                 min((Speaker speaker, Talk talk) -> talk, talk -> talk.getTimeslot().getStartDateTime()),
