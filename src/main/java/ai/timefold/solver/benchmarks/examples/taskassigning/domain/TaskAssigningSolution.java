@@ -8,7 +8,7 @@ import ai.timefold.solver.core.api.domain.solution.PlanningScore;
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
 import ai.timefold.solver.core.api.domain.solution.ProblemFactCollectionProperty;
 import ai.timefold.solver.core.api.domain.valuerange.ValueRangeProvider;
-import ai.timefold.solver.core.api.score.buildin.bendable.BendableScore;
+import ai.timefold.solver.core.api.score.buildin.bendablelong.BendableLongScore;
 
 @PlanningSolution
 public class TaskAssigningSolution extends AbstractPersistable {
@@ -27,7 +27,7 @@ public class TaskAssigningSolution extends AbstractPersistable {
     private List<Employee> employeeList;
 
     @PlanningScore(bendableHardLevelsSize = 1, bendableSoftLevelsSize = 5)
-    private BendableScore score;
+    private BendableLongScore score;
 
     /** Relates to {@link Task#getStartTime()}. */
     private int frozenCutoff; // In minutes
@@ -91,11 +91,11 @@ public class TaskAssigningSolution extends AbstractPersistable {
         this.taskList = taskList;
     }
 
-    public BendableScore getScore() {
+    public BendableLongScore getScore() {
         return score;
     }
 
-    public void setScore(BendableScore score) {
+    public void setScore(BendableLongScore score) {
         this.score = score;
     }
 
