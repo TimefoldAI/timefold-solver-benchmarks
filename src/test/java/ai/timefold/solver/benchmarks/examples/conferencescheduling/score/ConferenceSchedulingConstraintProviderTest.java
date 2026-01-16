@@ -563,7 +563,7 @@ class ConferenceSchedulingConstraintProviderTest
     }
 
     @ConstraintProviderTest
-    void sameDayTalks(
+    void contentConflictSameDayTalks(
             ConstraintVerifier<ConferenceSchedulingConstraintProvider, ConferenceSolution> constraintVerifier) {
         Room room = new Room(0);
         Talk talk1 = new Talk(1)
@@ -598,9 +598,50 @@ class ConferenceSchedulingConstraintProviderTest
                 .withTimeslot(TUESDAY_9_TO_10);
 
         constraintVerifier.verifyThat(
-                ConferenceSchedulingConstraintProvider::sameDayTalks)
+                ConferenceSchedulingConstraintProvider::contentConflictSameDay)
                 .given(talk1, talk2, talk3, talk4, talk5, talk6)
-                .penalizesBy(960);
+                .penalizesBy(480);
+    }
+
+    @ConstraintProviderTest
+    void themeTrackConflictSameDayTalks(
+            ConstraintVerifier<ConferenceSchedulingConstraintProvider, ConferenceSolution> constraintVerifier) {
+        Room room = new Room(0);
+        Talk talk1 = new Talk(1)
+                .withRoom(room)
+                .withContentTagSet(singleton("a"))
+                .withThemeTrackTagSet(singleton("a"))
+                .withTimeslot(MONDAY_9_TO_10);
+        Talk talk2 = new Talk(3)
+                .withRoom(room)
+                .withContentTagSet(singleton("b"))
+                .withThemeTrackTagSet(singleton("a"))
+                .withTimeslot(TUESDAY_9_TO_10);
+        Talk talk3 = new Talk(4)
+                .withRoom(room)
+                .withContentTagSet(singleton("a"))
+                .withThemeTrackTagSet(singleton("a"))
+                .withTimeslot(TUESDAY_9_TO_10);
+        Talk talk4 = new Talk(5)
+                .withRoom(room)
+                .withContentTagSet(singleton("a"))
+                .withThemeTrackTagSet(singleton("b"))
+                .withTimeslot(MONDAY_9_TO_10);
+        Talk talk5 = new Talk(7)
+                .withRoom(room)
+                .withContentTagSet(singleton("b"))
+                .withThemeTrackTagSet(singleton("b"))
+                .withTimeslot(TUESDAY_9_TO_10);
+        Talk talk6 = new Talk(8)
+                .withRoom(room)
+                .withContentTagSet(singleton("a"))
+                .withThemeTrackTagSet(singleton("b"))
+                .withTimeslot(TUESDAY_9_TO_10);
+
+        constraintVerifier.verifyThat(
+                ConferenceSchedulingConstraintProvider::themeTrackConflictSameDay)
+                .given(talk1, talk2, talk3, talk4, talk5, talk6)
+                .penalizesBy(480);
     }
 
     @ConstraintProviderTest

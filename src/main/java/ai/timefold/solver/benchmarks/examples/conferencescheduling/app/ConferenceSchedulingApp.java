@@ -1,8 +1,6 @@
 
 package ai.timefold.solver.benchmarks.examples.conferencescheduling.app;
 
-import java.io.File;
-
 import ai.timefold.solver.benchmarks.examples.common.app.CommonApp;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceSolution;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.persistence.ConferenceSchedulingSolutionFileIO;
@@ -19,7 +17,6 @@ public class ConferenceSchedulingApp
     public static void main(String[] args) {
         var app = new ConferenceSchedulingApp();
         var solution = app.solve("216talks-18timeslots-20rooms.json");
-        app.createSolutionFileIO().write(solution, new File("conferencescheduling-216-18-20.json"));
         System.out.println("Done: " + solution);
     }
 
