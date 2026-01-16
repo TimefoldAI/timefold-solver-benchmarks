@@ -5,6 +5,7 @@ import static ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore.o
 import static ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore.ofSoft;
 import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.count;
 import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.countDistinct;
+import static ai.timefold.solver.core.api.score.stream.Joiners.containedIn;
 import static ai.timefold.solver.core.api.score.stream.Joiners.equal;
 import static ai.timefold.solver.core.api.score.stream.Joiners.filtering;
 
@@ -154,7 +155,7 @@ public class CurriculumCourseConstraintProvider implements ConstraintProvider {
     private static BiConstraintStream<Curriculum, Lecture> curriculumLectureLeft(PrecomputeFactory factory) {
         return factory.forEachUnfiltered(Curriculum.class)
                 .join(Lecture.class,
-                        filtering((curriculum, lecture) -> lecture.getCurriculumSet().contains(curriculum)));
+                        containedIn(curriculum -> curriculum, Lecture::getCurriculumSet));
     }
 
     Constraint roomStability(ConstraintFactory factory) {

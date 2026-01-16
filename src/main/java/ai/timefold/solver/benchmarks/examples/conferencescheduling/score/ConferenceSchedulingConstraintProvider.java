@@ -33,9 +33,12 @@ import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.comp
 import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.countBi;
 import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.max;
 import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.min;
+import static ai.timefold.solver.core.api.score.stream.Joiners.containedIn;
+import static ai.timefold.solver.core.api.score.stream.Joiners.containing;
 import static ai.timefold.solver.core.api.score.stream.Joiners.equal;
 import static ai.timefold.solver.core.api.score.stream.Joiners.filtering;
 import static ai.timefold.solver.core.api.score.stream.Joiners.greaterThan;
+import static ai.timefold.solver.core.api.score.stream.Joiners.intersecting;
 import static ai.timefold.solver.core.api.score.stream.Joiners.lessThan;
 import static ai.timefold.solver.core.api.score.stream.Joiners.overlapping;
 
@@ -117,8 +120,8 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
         return factory.forEachIncludingUnassigned(Talk.class)
                 .filter(talk -> talk.getTimeslot() != null)
                 .join(Speaker.class,
-                        filtering((talk, speaker) -> talk.hasSpeaker(speaker)
-                                && speaker.getUnavailableTimeslotSet().contains(talk.getTimeslot())))
+                        containing(Talk::getSpeakerList, speaker -> speaker),
+                        containedIn(Talk::getTimeslot, Speaker::getUnavailableTimeslotSet))
                 .penalize(HardSoftScore.ofHard(100), (talk, speaker) -> talk.getDurationInMinutes())
                 .asConstraint(SPEAKER_UNAVAILABLE_TIMESLOT);
     }
@@ -127,7 +130,8 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
         return factory.forEachUniquePair(Talk.class,
                 overlapping(t -> t.getTimeslot().getStartDateTime(), t -> t.getTimeslot().getEndDateTime()))
                 .join(Speaker.class,
-                        filtering((talk1, talk2, speaker) -> talk1.hasSpeaker(speaker) && talk2.hasSpeaker(speaker)))
+                        containing((talk1, talk2) -> talk1.getSpeakerList(), speaker -> speaker),
+                        containing((talk1, talk2) -> talk2.getSpeakerList(), speaker -> speaker))
                 .penalize(HardSoftScore.ofHard(10), (talk1, talk2, speaker) -> talk2.overlappingDurationInMinutes(talk1))
                 .asConstraint(SPEAKER_CONFLICT);
     }
@@ -136,18 +140,18 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
         return factory.forEach(Talk.class)
                 .join(Talk.class,
                         greaterThan(t -> t.getTimeslot().getEndDateTime(), t -> t.getTimeslot().getStartDateTime()),
-                        filtering((talk1, talk2) -> talk2.getPrerequisiteTalkSet().contains(talk1)))
+                        containedIn(talk -> talk, Talk::getPrerequisiteTalkSet))
                 .penalize(HardSoftScore.ofHard(10), Talk::combinedDurationInMinutes)
                 .asConstraint(TALK_PREREQUISITE_TALKS);
     }
 
     Constraint talkMutuallyExclusiveTalksTags(ConstraintFactory factory) {
         return factory.forEachUniquePair(Talk.class,
-                overlapping(t -> t.getTimeslot().getStartDateTime(), t -> t.getTimeslot().getEndDateTime()))
-                .expand((talk1, talk2) -> talk2.overlappingMutuallyExclusiveTalksTagCount(talk1))
-                .filter((talk1, talk2, overlappingTagCount) -> overlappingTagCount > 0)
+                overlapping(t -> t.getTimeslot().getStartDateTime(), t -> t.getTimeslot().getEndDateTime()),
+                intersecting(Talk::getMutuallyExclusiveTalksTagSet))
                 .penalize(HardSoftScore.ofHard(1),
-                        (talk1, talk2, overlappingTagCount) -> overlappingTagCount * talk1.overlappingDurationInMinutes(talk2))
+                        (talk1, talk2) -> talk2.overlappingMutuallyExclusiveTalksTagCount(talk1)
+                                * talk1.overlappingDurationInMinutes(talk2))
                 .asConstraint(TALK_MUTUALLY_EXCLUSIVE_TALKS_TAGS);
     }
 
@@ -231,21 +235,19 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
     Constraint themeTrackRoomStability(ConstraintFactory factory) {
         return factory.forEachUniquePair(Talk.class,
                 equal(talk -> talk.getTimeslot().getStartDateTime().toLocalDate()),
+                intersecting(Talk::getThemeTrackTagSet),
                 filtering((talk1, talk2) -> !talk1.getRoom().equals(talk2.getRoom())))
-                .expand((talk1, talk2) -> talk2.overlappingThemeTrackCount(talk1))
                 .penalize(HardSoftScore.ofSoft(10),
-                        (talk1, talk2, overlappingTrackCount) -> overlappingTrackCount * talk1.combinedDurationInMinutes(talk2))
+                        (talk1, talk2) -> talk2.overlappingThemeTrackCount(talk1) * talk1.combinedDurationInMinutes(talk2))
                 .asConstraint(THEME_TRACK_ROOM_STABILITY);
     }
 
     Constraint sectorConflict(ConstraintFactory factory) {
         return factory.forEachUniquePair(Talk.class,
-                overlapping(t -> t.getTimeslot().getStartDateTime(), t -> t.getTimeslot().getEndDateTime()))
-                .expand((talk1, talk2) -> talk2.overlappingSectorCount(talk1))
-                .filter((talk1, talk2, overlappingSectorCount) -> overlappingSectorCount > 0)
+                overlapping(t -> t.getTimeslot().getStartDateTime(), t -> t.getTimeslot().getEndDateTime()),
+                intersecting(Talk::getSectorTagSet))
                 .penalize(HardSoftScore.ofSoft(10),
-                        (talk1, talk2, overlappingSectorCount) -> overlappingSectorCount
-                                * talk1.overlappingDurationInMinutes(talk2))
+                        (talk1, talk2) -> talk2.overlappingSectorCount(talk1) * talk1.overlappingDurationInMinutes(talk2))
                 .asConstraint(SECTOR_CONFLICT);
     }
 
@@ -395,7 +397,7 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
     Constraint speakerMakespan(ConstraintFactory factory) {
         return factory.forEach(Speaker.class)
                 .join(Talk.class,
-                        filtering((speaker, talk) -> talk.hasSpeaker(speaker)))
+                        containedIn(speaker -> speaker, Talk::getSpeakerList))
                 .groupBy((speaker, talk) -> speaker,
                         compose(
                                 min((Speaker speaker, Talk talk) -> talk, talk -> talk.getTimeslot().getStartDateTime()),
