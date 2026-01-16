@@ -1,5 +1,6 @@
 package ai.timefold.solver.benchmarks.examples.conferencescheduling.score;
 
+import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.*;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.AUDIENCE_LEVEL_DIVERSITY;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.AUDIENCE_TYPE_DIVERSITY;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.AUDIENCE_TYPE_THEME_TRACK_CONFLICT;
@@ -10,7 +11,6 @@ import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.LANGUAGE_DIVERSITY;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.POPULAR_TALKS;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.ROOM_CONFLICT;
-import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.SAME_DAY_TALKS;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.SECTOR_CONFLICT;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.SPEAKER_CONFLICT;
 import static ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceConstraintProperties.SPEAKER_MAKESPAN;
@@ -92,7 +92,8 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
                 contentAudienceLevelFlowViolation(factory),
                 contentConflict(factory),
                 languageDiversity(factory),
-                sameDayTalks(factory),
+                contentConflictSameDay(factory),
+                themeTrackConflictSameDay(factory),
                 popularTalks(factory),
                 speakerPreferredTimeslotTags(factory),
                 speakerUndesiredTimeslotTags(factory),
@@ -303,11 +304,10 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
 
     Constraint contentConflict(ConstraintFactory factory) {
         return factory.forEachUniquePair(Talk.class,
-                overlapping(t -> t.getTimeslot().getStartDateTime(), t -> t.getTimeslot().getEndDateTime()))
-                .expand((talk1, talk2) -> talk2.overlappingContentCount(talk1))
-                .filter((talk1, talk2, overlappingContentCount) -> overlappingContentCount > 0)
+                overlapping(t -> t.getTimeslot().getStartDateTime(), t -> t.getTimeslot().getEndDateTime()),
+                intersecting(Talk::getContentTagSet))
                 .penalize(HardSoftScore.ofSoft(100),
-                        (talk1, talk2, overlappingContentCount) -> overlappingContentCount
+                        (talk1, talk2) -> talk2.overlappingContentCount(talk1)
                                 * talk1.overlappingDurationInMinutes(talk2))
                 .asConstraint(CONTENT_CONFLICT);
     }
@@ -320,18 +320,20 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
                 .asConstraint(LANGUAGE_DIVERSITY);
     }
 
-    Constraint sameDayTalks(ConstraintFactory factory) {
-        return factory.forEachUniquePair(Talk.class)
+    Constraint contentConflictSameDay(ConstraintFactory factory) {
+        return factory.forEachUniquePair(Talk.class, intersecting(Talk::getContentTagSet))
                 .filter((talk1, talk2) -> !talk1.getTimeslot().isOnSameDayAs(talk2.getTimeslot()))
-                .expand((talk1, talk2) -> {
-                    var overlappingContentCount = talk2.overlappingContentCount(talk1);
-                    var overlappingThemeTrackCount = talk2.overlappingThemeTrackCount(talk1);
-                    return overlappingContentCount + overlappingThemeTrackCount;
-                })
-                .filter((talk1, talk2, overlap) -> overlap > 0)
                 .penalize(HardSoftScore.ofSoft(10),
-                        (talk1, talk2, overlap) -> overlap * talk1.combinedDurationInMinutes(talk2))
-                .asConstraint(SAME_DAY_TALKS);
+                        (talk1, talk2) -> talk2.overlappingContentCount(talk1) * talk1.combinedDurationInMinutes(talk2))
+                .asConstraint(CONTENT_CONFLICT_SAME_DAY_TALKS);
+    }
+
+    Constraint themeTrackConflictSameDay(ConstraintFactory factory) {
+        return factory.forEachUniquePair(Talk.class, intersecting(Talk::getThemeTrackTagSet))
+                .filter((talk1, talk2) -> !talk1.getTimeslot().isOnSameDayAs(talk2.getTimeslot()))
+                .penalize(HardSoftScore.ofSoft(10),
+                        (talk1, talk2) -> talk2.overlappingThemeTrackCount(talk1) * talk1.combinedDurationInMinutes(talk2))
+                .asConstraint(THEME_TRACK_CONFLICT_SAME_DAY_TALKS);
     }
 
     Constraint popularTalks(ConstraintFactory factory) {
