@@ -19,7 +19,7 @@
         <version.org.jdom>2.0.6.1</version.org.jdom>
         <version.org.junit>5.10.2</version.org.junit>
         <version.org.mockito>5.11.0</version.org.mockito>
-        <version.spotless.plugin>3.1.0</version.spotless.plugin>
+        <version.spotless.plugin>3.2.0</version.spotless.plugin>
         <spotless.skip>false</spotless.skip>
         <spotless.goal>apply</spotless.goal>
         <java.module.name>ai.timefold.solver.benchmarks</java.module.name>
