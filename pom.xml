@@ -15,7 +15,7 @@
 
     <properties>
         <version.ai.timefold.solver>999-SNAPSHOT</version.ai.timefold.solver>
-        <version.me.bechberger>4.2.1-11</version.me.bechberger>
+        <version.me.bechberger>4.3-11</version.me.bechberger>
         <version.org.jdom>2.0.6.1</version.org.jdom>
         <version.org.junit>5.10.2</version.org.junit>
         <version.org.mockito>5.11.0</version.org.mockito>
