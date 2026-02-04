@@ -47,6 +47,14 @@ public class Job {
         return allMachines;
     }
 
+    public Machine getMachine() {
+        return machine;
+    }
+
+    public void setMachine(Machine machine) {
+        this.machine = machine;
+    }
+
     public Job getPreviousJob() {
         return previousJob;
     }

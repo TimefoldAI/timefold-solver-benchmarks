@@ -144,7 +144,7 @@ public class CourseSchedule extends AbstractPersistable {
     // ************************************************************************
 
     @ProblemFactCollectionProperty
-    private List<CourseConflict>
+    public List<CourseConflict>
             calculateCourseConflictList() {
         List<CourseConflict> courseConflictList =
                 new ArrayList<>();

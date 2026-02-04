@@ -167,7 +167,7 @@ public class Task extends AbstractPersistable {
     }
 
     @SuppressWarnings("unused")
-    protected void updateStartTime() {
+    public void updateStartTime() {
         if (employee == null) {
             startTime = null;
         } else if (previousTask == null) {
