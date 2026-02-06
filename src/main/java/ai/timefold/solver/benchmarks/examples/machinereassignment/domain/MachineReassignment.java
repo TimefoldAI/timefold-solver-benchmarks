@@ -146,7 +146,7 @@ public class MachineReassignment extends AbstractPersistable {
     @ProblemFactCollectionProperty
     @JsonIgnore
     @SuppressWarnings("unused")
-    private List<MrServiceDependency>
+    public List<MrServiceDependency>
             getServiceDependencyList() {
         List<MrServiceDependency> serviceDependencyList =
                 new ArrayList<>(serviceList.size() * 5);
