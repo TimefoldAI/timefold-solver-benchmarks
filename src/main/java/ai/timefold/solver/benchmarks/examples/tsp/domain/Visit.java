@@ -1,30 +1,68 @@
 package ai.timefold.solver.benchmarks.examples.tsp.domain;
 
 import ai.timefold.solver.benchmarks.examples.tsp.domain.location.Location;
+import ai.timefold.solver.benchmarks.examples.tsp.domain.location.LocationAware;
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
-import ai.timefold.solver.core.api.domain.variable.AnchorShadowVariable;
-import ai.timefold.solver.core.api.domain.variable.PlanningVariable;
-import ai.timefold.solver.core.api.domain.variable.PlanningVariableGraphType;
+import ai.timefold.solver.core.api.domain.lookup.PlanningId;
+import ai.timefold.solver.core.api.domain.variable.InverseRelationShadowVariable;
+import ai.timefold.solver.core.api.domain.variable.NextElementShadowVariable;
+import ai.timefold.solver.core.api.domain.variable.PreviousElementShadowVariable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @PlanningEntity
-public class Visit extends Standstill {
+public class Visit implements LocationAware {
+
+    @PlanningId
+    private long id;
 
     private Location location;
 
-    // Planning variables: changes during planning, between score calculations.
-    private Standstill previousStandstill;
-
-    // Anchor shadow var
-    private Domicile domicile;
+    @InverseRelationShadowVariable(sourceVariableName = "visits")
+    private Tour tour;
+    @PreviousElementShadowVariable(sourceVariableName = "visits")
+    private Visit previous;
+    @NextElementShadowVariable(sourceVariableName = "visits")
+    private Visit next;
 
     public Visit() {
     }
 
     public Visit(long id, Location location) {
-        super(id);
+        this.id = id;
         this.location = location;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public Tour getTour() {
+        return tour;
+    }
+
+    public void setTour(Tour tour) {
+        this.tour = tour;
+    }
+
+    public Visit getNext() {
+        return next;
+    }
+
+    public void setNext(Visit next) {
+        this.next = next;
+    }
+
+    public Visit getPrevious() {
+        return previous;
+    }
+
+    public void setPrevious(Visit previous) {
+        this.previous = previous;
     }
 
     @Override
@@ -36,59 +74,25 @@ public class Visit extends Standstill {
         this.location = location;
     }
 
-    @PlanningVariable(graphType = PlanningVariableGraphType.CHAINED)
-    public Standstill getPreviousStandstill() {
-        return previousStandstill;
-    }
-
-    public void setPreviousStandstill(Standstill previousStandstill) {
-        this.previousStandstill = previousStandstill;
-    }
-
-    @AnchorShadowVariable(sourceVariableName = "previousStandstill")
-    public Domicile getDomicile() {
-        return domicile;
-    }
-
-    public void setDomicile(Domicile domicile) {
-        this.domicile = domicile;
-    }
-
     // ************************************************************************
     // Complex methods
     // ************************************************************************
 
-    /**
-     * @return a positive number, the distance multiplied by 1000 to avoid floating point arithmetic rounding errors
-     */
     @JsonIgnore
-    @Override
-    public long getDistanceToNextStandstill() {
-        var next = getNextStandstill();
-        if (next == null && domicile != null) {
-            return getDistanceTo(domicile);
-        } else if (next != null) {
-            return getDistanceTo(next);
+    public long getDistanceFromPreviousVisit() {
+        if (tour == null) {
+            throw new IllegalStateException(
+                    "This method must not be called when the shadow variables are not initialized yet.");
         }
-        return 0L;
+        if (previous == null) {
+            return getDistanceToDepot();
+        }
+        return previous.getLocation().getDistanceTo(location);
     }
 
-    /**
-     * @param standstill never null
-     * @return a positive number, the distance multiplied by 1000 to avoid floating point arithmetic rounding errors
-     */
     @JsonIgnore
-    public long getDistanceFrom(Standstill standstill) {
-        return standstill.getLocation().getDistanceTo(location);
-    }
-
-    /**
-     * @param standstill never null
-     * @return a positive number, the distance multiplied by 1000 to avoid floating point arithmetic rounding errors
-     */
-    @Override
-    public long getDistanceTo(Standstill standstill) {
-        return location.getDistanceTo(standstill.getLocation());
+    public long getDistanceToDepot() {
+        return location.getDistanceTo(tour.getDomicile().getLocation());
     }
 
 }

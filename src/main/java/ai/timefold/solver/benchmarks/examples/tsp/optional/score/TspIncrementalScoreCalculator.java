@@ -1,6 +1,5 @@
 package ai.timefold.solver.benchmarks.examples.tsp.optional.score;
 
-import ai.timefold.solver.benchmarks.examples.tsp.domain.Standstill;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.TspSolution;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.Visit;
 import ai.timefold.solver.core.api.score.buildin.simplelong.SimpleLongScore;
@@ -13,10 +12,10 @@ public class TspIncrementalScoreCalculator implements IncrementalScoreCalculator
     @Override
     public void resetWorkingSolution(TspSolution tspSolution) {
         score = 0L;
-        insert(tspSolution.getDomicile());
-        for (Visit visit : tspSolution.getVisitList()) {
-            insert(visit);
+        for (var visit : tspSolution.getVisitList()) {
+            score -= visit.getDistanceFromPreviousVisit();
         }
+        score -= tspSolution.getVisitList().getLast().getDistanceToDepot();
     }
 
     @Override
@@ -31,12 +30,12 @@ public class TspIncrementalScoreCalculator implements IncrementalScoreCalculator
 
     @Override
     public void beforeVariableChanged(Object entity, String variableName) {
-        retract((Standstill) entity);
+        retract((Visit) entity);
     }
 
     @Override
     public void afterVariableChanged(Object entity, String variableName) {
-        insert((Standstill) entity);
+        insert((Visit) entity);
     }
 
     @Override
@@ -49,12 +48,12 @@ public class TspIncrementalScoreCalculator implements IncrementalScoreCalculator
         // Do nothing
     }
 
-    private void insert(Standstill visit) {
-        score -= visit.getDistanceToNextStandstill();
+    private void insert(Visit visit) {
+        score -= visit.getDistanceFromPreviousVisit();
     }
 
-    private void retract(Standstill visit) {
-        score += visit.getDistanceToNextStandstill();
+    private void retract(Visit visit) {
+        score += visit.getDistanceFromPreviousVisit();
     }
 
     @Override

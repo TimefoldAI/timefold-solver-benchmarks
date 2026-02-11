@@ -11,7 +11,6 @@ import java.util.Map;
 
 import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractTxtSolutionImporter;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.Domicile;
-import ai.timefold.solver.benchmarks.examples.tsp.domain.Standstill;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.TspSolution;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.Visit;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.location.DistanceType;
@@ -397,16 +396,16 @@ public class TspImporter extends AbstractTxtSolutionImporter<TspSolution> {
             for (Visit visit : tspSolution.getVisitList()) {
                 idToVisitMap.put(visit.getId(), visit);
             }
-            Standstill previousStandstill = domicile;
+            List<Visit> updatedVisitList = new ArrayList<>(visitListSize);
             for (int i = 0; i < visitListSize; i++) {
                 long visitId = readLongValue();
                 Visit visit = idToVisitMap.get(visitId);
                 if (visit == null) {
                     throw new IllegalStateException("The visitId (" + visitId + ") is does not exist.");
                 }
-                visit.setPreviousStandstill(previousStandstill);
-                previousStandstill = visit;
+                updatedVisitList.add(visit);
             }
+            tspSolution.setVisitList(updatedVisitList);
         }
 
     }
