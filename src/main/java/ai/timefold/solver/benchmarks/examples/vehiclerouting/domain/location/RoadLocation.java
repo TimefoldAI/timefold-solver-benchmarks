@@ -4,8 +4,8 @@ import java.util.Map;
 
 import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.KeySerializer;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 /**
  * The cost between 2 locations was precalculated on a real road network route.

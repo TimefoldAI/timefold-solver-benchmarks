@@ -15,8 +15,9 @@ import ai.timefold.solver.core.api.domain.variable.PlanningListVariable;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 @PlanningEntity
 @JsonIdentityInfo(generator = JacksonUniqueIdGenerator.class)

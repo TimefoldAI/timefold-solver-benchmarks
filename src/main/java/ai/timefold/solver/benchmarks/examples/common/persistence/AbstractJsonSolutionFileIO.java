@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.AbstractKeyDeserializer;
 import ai.timefold.solver.jackson.impl.domain.solution.JacksonSolutionFileIO;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  *

@@ -1,13 +1,13 @@
 package ai.timefold.solver.benchmarks.examples.common.persistence.jackson;
 
-import java.io.IOException;
-
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
 
 import com.fasterxml.jackson.annotation.ObjectIdGenerator;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
+
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
 
 /**
  * Serializes a child of {@link AbstractPersistable} to a JSON map key
@@ -16,15 +16,14 @@ import com.fasterxml.jackson.databind.SerializerProvider;
  * @param <E> The type must have a {@link com.fasterxml.jackson.annotation.JsonIdentityInfo} annotation with
  *        {@link JacksonUniqueIdGenerator} as its generator.
  */
-public final class KeySerializer<E extends AbstractPersistable> extends JsonSerializer<E> {
+public final class KeySerializer<E extends AbstractPersistable> extends ValueSerializer<E> {
 
     private final ObjectIdGenerator<String> idGenerator = new JacksonUniqueIdGenerator();
 
     @Override
-    public void serialize(E persistable, JsonGenerator jsonGenerator, SerializerProvider serializerProvider)
-            throws IOException {
-        Object jsonId = serializerProvider.findObjectId(persistable, idGenerator)
+    public void serialize(E persistable, JsonGenerator jsonGenerator, SerializationContext ctxt) throws JacksonException {
+        Object jsonId = ctxt.findObjectId(persistable, idGenerator)
                 .generateId(persistable);
-        jsonGenerator.writeFieldName(jsonId.toString());
+        jsonGenerator.writeName(jsonId.toString());
     }
 }
