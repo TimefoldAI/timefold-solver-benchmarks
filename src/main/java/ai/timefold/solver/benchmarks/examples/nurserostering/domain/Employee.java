@@ -13,8 +13,9 @@ import ai.timefold.solver.benchmarks.examples.nurserostering.domain.request.Shif
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 @JsonIdentityInfo(generator = JacksonUniqueIdGenerator.class)
 public class Employee extends AbstractPersistable implements Comparable<Employee> {

@@ -9,8 +9,9 @@ import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.KeySeri
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 @JsonIdentityInfo(generator = JacksonUniqueIdGenerator.class)
 public class MrMachine extends AbstractPersistable {
