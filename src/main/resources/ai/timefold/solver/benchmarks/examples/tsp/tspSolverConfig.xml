@@ -7,6 +7,7 @@
     <!--<moveThreadCount>AUTO</moveThreadCount>-->
 
     <solutionClass>ai.timefold.solver.benchmarks.examples.tsp.domain.TspSolution</solutionClass>
+    <entityClass>ai.timefold.solver.benchmarks.examples.tsp.domain.Tour</entityClass>
     <entityClass>ai.timefold.solver.benchmarks.examples.tsp.domain.Visit</entityClass>
 
     <scoreDirectorFactory>
@@ -22,24 +23,8 @@
     <nearbyDistanceMeterClass>ai.timefold.solver.benchmarks.examples.tsp.domain.solver.nearby.VisitNearbyDistanceMeter
     </nearbyDistanceMeterClass>
 
-    <constructionHeuristic />
+    <constructionHeuristic/>
     <localSearch>
-        <unionMoveSelector>
-            <changeMoveSelector/>
-            <swapMoveSelector/>
-            <subChainChangeMoveSelector>
-                <subChainSelector>
-                    <maximumSubChainSize>50</maximumSubChainSize>
-                </subChainSelector>
-                <selectReversingMoveToo>true</selectReversingMoveToo>
-            </subChainChangeMoveSelector>
-            <subChainSwapMoveSelector>
-                <subChainSelector>
-                    <maximumSubChainSize>50</maximumSubChainSize>
-                </subChainSelector>
-                <selectReversingMoveToo>true</selectReversingMoveToo>
-            </subChainSwapMoveSelector>
-        </unionMoveSelector>
         <acceptor>
             <lateAcceptanceSize>400</lateAcceptanceSize>
         </acceptor>

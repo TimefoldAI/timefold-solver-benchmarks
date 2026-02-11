@@ -1,19 +1,13 @@
 package ai.timefold.solver.benchmarks.examples.tsp.domain.solver.nearby;
 
-import ai.timefold.solver.benchmarks.examples.tsp.domain.Standstill;
-import ai.timefold.solver.benchmarks.examples.tsp.domain.Visit;
+import ai.timefold.solver.benchmarks.examples.tsp.domain.location.LocationAware;
 import ai.timefold.solver.core.impl.heuristic.selector.common.nearby.NearbyDistanceMeter;
 
-public class VisitNearbyDistanceMeter implements NearbyDistanceMeter<Visit, Standstill> {
+public class VisitNearbyDistanceMeter implements NearbyDistanceMeter<LocationAware, LocationAware> {
 
     @Override
-    public double getNearbyDistance(Visit origin, Standstill destination) {
-        long distance = origin.getDistanceTo(destination);
-        // If arriving early also inflicts a cost (more than just not using the vehicle more), such as the driver's wage, use this:
-        //        if (origin instanceof TimeWindowedCustomer && destination instanceof TimeWindowedCustomer) {
-        //            distance += ((TimeWindowedCustomer) origin).getTimeWindowGapTo((TimeWindowedCustomer) destination);
-        //        }
-        return distance;
+    public double getNearbyDistance(LocationAware origin, LocationAware destination) {
+        return origin.getLocation().getDistanceTo(destination.getLocation());
     }
 
 }
