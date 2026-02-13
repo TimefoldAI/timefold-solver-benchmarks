@@ -1,44 +1,43 @@
 package ai.timefold.solver.benchmarks.examples.tsp.domain;
 
+import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
+import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.JacksonUniqueIdGenerator;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.location.Location;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.location.LocationAware;
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
-import ai.timefold.solver.core.api.domain.lookup.PlanningId;
 import ai.timefold.solver.core.api.domain.variable.InverseRelationShadowVariable;
 import ai.timefold.solver.core.api.domain.variable.NextElementShadowVariable;
 import ai.timefold.solver.core.api.domain.variable.PreviousElementShadowVariable;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 @PlanningEntity
-public class Visit implements LocationAware {
-
-    @PlanningId
-    private long id;
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonIdentityInfo(generator = JacksonUniqueIdGenerator.class)
+public class Visit extends AbstractPersistable implements LocationAware {
 
     private Location location;
 
-    @InverseRelationShadowVariable(sourceVariableName = "visits")
+    @InverseRelationShadowVariable(sourceVariableName = "visitList")
     private Tour tour;
-    @PreviousElementShadowVariable(sourceVariableName = "visits")
+    @JsonIdentityReference(alwaysAsId = true)
+    @PreviousElementShadowVariable(sourceVariableName = "visitList")
     private Visit previous;
-    @NextElementShadowVariable(sourceVariableName = "visits")
+    @JsonIdentityReference(alwaysAsId = true)
+    @NextElementShadowVariable(sourceVariableName = "visitList")
     private Visit next;
 
     public Visit() {
     }
 
-    public Visit(long id, Location location) {
-        this.id = id;
+    public Visit(Long id, Location location) {
+        super(id);
         this.location = location;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 
     public Tour getTour() {

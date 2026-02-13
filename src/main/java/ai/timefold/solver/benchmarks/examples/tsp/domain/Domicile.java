@@ -1,31 +1,23 @@
 package ai.timefold.solver.benchmarks.examples.tsp.domain;
 
+import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.location.Location;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.location.LocationAware;
 
-public class Domicile implements LocationAware {
+public class Domicile extends AbstractPersistable implements LocationAware {
 
-    private long id;
     private Location location;
 
     public Domicile() {
     }
 
-    public Domicile(long id, Location location) {
-        this.id = id;
-        this.location = location;
-    }
-
     public Domicile(long id) {
-        this.id = id;
+        this(id, null);
     }
 
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
+    public Domicile(long id, Location location) {
+        super(id);
+        this.location = location;
     }
 
     @Override
