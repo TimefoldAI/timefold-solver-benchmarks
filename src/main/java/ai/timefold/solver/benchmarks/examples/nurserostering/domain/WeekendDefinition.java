@@ -62,11 +62,6 @@ public enum WeekendDefinition {
         return lastDayOfWeekend;
     }
 
-    @Override
-    public String toString() {
-        return code;
-    }
-
     public boolean isWeekend(DayOfWeek dayOfWeek) {
         return dayOfWeekSet.contains(dayOfWeek);
     }
