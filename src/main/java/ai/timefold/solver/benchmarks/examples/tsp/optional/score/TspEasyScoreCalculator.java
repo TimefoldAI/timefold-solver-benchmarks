@@ -8,12 +8,16 @@ public class TspEasyScoreCalculator implements EasyScoreCalculator<TspSolution, 
 
     @Override
     public SimpleLongScore calculateScore(TspSolution tspSolution) {
-        var visitList = tspSolution.getVisitList();
+        var visitList = tspSolution.getTour().getVisitList();
         long score = 0;
         for (var visit : visitList) {
-            score -= visit.getDistanceFromPreviousVisit();
+            if (visit.getTour() != null) {
+                score -= visit.getDistanceFromPreviousVisit();
+                if (visit.getNext() == null) {
+                    score -= visit.getDistanceToDepot();
+                }
+            }
         }
-        score -= visitList.getLast().getDistanceToDepot();
         return SimpleLongScore.of(score);
     }
 
