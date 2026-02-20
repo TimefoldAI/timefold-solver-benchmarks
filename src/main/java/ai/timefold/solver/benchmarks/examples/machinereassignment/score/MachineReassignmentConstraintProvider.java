@@ -56,15 +56,15 @@ public class MachineReassignmentConstraintProvider implements ConstraintProvider
                         sumLong((machineCapacity, processAssignment) -> processAssignment
                                 .getUsage(machineCapacity.getResource())))
                 .filter(((machine, machineCapacity, usage) -> machineCapacity.getMaximumCapacity() < usage))
-                .penalizeLong(HardSoftScore.ONE_HARD,
+                .penalize(HardSoftScore.ONE_HARD,
                         (machine, machineCapacity, usage) -> usage - machineCapacity.getMaximumCapacity())
                 .asConstraint(MrConstraints.MAXIMUM_CAPACITY);
     }
 
     protected Constraint serviceConflict(ConstraintFactory factory) {
         return factory.forEachUniquePair(MrProcessAssignment.class,
-                equal(MrProcessAssignment::getMachine, MrProcessAssignment::getMachine),
-                equal(MrProcessAssignment::getService, MrProcessAssignment::getService))
+                        equal(MrProcessAssignment::getMachine, MrProcessAssignment::getMachine),
+                        equal(MrProcessAssignment::getService, MrProcessAssignment::getService))
                 .penalize(HardSoftScore.ONE_HARD)
                 .asConstraint(MrConstraints.SERVICE_CONFLICT);
     }
@@ -77,7 +77,7 @@ public class MachineReassignmentConstraintProvider implements ConstraintProvider
                 .groupBy(MrProcessAssignment::getService,
                         ConstraintCollectors.countDistinct(MrProcessAssignment::getLocation))
                 .filter((service, distinctLocationCount) -> distinctLocationCount < service.getLocationSpread())
-                .penalizeLong(HardSoftScore.ONE_HARD,
+                .penalize(HardSoftScore.ONE_HARD,
                         (service, distinctLocationCount) -> service.getLocationSpread() - distinctLocationCount)
                 .asConstraint(MrConstraints.SERVICE_LOCATION_SPREAD);
     }
@@ -94,7 +94,7 @@ public class MachineReassignmentConstraintProvider implements ConstraintProvider
                         equal((serviceDependency, processFrom) -> serviceDependency.getToService(),
                                 MrProcessAssignment::getService),
                         filtering((serviceDependency, processFrom,
-                                processTo) -> !processFrom.getNeighborhood().equals(processTo.getNeighborhood())))
+                                   processTo) -> !processFrom.getNeighborhood().equals(processTo.getNeighborhood())))
                 .penalize(HardSoftScore.ONE_HARD)
                 .asConstraint(MrConstraints.SERVICE_DEPENDENCY);
     }
@@ -107,13 +107,13 @@ public class MachineReassignmentConstraintProvider implements ConstraintProvider
         return factory.forEach(MrMachineCapacity.class)
                 .filter(MrMachineCapacity::isTransientlyConsumed)
                 .join(factory.forEach(MrProcessAssignment.class)
-                        .filter(MrProcessAssignment::isMoved),
+                                .filter(MrProcessAssignment::isMoved),
                         equal(MrMachineCapacity::getMachine, MrProcessAssignment::getOriginalMachine))
                 .groupBy((machineCapacity, processAssignment) -> machineCapacity,
                         sumLong((machineCapacity, processAssignment) -> processAssignment
                                 .getUsage(machineCapacity.getResource())))
                 .filter(((machineCapacity, usage) -> machineCapacity.getMaximumCapacity() < usage))
-                .penalizeLong(HardSoftScore.ONE_HARD,
+                .penalize(HardSoftScore.ONE_HARD,
                         (machineCapacity, usage) -> usage - machineCapacity.getMaximumCapacity())
                 .asConstraint(MrConstraints.TRANSIENT_USAGE);
     }
@@ -133,7 +133,7 @@ public class MachineReassignmentConstraintProvider implements ConstraintProvider
                         sumLong((machineCapacity, processAssignment) -> processAssignment
                                 .getUsage(machineCapacity.getResource())))
                 .filter(((machineCapacity, usage) -> machineCapacity.getSafetyCapacity() < usage))
-                .penalizeLong(HardSoftScore.ONE_SOFT,
+                .penalize(HardSoftScore.ONE_SOFT,
                         (machineCapacity, usage) -> machineCapacity.getResource().getLoadCostWeight()
                                 * (usage - machineCapacity.getSafetyCapacity()))
                 .asConstraint(MrConstraints.LOAD_COST);
@@ -150,7 +150,7 @@ public class MachineReassignmentConstraintProvider implements ConstraintProvider
                         (penalty, processAssignment) -> processAssignment.getMachine(),
                         sumLong((penalty, processAssignment) -> processAssignment.getUsage(penalty.getOriginResource())),
                         sumLong((penalty, processAssignment) -> processAssignment.getUsage(penalty.getTargetResource())))
-                .penalizeLong(HardSoftScore.ONE_SOFT, this::balanceCost)
+                .penalize(HardSoftScore.ONE_SOFT, this::balanceCost)
                 .asConstraint(MrConstraints.BALANCE_COST);
     }
 

@@ -21,7 +21,7 @@ public class FlowShopConstraintProvider implements ConstraintProvider {
 
     protected Constraint makespan(ConstraintFactory factory) {
         return factory.forEach(Machine.class)
-                .penalizeLong(HardSoftScore.ONE_SOFT, Machine::getMakespan)
+                .penalize(HardSoftScore.ONE_SOFT, Machine::getMakespan)
                 .asConstraint("makespan");
     }
 }

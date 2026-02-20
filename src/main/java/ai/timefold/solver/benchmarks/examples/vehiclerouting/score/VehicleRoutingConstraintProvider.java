@@ -31,7 +31,7 @@ public class VehicleRoutingConstraintProvider implements ConstraintProvider {
                 .filter(customer -> customer.getVehicle() != null)
                 .groupBy(Customer::getVehicle, sum(Customer::getDemand))
                 .filter((vehicle, demand) -> demand > vehicle.getCapacity())
-                .penalizeLong(HardSoftScore.ONE_HARD,
+                .penalize(HardSoftScore.ONE_HARD,
                         (vehicle, demand) -> demand - vehicle.getCapacity())
                 .asConstraint("vehicleCapacity");
     }
@@ -43,7 +43,7 @@ public class VehicleRoutingConstraintProvider implements ConstraintProvider {
     protected Constraint distanceToPreviousStandstillPossiblyWithReturnToDepot(ConstraintFactory factory) {
         return factory.forEach(Customer.class)
                 .filter(customer -> customer.getVehicle() != null)
-                .penalizeLong(HardSoftScore.ONE_SOFT, customer -> {
+                .penalize(HardSoftScore.ONE_SOFT, customer -> {
                     var distance = customer.getDistanceFromPreviousStandstill();
                     if (customer.getNextCustomer() == null) {
                         distance += customer.getDistanceToDepot();
@@ -60,7 +60,7 @@ public class VehicleRoutingConstraintProvider implements ConstraintProvider {
         return factory.forEach(TimeWindowedCustomer.class)
                 .filter(customer -> customer.getVehicle() != null)
                 .filter(customer -> customer.getArrivalTime() > customer.getMaxEndTime())
-                .penalizeLong(HardSoftScore.ONE_HARD,
+                .penalize(HardSoftScore.ONE_HARD,
                         customer -> customer.getArrivalTime() - customer.getMaxEndTime())
                 .asConstraint("arrivalAfterMaxEndTime");
     }
@@ -69,7 +69,7 @@ public class VehicleRoutingConstraintProvider implements ConstraintProvider {
         return factory.forEach(TimeWindowedCustomer.class)
                 .filter(customer -> customer.getVehicle() != null)
                 .filter(customer -> customer.getNextCustomer() == null && getDepotArrivalDifference(customer) > 0)
-                .penalizeLong(HardSoftScore.ONE_HARD,
+                .penalize(HardSoftScore.ONE_HARD,
                         VehicleRoutingConstraintProvider::getDepotArrivalDifference)
                 .asConstraint("depotArrivalAfterMaxEndTime");
     }
