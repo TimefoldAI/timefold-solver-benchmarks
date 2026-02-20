@@ -590,7 +590,7 @@ public class MachineReassignmentIncrementalScoreCalculator
 
     private static DefaultConstraintMatchTotal<HardSoftScore> getConstraintMatchTotal(String constraintName,
             HardSoftScore constraintWeight) {
-        return new DefaultConstraintMatchTotal<>(ConstraintRef.of(CONSTRAINT_PACKAGE, constraintName), constraintWeight);
+        return new DefaultConstraintMatchTotal<>(ConstraintRef.of(constraintName), constraintWeight);
     }
 
     @Override

@@ -18,7 +18,7 @@ public class TspConstraintProvider implements ConstraintProvider {
     protected Constraint distanceToPreviousStandstillPossiblyWithReturnToDepot(ConstraintFactory factory) {
         return factory.forEach(Visit.class)
                 .filter(visit -> visit.getTour() != null)
-                .penalize(SimpleLongScore.ONE, visit -> {
+                .penalize(SimpleScore.ONE, visit -> {
                     var distance = visit.getDistanceFromPreviousVisit();
                     if (visit.getNext() == null) {
                         distance += visit.getDistanceToDepot();
