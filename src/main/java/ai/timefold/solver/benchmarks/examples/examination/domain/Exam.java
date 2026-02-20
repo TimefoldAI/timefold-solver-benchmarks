@@ -13,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-@PlanningEntity(difficultyWeightFactoryClass = ExamDifficultyWeightFactory.class)
+@PlanningEntity(comparatorFactoryClass = ExamDifficultyWeightFactory.class)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 @JsonSubTypes({
         @JsonSubTypes.Type(value = LeadingExam.class, name = "leading"),
@@ -36,7 +36,7 @@ public abstract class Exam extends AbstractPersistable {
         this.topic = topic;
     }
 
-    @PlanningVariable(strengthWeightFactoryClass = RoomStrengthWeightFactory.class)
+    @PlanningVariable(comparatorFactoryClass = RoomStrengthWeightFactory.class)
     public Room getRoom() {
         return room;
     }

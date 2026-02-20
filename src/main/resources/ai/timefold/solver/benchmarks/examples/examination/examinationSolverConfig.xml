@@ -26,7 +26,7 @@
                 <entityClass>ai.timefold.solver.benchmarks.examples.examination.domain.Exam</entityClass>
                 <cacheType>PHASE</cacheType>
                 <selectionOrder>SORTED</selectionOrder>
-                <sorterManner>DECREASING_DIFFICULTY</sorterManner>
+                <sorterManner>DESCENDING</sorterManner>
             </entitySelector>
             <cartesianProductMoveSelector>
                 <changeMoveSelector>
@@ -36,7 +36,7 @@
                         </downcastEntityClass>
                         <cacheType>PHASE</cacheType>
                         <!--<selectionOrder>SORTED</selectionOrder>-->
-                        <!--<sorterManner>INCREASING_STRENGTH</sorterManner>-->
+                        <!--<sorterManner>ASCENDING</sorterManner>-->
                     </valueSelector>
                 </changeMoveSelector>
                 <changeMoveSelector>
@@ -44,7 +44,7 @@
                     <valueSelector variableName="room">
                         <cacheType>PHASE</cacheType>
                         <selectionOrder>SORTED</selectionOrder>
-                        <sorterManner>INCREASING_STRENGTH</sorterManner>
+                        <sorterManner>ASCENDING</sorterManner>
                     </valueSelector>
                 </changeMoveSelector>
             </cartesianProductMoveSelector>

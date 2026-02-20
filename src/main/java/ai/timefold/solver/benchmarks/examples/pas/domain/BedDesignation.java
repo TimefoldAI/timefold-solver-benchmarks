@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
-@PlanningEntity(difficultyWeightFactoryClass = BedDesignationDifficultyWeightFactory.class)
+@PlanningEntity(comparatorFactoryClass = BedDesignationDifficultyWeightFactory.class)
 @JsonIdentityInfo(scope = BedDesignation.class, generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class BedDesignation extends AbstractPersistable {
 
@@ -38,7 +38,7 @@ public class BedDesignation extends AbstractPersistable {
         this.admissionPart = admissionPart;
     }
 
-    @PlanningVariable(allowsUnassigned = true, strengthComparatorClass = BedStrengthComparator.class)
+    @PlanningVariable(allowsUnassigned = true, comparatorClass = BedStrengthComparator.class)
     public Bed getBed() {
         return bed;
     }

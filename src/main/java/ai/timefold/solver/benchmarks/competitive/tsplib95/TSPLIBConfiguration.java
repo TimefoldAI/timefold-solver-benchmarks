@@ -1,7 +1,6 @@
 package ai.timefold.solver.benchmarks.competitive.tsplib95;
 
 import java.math.RoundingMode;
-import java.time.Duration;
 
 import ai.timefold.solver.benchmarks.competitive.AbstractCompetitiveBenchmark;
 import ai.timefold.solver.benchmarks.competitive.Configuration;

@@ -12,7 +12,7 @@ import ai.timefold.solver.core.api.domain.variable.PlanningVariable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-@PlanningEntity(difficultyWeightFactoryClass = LectureDifficultyWeightFactory.class)
+@PlanningEntity(comparatorFactoryClass = LectureDifficultyWeightFactory.class)
 public class Lecture extends AbstractPersistable {
 
     private Course course;
@@ -67,7 +67,7 @@ public class Lecture extends AbstractPersistable {
         this.pinned = pinned;
     }
 
-    @PlanningVariable(strengthWeightFactoryClass = PeriodStrengthWeightFactory.class)
+    @PlanningVariable(comparatorFactoryClass = PeriodStrengthWeightFactory.class)
     public Period getPeriod() {
         return period;
     }
@@ -76,7 +76,7 @@ public class Lecture extends AbstractPersistable {
         this.period = period;
     }
 
-    @PlanningVariable(strengthWeightFactoryClass = RoomStrengthWeightFactory.class)
+    @PlanningVariable(comparatorFactoryClass = RoomStrengthWeightFactory.class)
     public Room getRoom() {
         return room;
     }
