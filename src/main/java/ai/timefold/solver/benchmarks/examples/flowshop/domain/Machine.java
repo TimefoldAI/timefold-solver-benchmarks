@@ -3,8 +3,8 @@ package ai.timefold.solver.benchmarks.examples.flowshop.domain;
 import java.util.ArrayList;
 import java.util.List;
 
+import ai.timefold.solver.core.api.domain.common.PlanningId;
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
-import ai.timefold.solver.core.api.domain.lookup.PlanningId;
 import ai.timefold.solver.core.api.domain.variable.PlanningListVariable;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
