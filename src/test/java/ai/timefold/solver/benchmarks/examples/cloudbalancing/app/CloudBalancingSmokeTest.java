@@ -4,7 +4,7 @@ import java.util.stream.Stream;
 
 import ai.timefold.solver.benchmarks.examples.cloudbalancing.domain.CloudBalance;
 import ai.timefold.solver.benchmarks.examples.common.app.SolverSmokeTest;
-import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
+import ai.timefold.solver.core.api.score.HardSoftScore;
 
 class CloudBalancingSmokeTest extends SolverSmokeTest<CloudBalance, HardSoftScore> {
 

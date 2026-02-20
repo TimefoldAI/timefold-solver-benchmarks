@@ -12,7 +12,7 @@ import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.Air
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.solver.nearby.CustomerNearbyDistanceMeter;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedCustomer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.score.VehicleRoutingConstraintProvider;
-import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
+import ai.timefold.solver.core.api.score.HardSoftScore;
 import ai.timefold.solver.core.config.constructionheuristic.ConstructionHeuristicPhaseConfig;
 import ai.timefold.solver.core.config.localsearch.LocalSearchPhaseConfig;
 import ai.timefold.solver.core.config.solver.SolverConfig;
@@ -66,7 +66,7 @@ public enum CVRPLIBConfiguration implements Configuration<CVRPLIBDataset> {
         var terminationConfig = new TerminationConfig()
                 .withSpentLimit(getMaximumDurationPerDataset())
                 .withUnimprovedSecondsSpentLimit(AbstractCompetitiveBenchmark.UNIMPROVED_SECONDS_TERMINATION)
-                .withBestScoreLimit(HardSoftLongScore.ofSoft(threshold.longValue()).toString());
+                .withBestScoreLimit(HardSoftScore.ofSoft(threshold.longValue()).toString());
         return new SolverConfig()
                 .withSolutionClass(VehicleRoutingSolution.class)
                 .withEntityClasses(Vehicle.class, Customer.class, TimeWindowedCustomer.class)

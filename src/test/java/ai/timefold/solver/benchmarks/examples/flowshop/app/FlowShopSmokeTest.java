@@ -4,9 +4,9 @@ import java.util.stream.Stream;
 
 import ai.timefold.solver.benchmarks.examples.common.app.SolverSmokeTest;
 import ai.timefold.solver.benchmarks.examples.flowshop.domain.JobScheduleSolution;
-import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
+import ai.timefold.solver.core.api.score.HardSoftScore;
 
-class FlowShopSmokeTest extends SolverSmokeTest<JobScheduleSolution, HardSoftLongScore> {
+class FlowShopSmokeTest extends SolverSmokeTest<JobScheduleSolution, HardSoftScore> {
 
     private static final String UNSOLVED_DATA_FILE = "data/flowshop/unsolved/Ta001.json";
 
@@ -16,10 +16,10 @@ class FlowShopSmokeTest extends SolverSmokeTest<JobScheduleSolution, HardSoftLon
     }
 
     @Override
-    protected Stream<TestData<HardSoftLongScore>> testData() {
+    protected Stream<TestData<HardSoftScore>> testData() {
         return Stream.of(
                 TestData.of(UNSOLVED_DATA_FILE,
-                        HardSoftLongScore.of(0, -1278),
-                        HardSoftLongScore.of(0, -1278)));
+                        HardSoftScore.of(0, -1278),
+                        HardSoftScore.of(0, -1278)));
     }
 }

@@ -7,7 +7,7 @@ import ai.timefold.solver.core.api.domain.solution.PlanningEntityProperty;
 import ai.timefold.solver.core.api.domain.solution.PlanningScore;
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
 import ai.timefold.solver.core.api.domain.valuerange.ValueRangeProvider;
-import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
+import ai.timefold.solver.core.api.score.HardSoftScore;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
@@ -26,7 +26,7 @@ public class JobScheduleSolution {
     // All machines of the flowshop
     private Machine[] allMachines;
     @PlanningScore
-    private HardSoftLongScore score;
+    private HardSoftScore score;
 
     public JobScheduleSolution() {
     }
@@ -62,11 +62,11 @@ public class JobScheduleSolution {
         this.allMachines = allMachines;
     }
 
-    public HardSoftLongScore getScore() {
+    public HardSoftScore getScore() {
         return score;
     }
 
-    public void setScore(HardSoftLongScore score) {
+    public void setScore(HardSoftScore score) {
         this.score = score;
     }
 }

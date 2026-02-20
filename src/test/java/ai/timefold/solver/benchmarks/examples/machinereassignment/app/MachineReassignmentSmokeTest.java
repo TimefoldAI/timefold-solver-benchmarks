@@ -4,9 +4,9 @@ import java.util.stream.Stream;
 
 import ai.timefold.solver.benchmarks.examples.common.app.SolverSmokeTest;
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MachineReassignment;
-import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
+import ai.timefold.solver.core.api.score.HardSoftScore;
 
-class MachineReassignmentSmokeTest extends SolverSmokeTest<MachineReassignment, HardSoftLongScore> {
+class MachineReassignmentSmokeTest extends SolverSmokeTest<MachineReassignment, HardSoftScore> {
 
     private static final String UNSOLVED_DATA_FILE = "data/machinereassignment/unsolved/model_a2_1.json";
 
@@ -16,10 +16,10 @@ class MachineReassignmentSmokeTest extends SolverSmokeTest<MachineReassignment, 
     }
 
     @Override
-    protected Stream<TestData<HardSoftLongScore>> testData() {
+    protected Stream<TestData<HardSoftScore>> testData() {
         return Stream.of(
                 TestData.of(UNSOLVED_DATA_FILE,
-                        HardSoftLongScore.ofSoft(-39203859),
-                        HardSoftLongScore.ofSoft(-61212262)));
+                        HardSoftScore.ofSoft(-39203859),
+                        HardSoftScore.ofSoft(-61212262)));
     }
 }

@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 
 import ai.timefold.solver.benchmarks.micro.scoredirector.Example;
 import ai.timefold.solver.benchmarks.micro.scoredirector.ScoreDirectorType;
-import ai.timefold.solver.core.api.score.buildin.simple.SimpleScore;
+import ai.timefold.solver.core.api.score.SimpleScore;
 import ai.timefold.solver.core.api.score.calculator.EasyScoreCalculator;
 import ai.timefold.solver.core.api.solver.SolverFactory;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;

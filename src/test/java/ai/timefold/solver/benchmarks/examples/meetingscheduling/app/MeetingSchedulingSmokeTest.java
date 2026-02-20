@@ -4,7 +4,7 @@ import java.util.stream.Stream;
 
 import ai.timefold.solver.benchmarks.examples.common.app.SolverSmokeTest;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.MeetingSchedule;
-import ai.timefold.solver.core.api.score.buildin.hardmediumsoft.HardMediumSoftScore;
+import ai.timefold.solver.core.api.score.HardMediumSoftScore;
 
 class MeetingSchedulingSmokeTest extends SolverSmokeTest<MeetingSchedule, HardMediumSoftScore> {
 

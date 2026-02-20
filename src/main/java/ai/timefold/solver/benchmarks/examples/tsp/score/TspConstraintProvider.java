@@ -1,7 +1,7 @@
 package ai.timefold.solver.benchmarks.examples.tsp.score;
 
 import ai.timefold.solver.benchmarks.examples.tsp.domain.Visit;
-import ai.timefold.solver.core.api.score.buildin.simplelong.SimpleLongScore;
+import ai.timefold.solver.core.api.score.SimpleScore;
 import ai.timefold.solver.core.api.score.stream.Constraint;
 import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;

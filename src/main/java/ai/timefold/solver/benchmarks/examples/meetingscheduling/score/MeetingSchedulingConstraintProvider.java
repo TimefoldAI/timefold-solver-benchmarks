@@ -12,7 +12,7 @@ import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.Preferred
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.RequiredAttendance;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.Room;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.TimeGrain;
-import ai.timefold.solver.core.api.score.buildin.hardmediumsoft.HardMediumSoftScore;
+import ai.timefold.solver.core.api.score.HardMediumSoftScore;
 import ai.timefold.solver.core.api.score.stream.Constraint;
 import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;

@@ -6,7 +6,7 @@ import java.util.Map;
 import ai.timefold.solver.benchmarks.examples.cloudbalancing.domain.CloudBalance;
 import ai.timefold.solver.benchmarks.examples.cloudbalancing.domain.CloudComputer;
 import ai.timefold.solver.benchmarks.examples.cloudbalancing.domain.CloudProcess;
-import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
+import ai.timefold.solver.core.api.score.HardSoftScore;
 import ai.timefold.solver.core.api.score.calculator.IncrementalScoreCalculator;
 
 public class CloudBalancingIncrementalScoreCalculator

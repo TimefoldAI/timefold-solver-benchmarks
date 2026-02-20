@@ -9,15 +9,15 @@ import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Vehicle;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedCustomer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedVehicleRoutingSolution;
-import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
+import ai.timefold.solver.core.api.score.HardSoftScore;
 import ai.timefold.solver.core.api.score.calculator.EasyScoreCalculator;
 
 public class VehicleRoutingEasyScoreCalculator
         implements
-        EasyScoreCalculator<VehicleRoutingSolution, HardSoftLongScore> {
+        EasyScoreCalculator<VehicleRoutingSolution, HardSoftScore> {
 
     @Override
-    public HardSoftLongScore calculateScore(VehicleRoutingSolution solution) {
+    public HardSoftScore calculateScore(VehicleRoutingSolution solution) {
         boolean timeWindowed = solution instanceof TimeWindowedVehicleRoutingSolution;
         List<Customer> customerList = solution.getCustomerList();
         List<Vehicle> vehicleList = solution.getVehicleList();
@@ -59,7 +59,7 @@ public class VehicleRoutingEasyScoreCalculator
             }
         }
         // Score constraint arrivalAfterMaxEndTimeAtDepot is a built-in hard constraint in VehicleRoutingImporter
-        return HardSoftLongScore.of(hardScore, softScore);
+        return HardSoftScore.of(hardScore, softScore);
     }
 
 }

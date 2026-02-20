@@ -1,13 +1,13 @@
 package ai.timefold.solver.benchmarks.examples.tsp.optional.score;
 
 import ai.timefold.solver.benchmarks.examples.tsp.domain.TspSolution;
-import ai.timefold.solver.core.api.score.buildin.simplelong.SimpleLongScore;
+import ai.timefold.solver.core.api.score.SimpleScore;
 import ai.timefold.solver.core.api.score.calculator.EasyScoreCalculator;
 
-public class TspEasyScoreCalculator implements EasyScoreCalculator<TspSolution, SimpleLongScore> {
+public class TspEasyScoreCalculator implements EasyScoreCalculator<TspSolution, SimpleScore> {
 
     @Override
-    public SimpleLongScore calculateScore(TspSolution tspSolution) {
+    public SimpleScore calculateScore(TspSolution tspSolution) {
         var visitList = tspSolution.getTour().getVisitList();
         long score = 0;
         for (var visit : visitList) {
@@ -18,7 +18,7 @@ public class TspEasyScoreCalculator implements EasyScoreCalculator<TspSolution, 
                 }
             }
         }
-        return SimpleLongScore.of(score);
+        return SimpleScore.of(score);
     }
 
 }

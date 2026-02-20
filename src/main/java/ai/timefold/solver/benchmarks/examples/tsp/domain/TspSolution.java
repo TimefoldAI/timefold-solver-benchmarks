@@ -12,7 +12,7 @@ import ai.timefold.solver.core.api.domain.solution.PlanningScore;
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
 import ai.timefold.solver.core.api.domain.solution.ProblemFactCollectionProperty;
 import ai.timefold.solver.core.api.domain.valuerange.ValueRangeProvider;
-import ai.timefold.solver.core.api.score.buildin.simplelong.SimpleLongScore;
+import ai.timefold.solver.core.api.score.SimpleScore;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -31,7 +31,7 @@ public class TspSolution extends AbstractPersistable {
     @ValueRangeProvider
     private List<Visit> visitList;
     @PlanningScore
-    private SimpleLongScore score;
+    private SimpleScore score;
 
     public TspSolution() {
     }
@@ -99,11 +99,11 @@ public class TspSolution extends AbstractPersistable {
         this.visitList = visitList;
     }
 
-    public SimpleLongScore getScore() {
+    public SimpleScore getScore() {
         return score;
     }
 
-    public void setScore(SimpleLongScore score) {
+    public void setScore(SimpleScore score) {
         this.score = score;
     }
 

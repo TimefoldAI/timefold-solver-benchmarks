@@ -9,7 +9,7 @@ import java.util.stream.IntStream;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Customer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.persistence.VehicleRoutingImporter;
-import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
+import ai.timefold.solver.core.api.score.HardSoftScore;
 import ai.timefold.solver.core.api.solver.ScoreAnalysisFetchPolicy;
 import ai.timefold.solver.core.api.solver.SolutionManager;
 import ai.timefold.solver.core.api.solver.SolverFactory;
@@ -41,10 +41,10 @@ class AN33K6CorrectnessTest {
 
         // Check the score of the solution.
         var config = CVRPLIBConfiguration.ENTERPRISE_EDITION.getSolverConfig(dataset);
-        var solutionManager = SolutionManager.<VehicleRoutingSolution, HardSoftLongScore> create(SolverFactory.create(config));
+        var solutionManager = SolutionManager.<VehicleRoutingSolution, HardSoftScore> create(SolverFactory.create(config));
         var analysis = solutionManager.analyze(solution, ScoreAnalysisFetchPolicy.FETCH_ALL);
         var score = analysis.score();
-        assertThat(score).isEqualTo(HardSoftLongScore.of(0, -7420));
+        assertThat(score).isEqualTo(HardSoftScore.of(0, -7420));
     }
 
     private List<Customer> assembleCustomers(VehicleRoutingSolution solution, int... customerIds) {

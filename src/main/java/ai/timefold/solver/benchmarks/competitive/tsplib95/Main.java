@@ -10,9 +10,9 @@ import ai.timefold.solver.benchmarks.competitive.AbstractCompetitiveBenchmark;
 import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutionImporter;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.TspSolution;
 import ai.timefold.solver.benchmarks.examples.tsp.persistence.TspImporter;
-import ai.timefold.solver.core.api.score.buildin.simplelong.SimpleLongScore;
+import ai.timefold.solver.core.api.score.SimpleScore;
 
-public class Main extends AbstractCompetitiveBenchmark<TSPLIBDataset, TSPLIBConfiguration, TspSolution, SimpleLongScore> {
+public class Main extends AbstractCompetitiveBenchmark<TSPLIBDataset, TSPLIBConfiguration, TspSolution, SimpleScore> {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
         var benchmark = new Main();
@@ -26,12 +26,12 @@ public class Main extends AbstractCompetitiveBenchmark<TSPLIBDataset, TSPLIBConf
     }
 
     @Override
-    protected SimpleLongScore extractScore(TspSolution tspSolution) {
+    protected SimpleScore extractScore(TspSolution tspSolution) {
         return tspSolution.getScore();
     }
 
     @Override
-    protected BigDecimal extractResult(TSPLIBDataset dataset, SimpleLongScore score) {
+    protected BigDecimal extractResult(TSPLIBDataset dataset, SimpleScore score) {
         return BigDecimal.valueOf(-score.score())
                 .setScale(0, RoundingMode.HALF_EVEN);
     }

@@ -9,12 +9,12 @@ import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Vehicle;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedCustomer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedVehicleRoutingSolution;
-import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
+import ai.timefold.solver.core.api.score.HardSoftScore;
 import ai.timefold.solver.core.api.score.calculator.IncrementalScoreCalculator;
 
 public class VehicleRoutingIncrementalScoreCalculator
         implements
-        IncrementalScoreCalculator<VehicleRoutingSolution, HardSoftLongScore> {
+        IncrementalScoreCalculator<VehicleRoutingSolution, HardSoftScore> {
 
     private boolean timeWindowed;
     private Map<Vehicle, Integer> vehicleDemandMap;
@@ -160,8 +160,8 @@ public class VehicleRoutingIncrementalScoreCalculator
     }
 
     @Override
-    public HardSoftLongScore calculateScore() {
-        return HardSoftLongScore.of(hardScore, softScore);
+    public HardSoftScore calculateScore() {
+        return HardSoftScore.of(hardScore, softScore);
     }
 
     // ************************************************************************

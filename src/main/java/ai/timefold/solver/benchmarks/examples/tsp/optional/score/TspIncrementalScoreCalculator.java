@@ -2,12 +2,12 @@ package ai.timefold.solver.benchmarks.examples.tsp.optional.score;
 
 import ai.timefold.solver.benchmarks.examples.tsp.domain.Tour;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.TspSolution;
-import ai.timefold.solver.core.api.score.buildin.simplelong.SimpleLongScore;
+import ai.timefold.solver.core.api.score.SimpleScore;
 import ai.timefold.solver.core.api.score.calculator.IncrementalScoreCalculator;
 
 import org.jspecify.annotations.NonNull;
 
-public class TspIncrementalScoreCalculator implements IncrementalScoreCalculator<TspSolution, SimpleLongScore> {
+public class TspIncrementalScoreCalculator implements IncrementalScoreCalculator<TspSolution, SimpleScore> {
 
     private long score;
 
@@ -79,8 +79,8 @@ public class TspIncrementalScoreCalculator implements IncrementalScoreCalculator
     }
 
     @Override
-    public SimpleLongScore calculateScore() {
-        return SimpleLongScore.of(score);
+    public SimpleScore calculateScore() {
+        return SimpleScore.of(score);
     }
 
 }
