@@ -3,20 +3,21 @@ package ai.timefold.solver.benchmarks.examples.curriculumcourse.domain;
 import java.util.Set;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
-import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.solver.LectureDifficultyWeightFactory;
-import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.solver.PeriodStrengthWeightFactory;
-import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.solver.RoomStrengthWeightFactory;
+import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.solver.LectureComparatorFactory;
+import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.solver.PeriodComparatorFactory;
+import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.solver.RoomComparatorFactory;
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
 import ai.timefold.solver.core.api.domain.entity.PlanningPin;
 import ai.timefold.solver.core.api.domain.variable.PlanningVariable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-@PlanningEntity(comparatorFactoryClass = LectureDifficultyWeightFactory.class)
+@PlanningEntity(comparatorFactoryClass = LectureComparatorFactory.class)
 public class Lecture extends AbstractPersistable {
 
     private Course course;
     private int lectureIndexInCourse;
+    private int unavailablePeriodPenaltyCount = -1;
     private boolean pinned;
 
     // Planning variables: changes during planning, between score calculations.
@@ -67,7 +68,7 @@ public class Lecture extends AbstractPersistable {
         this.pinned = pinned;
     }
 
-    @PlanningVariable(comparatorFactoryClass = PeriodStrengthWeightFactory.class)
+    @PlanningVariable(comparatorFactoryClass = PeriodComparatorFactory.class)
     public Period getPeriod() {
         return period;
     }
@@ -76,7 +77,7 @@ public class Lecture extends AbstractPersistable {
         this.period = period;
     }
 
-    @PlanningVariable(comparatorFactoryClass = RoomStrengthWeightFactory.class)
+    @PlanningVariable(comparatorFactoryClass = RoomComparatorFactory.class)
     public Room getRoom() {
         return room;
     }
@@ -118,6 +119,19 @@ public class Lecture extends AbstractPersistable {
             return Integer.MIN_VALUE;
         }
         return period.getTimeslot().getTimeslotIndex();
+    }
+
+    @JsonIgnore
+    public int getUnavailablePeriodPenaltyCount(CourseSchedule schedule) {
+        if (unavailablePeriodPenaltyCount == -1) {
+            unavailablePeriodPenaltyCount = 0;
+            for (var penalty : schedule.getUnavailablePeriodPenaltyList()) {
+                if (penalty.getCourse().equals(course)) {
+                    unavailablePeriodPenaltyCount++;
+                }
+            }
+        }
+        return unavailablePeriodPenaltyCount;
     }
 
     @Override

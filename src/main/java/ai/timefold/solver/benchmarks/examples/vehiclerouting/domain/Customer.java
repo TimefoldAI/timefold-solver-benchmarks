@@ -4,7 +4,7 @@ import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
 import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.JacksonUniqueIdGenerator;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.Location;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.LocationAware;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.solver.DepotAngleCustomerDifficultyWeightFactory;
+import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.solver.DepotAngleCustomerComparatorFactory;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedCustomer;
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
 import ai.timefold.solver.core.api.domain.variable.InverseRelationShadowVariable;
@@ -17,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-@PlanningEntity(comparatorFactoryClass = DepotAngleCustomerDifficultyWeightFactory.class)
+@PlanningEntity(comparatorFactoryClass = DepotAngleCustomerComparatorFactory.class)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 @JsonSubTypes({
         @JsonSubTypes.Type(value = TimeWindowedCustomer.class, name = "timeWindowed"),

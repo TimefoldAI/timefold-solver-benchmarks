@@ -1,7 +1,7 @@
 package ai.timefold.solver.benchmarks.examples.pas.domain;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
-import ai.timefold.solver.benchmarks.examples.pas.domain.solver.BedDesignationDifficultyWeightFactory;
+import ai.timefold.solver.benchmarks.examples.pas.domain.solver.BedDesignationComparatorFactory;
 import ai.timefold.solver.benchmarks.examples.pas.domain.solver.BedStrengthComparator;
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
 import ai.timefold.solver.core.api.domain.variable.PlanningVariable;
@@ -10,12 +10,15 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
-@PlanningEntity(comparatorFactoryClass = BedDesignationDifficultyWeightFactory.class)
+@PlanningEntity(comparatorFactoryClass = BedDesignationComparatorFactory.class)
 @JsonIdentityInfo(scope = BedDesignation.class, generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class BedDesignation extends AbstractPersistable {
 
     private AdmissionPart admissionPart;
     private Bed bed;
+
+    private int hardDisallowedCount = -1;
+    private int softDisallowedCount = -1;
 
     public BedDesignation() {
     }
@@ -121,6 +124,33 @@ public class BedDesignation extends AbstractPersistable {
             return null;
         }
         return bed.getRoom().getGenderLimitation();
+    }
+
+    @JsonIgnore
+    public int getHardDisallowedCount(PatientAdmissionSchedule schedule) {
+        computeInformation(schedule);
+        return hardDisallowedCount;
+    }
+
+    @JsonIgnore
+    public int getSoftDisallowedCount(PatientAdmissionSchedule schedule) {
+        computeInformation(schedule);
+        return softDisallowedCount;
+    }
+
+    @JsonIgnore
+    public void computeInformation(PatientAdmissionSchedule schedule) {
+        if (hardDisallowedCount != -1 && softDisallowedCount != -1) {
+            return;
+        }
+        hardDisallowedCount = 0;
+        softDisallowedCount = 0;
+        for (Room room : schedule.getRoomList()) {
+            hardDisallowedCount += (room.countHardDisallowedAdmissionPart(admissionPart)
+                    * room.getCapacity());
+            softDisallowedCount += (room.countSoftDisallowedAdmissionPart(admissionPart)
+                    * room.getCapacity());
+        }
     }
 
     @Override
