@@ -196,7 +196,7 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
                         (contract, employee, nrp) -> contract
                                 .getViolationAmount(nrp.getLastShiftDateDayIndex() - nrp.getFirstShiftDateDayIndex() + 1))
                 .indictWith((contract, employee, nrp) -> Arrays.asList(employee, contract))
-                .asConstraint("maximumConsecutiveFreeDays (no shifts)");
+                .asConstraint("maximumConsecutiveFreeDays - no shifts");
     }
 
     // Min/Max consecutive working weekends
