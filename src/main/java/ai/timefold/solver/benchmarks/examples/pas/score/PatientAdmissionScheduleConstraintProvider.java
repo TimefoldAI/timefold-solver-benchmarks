@@ -16,7 +16,7 @@ import ai.timefold.solver.benchmarks.examples.pas.domain.PreferredPatientEquipme
 import ai.timefold.solver.benchmarks.examples.pas.domain.RequiredPatientEquipment;
 import ai.timefold.solver.benchmarks.examples.pas.domain.RoomEquipment;
 import ai.timefold.solver.benchmarks.examples.pas.domain.RoomSpecialism;
-import ai.timefold.solver.core.api.score.buildin.hardmediumsoft.HardMediumSoftScore;
+import ai.timefold.solver.core.api.score.HardMediumSoftScore;
 import ai.timefold.solver.core.api.score.stream.Constraint;
 import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;

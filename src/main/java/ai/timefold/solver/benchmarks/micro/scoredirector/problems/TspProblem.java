@@ -1,5 +1,6 @@
 package ai.timefold.solver.benchmarks.micro.scoredirector.problems;
 
+import ai.timefold.solver.benchmarks.examples.tsp.domain.Tour;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.TspSolution;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.Visit;
 import ai.timefold.solver.benchmarks.examples.tsp.optional.score.TspEasyScoreCalculator;
@@ -32,7 +33,7 @@ public final class TspProblem extends AbstractProblem<TspSolution> {
 
     @Override
     protected SolutionDescriptor<TspSolution> buildSolutionDescriptor() {
-        return SolutionDescriptor.buildSolutionDescriptor(TspSolution.class, Visit.class);
+        return SolutionDescriptor.buildSolutionDescriptor(TspSolution.class, Tour.class, Visit.class);
     }
 
     @Override

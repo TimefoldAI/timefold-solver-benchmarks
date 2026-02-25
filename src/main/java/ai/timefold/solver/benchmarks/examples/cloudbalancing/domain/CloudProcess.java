@@ -8,7 +8,7 @@ import ai.timefold.solver.core.api.domain.variable.PlanningVariable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-@PlanningEntity(difficultyComparatorClass = CloudProcessDifficultyComparator.class)
+@PlanningEntity(comparatorClass = CloudProcessDifficultyComparator.class)
 public class CloudProcess
         extends AbstractPersistable {
 
@@ -53,7 +53,7 @@ public class CloudProcess
         this.requiredNetworkBandwidth = requiredNetworkBandwidth;
     }
 
-    @PlanningVariable(strengthComparatorClass = CloudComputerStrengthComparator.class)
+    @PlanningVariable(comparatorClass = CloudComputerStrengthComparator.class)
     public CloudComputer getComputer() {
         return computer;
     }

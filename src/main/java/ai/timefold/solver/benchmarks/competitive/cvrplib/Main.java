@@ -11,10 +11,10 @@ import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutio
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.AirLocation;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.persistence.VehicleRoutingImporter;
-import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
+import ai.timefold.solver.core.api.score.HardSoftScore;
 
 public class Main
-        extends AbstractCompetitiveBenchmark<CVRPLIBDataset, CVRPLIBConfiguration, VehicleRoutingSolution, HardSoftLongScore> {
+        extends AbstractCompetitiveBenchmark<CVRPLIBDataset, CVRPLIBConfiguration, VehicleRoutingSolution, HardSoftScore> {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
         var benchmark = new Main();
@@ -28,12 +28,12 @@ public class Main
     }
 
     @Override
-    protected HardSoftLongScore extractScore(VehicleRoutingSolution vehicleRoutingSolution) {
+    protected HardSoftScore extractScore(VehicleRoutingSolution vehicleRoutingSolution) {
         return vehicleRoutingSolution.getScore();
     }
 
     @Override
-    protected BigDecimal extractResult(CVRPLIBDataset dataset, HardSoftLongScore score) {
+    protected BigDecimal extractResult(CVRPLIBDataset dataset, HardSoftScore score) {
         return BigDecimal.valueOf(-score.softScore())
                 .divide(BigDecimal.valueOf(AirLocation.MULTIPLIER), 1, RoundingMode.HALF_EVEN);
     }

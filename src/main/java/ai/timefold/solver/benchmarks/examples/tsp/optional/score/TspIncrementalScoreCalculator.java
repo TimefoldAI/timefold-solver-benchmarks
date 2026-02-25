@@ -1,65 +1,86 @@
 package ai.timefold.solver.benchmarks.examples.tsp.optional.score;
 
-import ai.timefold.solver.benchmarks.examples.tsp.domain.Standstill;
+import ai.timefold.solver.benchmarks.examples.tsp.domain.Tour;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.TspSolution;
-import ai.timefold.solver.benchmarks.examples.tsp.domain.Visit;
-import ai.timefold.solver.core.api.score.buildin.simplelong.SimpleLongScore;
+import ai.timefold.solver.core.api.score.SimpleScore;
 import ai.timefold.solver.core.api.score.calculator.IncrementalScoreCalculator;
 
-public class TspIncrementalScoreCalculator implements IncrementalScoreCalculator<TspSolution, SimpleLongScore> {
+import org.jspecify.annotations.NonNull;
+
+public class TspIncrementalScoreCalculator implements IncrementalScoreCalculator<TspSolution, SimpleScore> {
 
     private long score;
 
     @Override
     public void resetWorkingSolution(TspSolution tspSolution) {
         score = 0L;
-        insert(tspSolution.getDomicile());
-        for (Visit visit : tspSolution.getVisitList()) {
-            insert(visit);
+        for (var visit : tspSolution.getVisitList()) {
+            score -= visit.getDistanceFromPreviousVisit();
+        }
+        score -= tspSolution.getVisitList().getLast().getDistanceToDepot();
+    }
+
+    @Override
+    public void beforeEntityAdded(@NonNull Object o) {
+        // Do nothing
+    }
+
+    @Override
+    public void afterEntityAdded(@NonNull Object o) {
+        // Do nothing
+    }
+
+    @Override
+    public void beforeVariableChanged(@NonNull Object o, @NonNull String s) {
+        // Do nothing
+    }
+
+    @Override
+    public void afterVariableChanged(@NonNull Object o, @NonNull String s) {
+        // Do nothing
+    }
+
+    @Override
+    public void beforeListVariableChanged(@NonNull Object entity, @NonNull String variableName, int fromIndex, int toIndex) {
+        var tour = (Tour) entity;
+        for (int index = fromIndex; index < toIndex; index++) {
+            var visit = tour.getVisitList().get(index);
+            score += visit.getDistanceFromPreviousVisit();
+        }
+        if (toIndex < tour.getVisitList().size()) {
+            score += tour.getVisitList().get(toIndex).getDistanceFromPreviousVisit();
+        } else if (toIndex > 0 && tour.getVisitList().get(toIndex - 1).getNext() != null) {
+            score += tour.getVisitList().get(toIndex - 1).getDistanceToDepot();
         }
     }
 
     @Override
-    public void beforeEntityAdded(Object entity) {
+    public void afterListVariableChanged(@NonNull Object entity, @NonNull String variableName, int fromIndex, int toIndex) {
+        var tour = (Tour) entity;
+        for (int index = fromIndex; index < toIndex; index++) {
+            var visit = tour.getVisitList().get(index);
+            score -= visit.getDistanceFromPreviousVisit();
+        }
+        if (toIndex < tour.getVisitList().size()) {
+            score -= tour.getVisitList().get(toIndex).getDistanceFromPreviousVisit();
+        } else if (toIndex > 0 && tour.getVisitList().get(toIndex - 1).getNext() != null) {
+            score -= tour.getVisitList().get(toIndex - 1).getDistanceToDepot();
+        }
+    }
+
+    @Override
+    public void beforeEntityRemoved(@NonNull Object o) {
         // Do nothing
     }
 
     @Override
-    public void afterEntityAdded(Object entity) {
-        insert((Visit) entity);
-    }
-
-    @Override
-    public void beforeVariableChanged(Object entity, String variableName) {
-        retract((Standstill) entity);
-    }
-
-    @Override
-    public void afterVariableChanged(Object entity, String variableName) {
-        insert((Standstill) entity);
-    }
-
-    @Override
-    public void beforeEntityRemoved(Object entity) {
-        retract((Visit) entity);
-    }
-
-    @Override
-    public void afterEntityRemoved(Object entity) {
+    public void afterEntityRemoved(@NonNull Object o) {
         // Do nothing
     }
 
-    private void insert(Standstill visit) {
-        score -= visit.getDistanceToNextStandstill();
-    }
-
-    private void retract(Standstill visit) {
-        score += visit.getDistanceToNextStandstill();
-    }
-
     @Override
-    public SimpleLongScore calculateScore() {
-        return SimpleLongScore.of(score);
+    public SimpleScore calculateScore() {
+        return SimpleScore.of(score);
     }
 
 }

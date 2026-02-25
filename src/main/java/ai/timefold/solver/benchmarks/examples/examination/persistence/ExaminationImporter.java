@@ -39,7 +39,7 @@ import ai.timefold.solver.benchmarks.examples.examination.domain.Student;
 import ai.timefold.solver.benchmarks.examples.examination.domain.Topic;
 import ai.timefold.solver.benchmarks.examples.examination.domain.solver.TopicConflict;
 import ai.timefold.solver.core.api.domain.solution.ConstraintWeightOverrides;
-import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
+import ai.timefold.solver.core.api.score.HardSoftScore;
 
 public class ExaminationImporter extends AbstractTxtSolutionImporter<Examination> {
 

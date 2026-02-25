@@ -13,7 +13,7 @@ import ai.timefold.solver.core.api.domain.variable.PlanningVariable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-@PlanningEntity(difficultyComparatorClass = ShiftAssignmentDifficultyComparator.class)
+@PlanningEntity(comparatorClass = ShiftAssignmentDifficultyComparator.class)
 public class ShiftAssignment extends AbstractPersistable implements Comparable<ShiftAssignment> {
 
     private static final Comparator<Shift> COMPARATOR =
@@ -37,7 +37,7 @@ public class ShiftAssignment extends AbstractPersistable implements Comparable<S
     }
 
     // Planning variables: changes during planning, between score calculations.
-    @PlanningVariable(strengthComparatorClass = EmployeeStrengthComparator.class)
+    @PlanningVariable(comparatorClass = EmployeeStrengthComparator.class)
     private Employee employee;
 
     public boolean isPinned() {

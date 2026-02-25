@@ -1,6 +1,6 @@
 package ai.timefold.solver.benchmarks.examples.common.domain;
 
-import ai.timefold.solver.core.api.domain.lookup.PlanningId;
+import ai.timefold.solver.core.api.domain.common.PlanningId;
 
 public abstract class AbstractPersistable {
 

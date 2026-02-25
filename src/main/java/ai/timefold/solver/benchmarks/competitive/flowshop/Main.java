@@ -21,10 +21,10 @@ import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutio
 import ai.timefold.solver.benchmarks.examples.flowshop.domain.Job;
 import ai.timefold.solver.benchmarks.examples.flowshop.domain.JobScheduleSolution;
 import ai.timefold.solver.benchmarks.examples.flowshop.persistence.TaillardImporter;
-import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
+import ai.timefold.solver.core.api.score.HardSoftScore;
 
 public class Main extends
-        AbstractCompetitiveBenchmark<FlowShopDataset, FlowShopConfiguration, JobScheduleSolution, HardSoftLongScore> {
+        AbstractCompetitiveBenchmark<FlowShopDataset, FlowShopConfiguration, JobScheduleSolution, HardSoftScore> {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
         var benchmark = new Main();
@@ -154,12 +154,12 @@ public class Main extends
     }
 
     @Override
-    protected HardSoftLongScore extractScore(JobScheduleSolution solution) {
+    protected HardSoftScore extractScore(JobScheduleSolution solution) {
         return solution.getScore();
     }
 
     @Override
-    protected BigDecimal extractResult(FlowShopDataset dataset, HardSoftLongScore score) {
+    protected BigDecimal extractResult(FlowShopDataset dataset, HardSoftScore score) {
         return BigDecimal.valueOf(-score.softScore());
     }
 

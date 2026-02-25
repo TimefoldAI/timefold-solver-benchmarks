@@ -5,7 +5,7 @@ import java.util.stream.Stream;
 
 import ai.timefold.solver.benchmarks.examples.common.app.SolverSmokeTest;
 import ai.timefold.solver.benchmarks.examples.nurserostering.domain.NurseRoster;
-import ai.timefold.solver.core.api.score.buildin.hardsoftbigdecimal.HardSoftBigDecimalScore;
+import ai.timefold.solver.core.api.score.HardSoftBigDecimalScore;
 
 class NurseRosteringSmokeTest extends SolverSmokeTest<NurseRoster, HardSoftBigDecimalScore> {
 

@@ -27,7 +27,7 @@ import ai.timefold.solver.benchmarks.examples.nurserostering.domain.request.DayO
 import ai.timefold.solver.benchmarks.examples.nurserostering.domain.request.DayOnRequest;
 import ai.timefold.solver.benchmarks.examples.nurserostering.domain.request.ShiftOffRequest;
 import ai.timefold.solver.benchmarks.examples.nurserostering.domain.request.ShiftOnRequest;
-import ai.timefold.solver.core.api.score.buildin.hardsoftbigdecimal.HardSoftBigDecimalScore;
+import ai.timefold.solver.core.api.score.HardSoftBigDecimalScore;
 import ai.timefold.solver.core.api.score.stream.Constraint;
 import ai.timefold.solver.core.api.score.stream.ConstraintCollectors;
 import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
@@ -196,7 +196,7 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
                         (contract, employee, nrp) -> contract
                                 .getViolationAmount(nrp.getLastShiftDateDayIndex() - nrp.getFirstShiftDateDayIndex() + 1))
                 .indictWith((contract, employee, nrp) -> Arrays.asList(employee, contract))
-                .asConstraint("maximumConsecutiveFreeDays (no shifts)");
+                .asConstraint("maximumConsecutiveFreeDays - no shifts");
     }
 
     // Min/Max consecutive working weekends

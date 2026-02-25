@@ -9,7 +9,7 @@ import java.util.Set;
 import ai.timefold.solver.benchmarks.examples.cloudbalancing.domain.CloudBalance;
 import ai.timefold.solver.benchmarks.examples.cloudbalancing.domain.CloudComputer;
 import ai.timefold.solver.benchmarks.examples.cloudbalancing.domain.CloudProcess;
-import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
+import ai.timefold.solver.core.api.score.HardSoftScore;
 import ai.timefold.solver.core.api.score.calculator.EasyScoreCalculator;
 
 public class CloudBalancingMapBasedEasyScoreCalculator implements EasyScoreCalculator<CloudBalance, HardSoftScore> {

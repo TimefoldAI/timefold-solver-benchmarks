@@ -11,7 +11,7 @@ import ai.timefold.solver.core.api.domain.solution.PlanningScore;
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
 import ai.timefold.solver.core.api.domain.solution.ProblemFactCollectionProperty;
 import ai.timefold.solver.core.api.domain.valuerange.ValueRangeProvider;
-import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
+import ai.timefold.solver.core.api.score.HardSoftScore;
 
 @PlanningSolution
 public class VehicleRoutingSolution extends AbstractPersistable {
@@ -25,7 +25,7 @@ public class VehicleRoutingSolution extends AbstractPersistable {
 
     protected List<Customer> customerList;
 
-    protected HardSoftLongScore score;
+    protected HardSoftScore score;
 
     public VehicleRoutingSolution() {
         this(0);
@@ -97,11 +97,11 @@ public class VehicleRoutingSolution extends AbstractPersistable {
     }
 
     @PlanningScore
-    public HardSoftLongScore getScore() {
+    public HardSoftScore getScore() {
         return score;
     }
 
-    public void setScore(HardSoftLongScore score) {
+    public void setScore(HardSoftScore score) {
         this.score = score;
     }
 

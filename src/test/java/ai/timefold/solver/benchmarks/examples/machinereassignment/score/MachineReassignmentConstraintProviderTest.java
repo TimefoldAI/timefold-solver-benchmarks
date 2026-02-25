@@ -25,7 +25,7 @@ import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrResou
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrService;
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.solver.MrServiceDependency;
 import ai.timefold.solver.benchmarks.examples.machinereassignment.persistence.MachineReassignmentSolutionFileIO;
-import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
+import ai.timefold.solver.core.api.score.HardSoftScore;
 import ai.timefold.solver.test.api.score.stream.ConstraintVerifier;
 
 class MachineReassignmentConstraintProviderTest
@@ -343,7 +343,7 @@ class MachineReassignmentConstraintProviderTest
             throws IOException {
         constraintVerifier.verifyThat()
                 .givenSolution(readSolution("model-a1-1-0hard-44306501soft.json"))
-                .scores(HardSoftLongScore.of(-0, -44306501));
+                .scores(HardSoftScore.of(-0, -44306501));
     }
 
     private static MachineReassignment readSolution(String resource) throws IOException {

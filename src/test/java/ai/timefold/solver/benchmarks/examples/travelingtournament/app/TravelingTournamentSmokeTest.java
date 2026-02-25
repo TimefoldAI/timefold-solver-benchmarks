@@ -4,7 +4,7 @@ import java.util.stream.Stream;
 
 import ai.timefold.solver.benchmarks.examples.common.app.SolverSmokeTest;
 import ai.timefold.solver.benchmarks.examples.travelingtournament.domain.TravelingTournament;
-import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
+import ai.timefold.solver.core.api.score.HardSoftScore;
 
 class TravelingTournamentSmokeTest extends SolverSmokeTest<TravelingTournament, HardSoftScore> {
 

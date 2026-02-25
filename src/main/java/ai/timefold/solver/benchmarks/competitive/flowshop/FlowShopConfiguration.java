@@ -10,7 +10,7 @@ import ai.timefold.solver.benchmarks.examples.flowshop.domain.JobScheduleSolutio
 import ai.timefold.solver.benchmarks.examples.flowshop.domain.Machine;
 import ai.timefold.solver.benchmarks.examples.flowshop.phase.NEHCustomPhase;
 import ai.timefold.solver.benchmarks.examples.flowshop.score.FlowShopConstraintProvider;
-import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
+import ai.timefold.solver.core.api.score.HardSoftScore;
 import ai.timefold.solver.core.config.localsearch.LocalSearchPhaseConfig;
 import ai.timefold.solver.core.config.phase.PhaseConfig;
 import ai.timefold.solver.core.config.phase.custom.CustomPhaseConfig;
@@ -67,7 +67,7 @@ public enum FlowShopConfiguration implements Configuration<FlowShopDataset> {
                 .negate();
         var terminationConfig = new TerminationConfig()
                 .withSpentLimit(getMaximumDurationPerDataset())
-                .withBestScoreLimit(HardSoftLongScore.ofSoft(threshold.longValue()).toString());
+                .withBestScoreLimit(HardSoftScore.ofSoft(threshold.longValue()).toString());
         var phasesList =
                 List.<PhaseConfig> of(new CustomPhaseConfig().withCustomPhaseCommandList(List.of(new NEHCustomPhase())),
                         new LocalSearchPhaseConfig());

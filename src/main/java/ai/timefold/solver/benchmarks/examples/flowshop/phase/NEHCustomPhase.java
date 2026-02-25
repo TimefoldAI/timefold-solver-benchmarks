@@ -2,12 +2,14 @@ package ai.timefold.solver.benchmarks.examples.flowshop.phase;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BooleanSupplier;
 
 import ai.timefold.solver.benchmarks.examples.flowshop.domain.Job;
 import ai.timefold.solver.benchmarks.examples.flowshop.domain.JobScheduleSolution;
-import ai.timefold.solver.core.api.score.director.ScoreDirector;
+import ai.timefold.solver.benchmarks.examples.flowshop.domain.Machine;
 import ai.timefold.solver.core.api.solver.phase.PhaseCommand;
+import ai.timefold.solver.core.api.solver.phase.PhaseCommandContext;
+import ai.timefold.solver.core.preview.api.domain.metamodel.PlanningListVariableMetaModel;
+import ai.timefold.solver.core.preview.api.move.builtin.Moves;
 
 /**
  * This custom phase implements the NEH construction heuristic with the Taillard acceleration strategy.
@@ -20,10 +22,10 @@ import ai.timefold.solver.core.api.solver.phase.PhaseCommand;
 public class NEHCustomPhase implements PhaseCommand<JobScheduleSolution> {
 
     @Override
-    public void changeWorkingSolution(ScoreDirector<JobScheduleSolution> scoreDirector, BooleanSupplier isPhaseTerminated) {
+    public void changeWorkingSolution(PhaseCommandContext<JobScheduleSolution> phaseCommandContext) {
         // The enrichment step, after loading the solution,
         // will sort the jobs by the sum of processing times in decreasing order
-        var workingSolution = scoreDirector.getWorkingSolution();
+        var workingSolution = phaseCommandContext.getWorkingSolution();
         var jobs = workingSolution.getJobs();
         var currentJobSchedule = new ArrayList<Job>(jobs.size());
         currentJobSchedule.add(jobs.get(0));
@@ -45,16 +47,13 @@ public class NEHCustomPhase implements PhaseCommand<JobScheduleSolution> {
             }
             currentJobSchedule.add(minIndex, jobs.get(k));
         }
-        scoreDirector.beforeListVariableChanged(workingSolution.getMachine(), "jobs", 0, 0);
+        var listVariableMetaModel =
+                (PlanningListVariableMetaModel<JobScheduleSolution, Machine, Job>) phaseCommandContext
+                        .getSolutionMetaModel().entity(Machine.class).<Job> variable("jobs");
         for (var job : currentJobSchedule) {
-            scoreDirector.beforeListVariableElementAssigned(workingSolution.getMachine(), "jobs", job);
+            phaseCommandContext.execute(Moves.assign(listVariableMetaModel, job, workingSolution.getMachine(),
+                    workingSolution.getMachine().getJobs().size()));
         }
-        workingSolution.getMachine().setJobs(currentJobSchedule);
-        scoreDirector.afterListVariableChanged(workingSolution.getMachine(), "jobs", 0, currentJobSchedule.size());
-        for (var job : currentJobSchedule) {
-            scoreDirector.afterListVariableElementAssigned(workingSolution.getMachine(), "jobs", job);
-        }
-        scoreDirector.triggerVariableListeners();
     }
 
     /**

@@ -1,19 +1,18 @@
 package ai.timefold.solver.benchmarks.examples.tsp.domain;
 
 import java.text.NumberFormat;
-import java.util.Collections;
 import java.util.List;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.location.DistanceType;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.location.Location;
 import ai.timefold.solver.core.api.domain.solution.PlanningEntityCollectionProperty;
+import ai.timefold.solver.core.api.domain.solution.PlanningEntityProperty;
 import ai.timefold.solver.core.api.domain.solution.PlanningScore;
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
 import ai.timefold.solver.core.api.domain.solution.ProblemFactCollectionProperty;
-import ai.timefold.solver.core.api.domain.solution.ProblemFactProperty;
 import ai.timefold.solver.core.api.domain.valuerange.ValueRangeProvider;
-import ai.timefold.solver.core.api.score.buildin.simplelong.SimpleLongScore;
+import ai.timefold.solver.core.api.score.SimpleScore;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -23,12 +22,16 @@ public class TspSolution extends AbstractPersistable {
     private String name;
     protected DistanceType distanceType;
     protected String distanceUnitOfMeasurement;
+    @ProblemFactCollectionProperty
     private List<Location> locationList;
     private Domicile domicile;
-
+    @PlanningEntityProperty
+    private Tour tour;
+    @PlanningEntityCollectionProperty
+    @ValueRangeProvider
     private List<Visit> visitList;
-
-    private SimpleLongScore score;
+    @PlanningScore
+    private SimpleScore score;
 
     public TspSolution() {
     }
@@ -61,7 +64,6 @@ public class TspSolution extends AbstractPersistable {
         this.distanceUnitOfMeasurement = distanceUnitOfMeasurement;
     }
 
-    @ProblemFactCollectionProperty
     public List<Location> getLocationList() {
         return locationList;
     }
@@ -70,7 +72,6 @@ public class TspSolution extends AbstractPersistable {
         this.locationList = locationList;
     }
 
-    @ProblemFactProperty
     public Domicile getDomicile() {
         return domicile;
     }
@@ -79,8 +80,17 @@ public class TspSolution extends AbstractPersistable {
         this.domicile = domicile;
     }
 
-    @PlanningEntityCollectionProperty
-    @ValueRangeProvider
+    public Tour getTour() {
+        if (tour == null) {
+            tour = new Tour(visitList.size(), domicile);
+        }
+        return tour;
+    }
+
+    public void setTour(Tour tour) {
+        this.tour = tour;
+    }
+
     public List<Visit> getVisitList() {
         return visitList;
     }
@@ -89,24 +99,17 @@ public class TspSolution extends AbstractPersistable {
         this.visitList = visitList;
     }
 
-    @PlanningScore
-    public SimpleLongScore getScore() {
+    public SimpleScore getScore() {
         return score;
     }
 
-    public void setScore(SimpleLongScore score) {
+    public void setScore(SimpleScore score) {
         this.score = score;
     }
 
     // ************************************************************************
     // Complex methods
     // ************************************************************************
-
-    @ValueRangeProvider
-    @JsonIgnore
-    public List<Domicile> getDomicileRange() {
-        return Collections.singletonList(domicile);
-    }
 
     @JsonIgnore
     public String getDistanceString(NumberFormat numberFormat) {

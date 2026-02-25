@@ -17,7 +17,7 @@ import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrProce
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrResource;
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrService;
 import ai.timefold.solver.benchmarks.examples.machinereassignment.score.MrConstraints;
-import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
+import ai.timefold.solver.core.api.score.HardSoftScore;
 import ai.timefold.solver.core.api.score.calculator.ConstraintMatchAwareIncrementalScoreCalculator;
 import ai.timefold.solver.core.api.score.calculator.IncrementalScoreCalculator;
 import ai.timefold.solver.core.api.score.constraint.ConstraintMatchTotal;
@@ -27,8 +27,8 @@ import ai.timefold.solver.core.impl.score.constraint.DefaultConstraintMatchTotal
 
 public class MachineReassignmentIncrementalScoreCalculator
         implements
-        ConstraintMatchAwareIncrementalScoreCalculator<MachineReassignment, HardSoftLongScore>,
-        IncrementalScoreCalculator<MachineReassignment, HardSoftLongScore> {
+        ConstraintMatchAwareIncrementalScoreCalculator<MachineReassignment, HardSoftScore>,
+        IncrementalScoreCalculator<MachineReassignment, HardSoftScore> {
 
     protected static final String CONSTRAINT_PACKAGE = "ai.timefold.solver.examples.machinereassignment.solver";
 
@@ -134,8 +134,8 @@ public class MachineReassignmentIncrementalScoreCalculator
     }
 
     @Override
-    public HardSoftLongScore calculateScore() {
-        return HardSoftLongScore.of(hardScore, softScore);
+    public HardSoftScore calculateScore() {
+        return HardSoftScore.of(hardScore, softScore);
     }
 
     private class MrServiceScorePart {
@@ -468,48 +468,48 @@ public class MachineReassignmentIncrementalScoreCalculator
     }
 
     @Override
-    public Collection<ConstraintMatchTotal<HardSoftLongScore>> getConstraintMatchTotals() {
-        DefaultConstraintMatchTotal<HardSoftLongScore> maximumCapacityMatchTotal =
+    public Collection<ConstraintMatchTotal<HardSoftScore>> getConstraintMatchTotals() {
+        DefaultConstraintMatchTotal<HardSoftScore> maximumCapacityMatchTotal =
                 getConstraintMatchTotal(
                         MrConstraints.MAXIMUM_CAPACITY,
-                        HardSoftLongScore.ONE_HARD);
-        DefaultConstraintMatchTotal<HardSoftLongScore> serviceConflictMatchTotal =
+                        HardSoftScore.ONE_HARD);
+        DefaultConstraintMatchTotal<HardSoftScore> serviceConflictMatchTotal =
                 getConstraintMatchTotal(
                         MrConstraints.SERVICE_CONFLICT,
-                        HardSoftLongScore.ONE_HARD);
-        DefaultConstraintMatchTotal<HardSoftLongScore> serviceLocationSpreadMatchTotal =
+                        HardSoftScore.ONE_HARD);
+        DefaultConstraintMatchTotal<HardSoftScore> serviceLocationSpreadMatchTotal =
                 getConstraintMatchTotal(
                         MrConstraints.SERVICE_LOCATION_SPREAD,
-                        HardSoftLongScore.ONE_HARD);
-        DefaultConstraintMatchTotal<HardSoftLongScore> serviceDependencyMatchTotal =
+                        HardSoftScore.ONE_HARD);
+        DefaultConstraintMatchTotal<HardSoftScore> serviceDependencyMatchTotal =
                 getConstraintMatchTotal(
                         MrConstraints.SERVICE_DEPENDENCY,
-                        HardSoftLongScore.ONE_HARD);
-        DefaultConstraintMatchTotal<HardSoftLongScore> loadCostMatchTotal =
+                        HardSoftScore.ONE_HARD);
+        DefaultConstraintMatchTotal<HardSoftScore> loadCostMatchTotal =
                 getConstraintMatchTotal(
                         MrConstraints.LOAD_COST,
-                        HardSoftLongScore.ONE_SOFT);
-        DefaultConstraintMatchTotal<HardSoftLongScore> balanceCostMatchTotal =
+                        HardSoftScore.ONE_SOFT);
+        DefaultConstraintMatchTotal<HardSoftScore> balanceCostMatchTotal =
                 getConstraintMatchTotal(
                         MrConstraints.BALANCE_COST,
-                        HardSoftLongScore.ONE_SOFT);
-        DefaultConstraintMatchTotal<HardSoftLongScore> processMoveCostMatchTotal =
+                        HardSoftScore.ONE_SOFT);
+        DefaultConstraintMatchTotal<HardSoftScore> processMoveCostMatchTotal =
                 getConstraintMatchTotal(
                         MrConstraints.PROCESS_MOVE_COST,
-                        HardSoftLongScore.ofSoft(globalPenaltyInfo.getProcessMoveCostWeight()));
-        DefaultConstraintMatchTotal<HardSoftLongScore> serviceMoveCostMatchTotal =
+                        HardSoftScore.ofSoft(globalPenaltyInfo.getProcessMoveCostWeight()));
+        DefaultConstraintMatchTotal<HardSoftScore> serviceMoveCostMatchTotal =
                 getConstraintMatchTotal(
                         MrConstraints.SERVICE_MOVE_COST,
-                        HardSoftLongScore.ofSoft(globalPenaltyInfo.getServiceMoveCostWeight()));
-        DefaultConstraintMatchTotal<HardSoftLongScore> machineMoveCostMatchTotal =
+                        HardSoftScore.ofSoft(globalPenaltyInfo.getServiceMoveCostWeight()));
+        DefaultConstraintMatchTotal<HardSoftScore> machineMoveCostMatchTotal =
                 getConstraintMatchTotal(MrConstraints.MACHINE_MOVE_COST,
-                        HardSoftLongScore.ofSoft(globalPenaltyInfo.getMachineMoveCostWeight()));
+                        HardSoftScore.ofSoft(globalPenaltyInfo.getMachineMoveCostWeight()));
 
         for (MrServiceScorePart serviceScorePart : serviceScorePartMap.values()) {
             MrService service = serviceScorePart.service;
             if (service.getLocationSpread() > serviceScorePart.locationBag.size()) {
                 serviceLocationSpreadMatchTotal.addConstraintMatch(List.of(service),
-                        HardSoftLongScore.of(
+                        HardSoftScore.of(
                                 -(service.getLocationSpread() - serviceScorePart.locationBag.size()), 0));
             }
         }
@@ -517,11 +517,11 @@ public class MachineReassignmentIncrementalScoreCalculator
             for (MrMachineCapacityScorePart machineCapacityScorePart : machineScorePart.machineCapacityScorePartList) {
                 if (machineCapacityScorePart.maximumAvailable < 0L) {
                     maximumCapacityMatchTotal.addConstraintMatch(List.of(machineCapacityScorePart.machineCapacity),
-                            HardSoftLongScore.of(machineCapacityScorePart.maximumAvailable, 0));
+                            HardSoftScore.of(machineCapacityScorePart.maximumAvailable, 0));
                 }
                 if (machineCapacityScorePart.safetyAvailable < 0L) {
                     loadCostMatchTotal.addConstraintMatch(List.of(machineCapacityScorePart.machineCapacity),
-                            HardSoftLongScore.of(0, machineCapacityScorePart.safetyAvailable
+                            HardSoftScore.of(0, machineCapacityScorePart.safetyAvailable
                                     * machineCapacityScorePart.machineCapacity.getResource().getLoadCostWeight()));
                 }
             }
@@ -535,7 +535,7 @@ public class MachineReassignmentIncrementalScoreCalculator
                     // targetAvailable might be negative, but that's ok (and even avoids score traps)
                     if (targetAvailable < minimumTargetAvailable) {
                         balanceCostMatchTotal.addConstraintMatch(List.of(machineScorePart.machine, balancePenalty),
-                                HardSoftLongScore.of(0,
+                                HardSoftScore.of(0,
                                         -(minimumTargetAvailable - targetAvailable) * balancePenalty.getWeight()));
                     }
                 }
@@ -545,7 +545,7 @@ public class MachineReassignmentIncrementalScoreCalculator
                 Integer serviceProcessCount = entry.getValue();
                 if (serviceProcessCount > 1) {
                     serviceConflictMatchTotal.addConstraintMatch(List.of(machineScorePart.machine, entry.getKey()),
-                            HardSoftLongScore.of(-(serviceProcessCount - 1), 0));
+                            HardSoftScore.of(-(serviceProcessCount - 1), 0));
                 }
             }
         }
@@ -556,26 +556,26 @@ public class MachineReassignmentIncrementalScoreCalculator
                         serviceScorePart.neighborhoodBag.getOrDefault(processAssignment.getNeighborhood(), 0);
                 if (toDependencyNeighborhoodProcessCount == 0) {
                     serviceDependencyMatchTotal.addConstraintMatch(List.of(processAssignment, toDependencyService),
-                            HardSoftLongScore.of(-1, 0));
+                            HardSoftScore.of(-1, 0));
                 }
             }
             if (processAssignment.isMoved()) {
                 processMoveCostMatchTotal.addConstraintMatch(List.of(processAssignment),
-                        HardSoftLongScore.of(0,
+                        HardSoftScore.of(0,
                                 -((long) processAssignment.getProcessMoveCost()
                                         * globalPenaltyInfo.getProcessMoveCostWeight())));
                 machineMoveCostMatchTotal.addConstraintMatch(List.of(processAssignment),
-                        HardSoftLongScore.of(0,
+                        HardSoftScore.of(0,
                                 -((long) processAssignment.getMachineMoveCost()
                                         * globalPenaltyInfo.getMachineMoveCostWeight())));
             }
         }
         for (int i = 0; i < serviceMoveCost; i++) {
             serviceMoveCostMatchTotal.addConstraintMatch(List.of(i),
-                    HardSoftLongScore.of(0, -globalPenaltyInfo.getServiceMoveCostWeight()));
+                    HardSoftScore.of(0, -globalPenaltyInfo.getServiceMoveCostWeight()));
         }
 
-        List<ConstraintMatchTotal<HardSoftLongScore>> constraintMatchTotalList = new ArrayList<>(4);
+        List<ConstraintMatchTotal<HardSoftScore>> constraintMatchTotalList = new ArrayList<>(4);
         constraintMatchTotalList.add(maximumCapacityMatchTotal);
         constraintMatchTotalList.add(serviceConflictMatchTotal);
         constraintMatchTotalList.add(serviceLocationSpreadMatchTotal);
@@ -588,13 +588,13 @@ public class MachineReassignmentIncrementalScoreCalculator
         return constraintMatchTotalList;
     }
 
-    private static DefaultConstraintMatchTotal<HardSoftLongScore> getConstraintMatchTotal(String constraintName,
-            HardSoftLongScore constraintWeight) {
-        return new DefaultConstraintMatchTotal<>(ConstraintRef.of(CONSTRAINT_PACKAGE, constraintName), constraintWeight);
+    private static DefaultConstraintMatchTotal<HardSoftScore> getConstraintMatchTotal(String constraintName,
+            HardSoftScore constraintWeight) {
+        return new DefaultConstraintMatchTotal<>(ConstraintRef.of(constraintName), constraintWeight);
     }
 
     @Override
-    public Map<Object, Indictment<HardSoftLongScore>> getIndictmentMap() {
+    public Map<Object, Indictment<HardSoftScore>> getIndictmentMap() {
         return null; // Calculate it non-incrementally from getConstraintMatchTotals()
     }
 

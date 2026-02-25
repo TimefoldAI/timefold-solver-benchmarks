@@ -3,7 +3,7 @@ package ai.timefold.solver.benchmarks.examples.taskassigning.score;
 import ai.timefold.solver.benchmarks.examples.taskassigning.domain.Employee;
 import ai.timefold.solver.benchmarks.examples.taskassigning.domain.Priority;
 import ai.timefold.solver.benchmarks.examples.taskassigning.domain.Task;
-import ai.timefold.solver.core.api.score.buildin.bendablelong.BendableLongScore;
+import ai.timefold.solver.core.api.score.BendableScore;
 import ai.timefold.solver.core.api.score.stream.Constraint;
 import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
@@ -29,7 +29,7 @@ public class TaskAssigningConstraintProvider implements ConstraintProvider {
     private Constraint noMissingSkills(ConstraintFactory constraintFactory) {
         return constraintFactory.forEach(Task.class)
                 .filter(task -> task.getMissingSkillCount() > 0)
-                .penalize(BendableLongScore.ofHard(BENDABLE_SCORE_HARD_LEVELS_SIZE, BENDABLE_SCORE_SOFT_LEVELS_SIZE, 0, 1),
+                .penalize(BendableScore.ofHard(BENDABLE_SCORE_HARD_LEVELS_SIZE, BENDABLE_SCORE_SOFT_LEVELS_SIZE, 0, 1),
                         Task::getMissingSkillCount)
                 .asConstraint("No missing skills");
     }
@@ -37,13 +37,13 @@ public class TaskAssigningConstraintProvider implements ConstraintProvider {
     private Constraint minimizeUnassignedTasks(ConstraintFactory constraintFactory) {
         return constraintFactory.forEachIncludingUnassigned(Task.class)
                 .filter(task -> task.getEmployee() == null)
-                .penalize(BendableLongScore.ofSoft(BENDABLE_SCORE_HARD_LEVELS_SIZE, BENDABLE_SCORE_SOFT_LEVELS_SIZE, 0, 1))
+                .penalize(BendableScore.ofSoft(BENDABLE_SCORE_HARD_LEVELS_SIZE, BENDABLE_SCORE_SOFT_LEVELS_SIZE, 0, 1))
                 .asConstraint("Minimize unassigned tasks");
     }
 
     private Constraint criticalPriorityBasedTaskEndTime(ConstraintFactory constraintFactory) {
         return getTaskWithPriority(constraintFactory, Priority.CRITICAL)
-                .penalize(BendableLongScore.ofSoft(BENDABLE_SCORE_HARD_LEVELS_SIZE, BENDABLE_SCORE_SOFT_LEVELS_SIZE, 1, 1),
+                .penalize(BendableScore.ofSoft(BENDABLE_SCORE_HARD_LEVELS_SIZE, BENDABLE_SCORE_SOFT_LEVELS_SIZE, 1, 1),
                         Task::getEndTime)
                 .asConstraint("Critical priority task end time");
     }
@@ -55,21 +55,21 @@ public class TaskAssigningConstraintProvider implements ConstraintProvider {
 
     private Constraint minimizeMakespan(ConstraintFactory constraintFactory) {
         return constraintFactory.forEach(Employee.class)
-                .penalize(BendableLongScore.ofSoft(BENDABLE_SCORE_HARD_LEVELS_SIZE, BENDABLE_SCORE_SOFT_LEVELS_SIZE, 2, 1),
+                .penalize(BendableScore.ofSoft(BENDABLE_SCORE_HARD_LEVELS_SIZE, BENDABLE_SCORE_SOFT_LEVELS_SIZE, 2, 1),
                         employee -> employee.getEndTime() * employee.getEndTime())
-                .asConstraint("Minimize makespan, latest ending employee first");
+                .asConstraint("Minimize makespan and latest ending employee first");
     }
 
     private Constraint majorPriorityTaskEndTime(ConstraintFactory constraintFactory) {
         return getTaskWithPriority(constraintFactory, Priority.MAJOR)
-                .penalize(BendableLongScore.ofSoft(BENDABLE_SCORE_HARD_LEVELS_SIZE, BENDABLE_SCORE_SOFT_LEVELS_SIZE, 3, 1),
+                .penalize(BendableScore.ofSoft(BENDABLE_SCORE_HARD_LEVELS_SIZE, BENDABLE_SCORE_SOFT_LEVELS_SIZE, 3, 1),
                         Task::getEndTime)
                 .asConstraint("Major priority task end time");
     }
 
     private Constraint minorPriorityTaskEndTime(ConstraintFactory constraintFactory) {
         return getTaskWithPriority(constraintFactory, Priority.MINOR)
-                .penalize(BendableLongScore.ofSoft(BENDABLE_SCORE_HARD_LEVELS_SIZE, BENDABLE_SCORE_SOFT_LEVELS_SIZE, 4, 1),
+                .penalize(BendableScore.ofSoft(BENDABLE_SCORE_HARD_LEVELS_SIZE, BENDABLE_SCORE_SOFT_LEVELS_SIZE, 4, 1),
                         Task::getEndTime)
                 .asConstraint("Minor priority task end time");
     }

@@ -4,6 +4,7 @@ import java.math.RoundingMode;
 
 import ai.timefold.solver.benchmarks.competitive.AbstractCompetitiveBenchmark;
 import ai.timefold.solver.benchmarks.competitive.Configuration;
+import ai.timefold.solver.benchmarks.examples.tsp.domain.Tour;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.TspSolution;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.Visit;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.solver.nearby.VisitNearbyDistanceMeter;
@@ -62,7 +63,7 @@ public enum TSPLIBConfiguration implements Configuration<TSPLIBDataset> {
                 .withBestScoreLimit(Long.toString(threshold.longValue()));
         return new SolverConfig()
                 .withSolutionClass(TspSolution.class)
-                .withEntityClasses(Visit.class)
+                .withEntityClasses(Tour.class, Visit.class)
                 .withConstraintProviderClass(TspConstraintProvider.class)
                 .withTerminationConfig(terminationConfig)
                 .withPhases(new ConstructionHeuristicPhaseConfig(), new LocalSearchPhaseConfig());

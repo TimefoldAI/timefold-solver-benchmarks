@@ -11,7 +11,7 @@ import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
 import ai.timefold.solver.core.api.domain.solution.ProblemFactCollectionProperty;
 import ai.timefold.solver.core.api.domain.solution.ProblemFactProperty;
 import ai.timefold.solver.core.api.domain.valuerange.ValueRangeProvider;
-import ai.timefold.solver.core.api.score.buildin.hardsoftlong.HardSoftLongScore;
+import ai.timefold.solver.core.api.score.HardSoftScore;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -37,7 +37,7 @@ public class MachineReassignment extends AbstractPersistable {
         super(id);
     }
 
-    private HardSoftLongScore score;
+    private HardSoftScore score;
 
     @ProblemFactProperty
     public MrGlobalPenaltyInfo getGlobalPenaltyInfo() {
@@ -131,11 +131,11 @@ public class MachineReassignment extends AbstractPersistable {
     }
 
     @PlanningScore
-    public HardSoftLongScore getScore() {
+    public HardSoftScore getScore() {
         return score;
     }
 
-    public void setScore(HardSoftLongScore score) {
+    public void setScore(HardSoftScore score) {
         this.score = score;
     }
 

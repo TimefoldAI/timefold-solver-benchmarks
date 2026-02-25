@@ -9,7 +9,7 @@ import ai.timefold.solver.core.api.domain.variable.PlanningVariable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-@PlanningEntity(difficultyComparatorClass = MrProcessAssignmentDifficultyComparator.class)
+@PlanningEntity(comparatorClass = MrProcessAssignmentDifficultyComparator.class)
 public class MrProcessAssignment extends AbstractPersistable {
 
     public static MrProcessAssignment withOriginalMachine(long id,
