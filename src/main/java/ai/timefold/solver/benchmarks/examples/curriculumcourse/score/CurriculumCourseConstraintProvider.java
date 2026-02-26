@@ -5,9 +5,9 @@ import static ai.timefold.solver.core.api.score.HardSoftScore.ofHard;
 import static ai.timefold.solver.core.api.score.HardSoftScore.ofSoft;
 import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.count;
 import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.countDistinct;
-import static ai.timefold.solver.core.api.score.stream.Joiners.containedIn;
 import static ai.timefold.solver.core.api.score.stream.Joiners.equal;
 import static ai.timefold.solver.core.api.score.stream.Joiners.filtering;
+import static ai.timefold.solver.core.impl.score.stream.UnfinishedJoiners.containedIn;
 
 import java.util.Objects;
 
