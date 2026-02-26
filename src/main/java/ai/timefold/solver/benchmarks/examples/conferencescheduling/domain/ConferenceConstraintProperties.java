@@ -24,14 +24,14 @@ public class ConferenceConstraintProperties extends AbstractPersistable {
 
     public static final String THEME_TRACK_CONFLICT = "Theme track conflict";
     public static final String THEME_TRACK_ROOM_STABILITY = "Theme track room stability";
-    public static final String THEME_TRACK_CONFLICT_SAME_DAY_TALKS = "Same day talks (Theme track)";
+    public static final String THEME_TRACK_CONFLICT_SAME_DAY_TALKS = "Same day talks 'Theme track'";
     public static final String SECTOR_CONFLICT = "Sector conflict";
     public static final String AUDIENCE_TYPE_DIVERSITY = "Audience type diversity";
     public static final String AUDIENCE_TYPE_THEME_TRACK_CONFLICT = "Audience type theme track conflict";
     public static final String AUDIENCE_LEVEL_DIVERSITY = "Audience level diversity";
     public static final String CONTENT_AUDIENCE_LEVEL_FLOW_VIOLATION = "Content audience level flow violation";
     public static final String CONTENT_CONFLICT = "Content conflict";
-    public static final String CONTENT_CONFLICT_SAME_DAY_TALKS = "Same day talks (Content)";
+    public static final String CONTENT_CONFLICT_SAME_DAY_TALKS = "Same day talks 'Content'";
     public static final String LANGUAGE_DIVERSITY = "Language diversity";
     public static final String POPULAR_TALKS = "Popular talks";
 
