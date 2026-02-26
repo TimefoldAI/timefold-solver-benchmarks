@@ -5,7 +5,7 @@ import ai.timefold.solver.benchmarks.examples.cloudbalancing.domain.CloudCompute
 import ai.timefold.solver.benchmarks.examples.cloudbalancing.domain.CloudProcess;
 import ai.timefold.solver.benchmarks.examples.common.score.AbstractConstraintProviderTest;
 import ai.timefold.solver.benchmarks.examples.common.score.ConstraintProviderTest;
-import ai.timefold.solver.test.api.score.stream.ConstraintVerifier;
+import ai.timefold.solver.core.api.score.stream.test.ConstraintVerifier;
 
 class CloudBalancingConstraintProviderTest
         extends

@@ -7,7 +7,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import java.util.stream.Stream;
 
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
-import ai.timefold.solver.test.api.score.stream.ConstraintVerifier;
+import ai.timefold.solver.core.api.score.stream.test.ConstraintVerifier;
 
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.TestInstance;

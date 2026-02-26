@@ -26,7 +26,7 @@ import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrServi
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.solver.MrServiceDependency;
 import ai.timefold.solver.benchmarks.examples.machinereassignment.persistence.MachineReassignmentSolutionFileIO;
 import ai.timefold.solver.core.api.score.HardSoftScore;
-import ai.timefold.solver.test.api.score.stream.ConstraintVerifier;
+import ai.timefold.solver.core.api.score.stream.test.ConstraintVerifier;
 
 class MachineReassignmentConstraintProviderTest
         extends AbstractConstraintProviderTest<MachineReassignmentConstraintProvider, MachineReassignment> {
