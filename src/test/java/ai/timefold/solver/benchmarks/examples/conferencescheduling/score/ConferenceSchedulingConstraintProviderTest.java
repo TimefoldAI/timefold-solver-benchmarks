@@ -16,7 +16,7 @@ import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Room;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Speaker;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Talk;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Timeslot;
-import ai.timefold.solver.test.api.score.stream.ConstraintVerifier;
+import ai.timefold.solver.core.api.score.stream.test.ConstraintVerifier;
 
 class ConferenceSchedulingConstraintProviderTest
         extends

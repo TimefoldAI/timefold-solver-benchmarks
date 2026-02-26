@@ -24,7 +24,7 @@ import ai.timefold.solver.benchmarks.examples.pas.domain.RoomSpecialism;
 import ai.timefold.solver.benchmarks.examples.pas.domain.Specialism;
 import ai.timefold.solver.core.api.score.stream.Constraint;
 import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
-import ai.timefold.solver.test.api.score.stream.ConstraintVerifier;
+import ai.timefold.solver.core.api.score.stream.test.ConstraintVerifier;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;

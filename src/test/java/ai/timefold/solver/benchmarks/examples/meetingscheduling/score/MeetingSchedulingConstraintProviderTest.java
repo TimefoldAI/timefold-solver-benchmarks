@@ -14,7 +14,7 @@ import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.Preferred
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.RequiredAttendance;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.Room;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.TimeGrain;
-import ai.timefold.solver.test.api.score.stream.ConstraintVerifier;
+import ai.timefold.solver.core.api.score.stream.test.ConstraintVerifier;
 
 class MeetingSchedulingConstraintProviderTest
         extends AbstractConstraintProviderTest<MeetingSchedulingConstraintProvider, MeetingSchedule> {

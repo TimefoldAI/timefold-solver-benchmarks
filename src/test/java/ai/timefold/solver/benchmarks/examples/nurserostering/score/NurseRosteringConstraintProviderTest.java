@@ -33,8 +33,8 @@ import ai.timefold.solver.benchmarks.examples.nurserostering.domain.request.DayO
 import ai.timefold.solver.benchmarks.examples.nurserostering.domain.request.DayOnRequest;
 import ai.timefold.solver.benchmarks.examples.nurserostering.domain.request.ShiftOffRequest;
 import ai.timefold.solver.benchmarks.examples.nurserostering.domain.request.ShiftOnRequest;
-import ai.timefold.solver.test.api.score.stream.ConstraintVerifier;
-import ai.timefold.solver.test.api.score.stream.SingleConstraintVerification;
+import ai.timefold.solver.core.api.score.stream.test.ConstraintVerifier;
+import ai.timefold.solver.core.api.score.stream.test.SingleConstraintVerification;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

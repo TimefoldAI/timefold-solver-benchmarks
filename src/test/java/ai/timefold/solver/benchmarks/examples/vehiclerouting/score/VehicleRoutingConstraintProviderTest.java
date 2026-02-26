@@ -12,7 +12,7 @@ import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.Air
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.location.Location;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedCustomer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedDepot;
-import ai.timefold.solver.test.api.score.stream.ConstraintVerifier;
+import ai.timefold.solver.core.api.score.stream.test.ConstraintVerifier;
 
 class VehicleRoutingConstraintProviderTest
         extends

@@ -15,7 +15,7 @@ import ai.timefold.solver.benchmarks.examples.examination.domain.RoomPenaltyType
 import ai.timefold.solver.benchmarks.examples.examination.domain.Student;
 import ai.timefold.solver.benchmarks.examples.examination.domain.Topic;
 import ai.timefold.solver.benchmarks.examples.examination.domain.solver.TopicConflict;
-import ai.timefold.solver.test.api.score.stream.ConstraintVerifier;
+import ai.timefold.solver.core.api.score.stream.test.ConstraintVerifier;
 
 class ExaminationConstraintProviderTest
         extends
