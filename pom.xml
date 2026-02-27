@@ -102,11 +102,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>ai.timefold.solver</groupId>
-            <artifactId>timefold-solver-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <scope>test</scope>
