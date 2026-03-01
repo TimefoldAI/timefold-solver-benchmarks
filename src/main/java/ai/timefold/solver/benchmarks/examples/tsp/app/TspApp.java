@@ -8,7 +8,7 @@ import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutio
 import ai.timefold.solver.benchmarks.examples.tsp.domain.TspSolution;
 import ai.timefold.solver.benchmarks.examples.tsp.persistence.TspImporter;
 import ai.timefold.solver.benchmarks.examples.tsp.persistence.TspSolutionFileIO;
-import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
+import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 
 public class TspApp extends CommonApp<TspSolution> {
 

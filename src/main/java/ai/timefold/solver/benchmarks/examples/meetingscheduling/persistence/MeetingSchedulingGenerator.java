@@ -21,7 +21,7 @@ import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.RequiredA
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.Room;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.TimeGrain;
 import ai.timefold.solver.core.api.domain.solution.ConstraintWeightOverrides;
-import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
+import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 
 public class MeetingSchedulingGenerator extends LoggingMain {
 

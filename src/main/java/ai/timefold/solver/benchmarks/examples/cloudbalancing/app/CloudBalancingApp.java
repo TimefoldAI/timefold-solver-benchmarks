@@ -3,7 +3,7 @@ package ai.timefold.solver.benchmarks.examples.cloudbalancing.app;
 import ai.timefold.solver.benchmarks.examples.cloudbalancing.domain.CloudBalance;
 import ai.timefold.solver.benchmarks.examples.cloudbalancing.persistence.CloudBalanceSolutionFileIO;
 import ai.timefold.solver.benchmarks.examples.common.app.CommonApp;
-import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
+import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 
 public class CloudBalancingApp extends CommonApp<CloudBalance> {
 

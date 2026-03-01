@@ -8,7 +8,7 @@ import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutio
 import ai.timefold.solver.benchmarks.examples.flowshop.domain.JobScheduleSolution;
 import ai.timefold.solver.benchmarks.examples.flowshop.persistence.FlowShopSolutionFileIO;
 import ai.timefold.solver.benchmarks.examples.flowshop.persistence.TaillardImporter;
-import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
+import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 
 public class FlowShopApp extends CommonApp<JobScheduleSolution> {
 

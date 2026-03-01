@@ -3,7 +3,7 @@ package ai.timefold.solver.benchmarks.examples.meetingscheduling.app;
 import ai.timefold.solver.benchmarks.examples.common.app.CommonApp;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.MeetingSchedule;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.persistence.MeetingSchedulingSolutionFileIO;
-import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
+import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 
 public class MeetingSchedulingApp extends CommonApp<MeetingSchedule> {
 

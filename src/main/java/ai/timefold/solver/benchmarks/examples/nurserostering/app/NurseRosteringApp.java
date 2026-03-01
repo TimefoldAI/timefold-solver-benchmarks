@@ -9,7 +9,7 @@ import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutio
 import ai.timefold.solver.benchmarks.examples.nurserostering.domain.NurseRoster;
 import ai.timefold.solver.benchmarks.examples.nurserostering.persistence.NurseRosterSolutionFileIO;
 import ai.timefold.solver.benchmarks.examples.nurserostering.persistence.NurseRosteringImporter;
-import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
+import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 
 public class NurseRosteringApp extends CommonApp<NurseRoster> {
 

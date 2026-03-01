@@ -9,7 +9,7 @@ import ai.timefold.solver.benchmarks.examples.curriculumcourse.app.CurriculumCou
 import ai.timefold.solver.benchmarks.examples.examination.domain.Examination;
 import ai.timefold.solver.benchmarks.examples.examination.persistence.ExaminationImporter;
 import ai.timefold.solver.benchmarks.examples.examination.persistence.ExaminationSolutionFileIO;
-import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
+import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 
 /**
  * Examination is super optimized and a bit complex.

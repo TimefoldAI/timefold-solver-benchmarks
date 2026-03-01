@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 import ai.timefold.solver.benchmarks.examples.common.TestSystemProperties;
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
+import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 import ai.timefold.solver.core.api.score.Score;
 import ai.timefold.solver.core.api.score.ScoreExplanation;
 import ai.timefold.solver.core.api.score.constraint.ConstraintMatchTotal;
@@ -23,7 +24,6 @@ import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
 import ai.timefold.solver.core.config.solver.EnvironmentMode;
 import ai.timefold.solver.core.config.solver.SolverConfig;
 import ai.timefold.solver.core.config.solver.termination.TerminationConfig;
-import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

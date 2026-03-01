@@ -29,7 +29,7 @@ import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Talk;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.TalkType;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.Timeslot;
 import ai.timefold.solver.core.api.domain.solution.ConstraintWeightOverrides;
-import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
+import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 
 public class ConferenceSchedulingGenerator extends LoggingMain {
 

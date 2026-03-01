@@ -8,7 +8,7 @@ import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutio
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MachineReassignment;
 import ai.timefold.solver.benchmarks.examples.machinereassignment.persistence.MachineReassignmentImporter;
 import ai.timefold.solver.benchmarks.examples.machinereassignment.persistence.MachineReassignmentSolutionFileIO;
-import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
+import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 
 public class MachineReassignmentApp extends CommonApp<MachineReassignment> {
 
