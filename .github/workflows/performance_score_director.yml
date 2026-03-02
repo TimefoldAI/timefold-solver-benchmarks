@@ -142,7 +142,7 @@ jobs:
           mv target/benchmarks.jar ../benchmarks-baseline.jar
 
       - name: Upload the binaries
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.example }}-sut
           path: |
@@ -227,7 +227,7 @@ jobs:
           mv target/benchmarks.jar ../benchmarks-sut.jar
 
       - name: Upload the binaries
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.example }}-baseline
           path: |
@@ -342,7 +342,7 @@ jobs:
           mv ${{ env.SUT_DIR }}/jfr-cpu.jfr ${{ env.SUT_DIR }}/${{ matrix.example }}-${{ env.SUT_DIR }}.jfr
 
       - name: Archive benchmark data
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: assets-${{ matrix.example }}-${{ env.SANITIZED_BASELINE }}_vs_${{ env.SANITIZED_BRANCH }}
           path: |
