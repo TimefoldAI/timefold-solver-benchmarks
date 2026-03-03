@@ -3,7 +3,7 @@ package ai.timefold.solver.benchmarks.examples.taskassigning.app;
 import ai.timefold.solver.benchmarks.examples.common.app.CommonApp;
 import ai.timefold.solver.benchmarks.examples.taskassigning.domain.TaskAssigningSolution;
 import ai.timefold.solver.benchmarks.examples.taskassigning.persistence.TaskAssigningSolutionFileIO;
-import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
+import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 
 public class TaskAssigningApp extends CommonApp<TaskAssigningSolution> {
 

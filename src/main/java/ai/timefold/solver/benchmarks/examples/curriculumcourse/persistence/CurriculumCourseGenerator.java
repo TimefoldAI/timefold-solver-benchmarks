@@ -26,7 +26,7 @@ import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.Room;
 import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.Teacher;
 import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.Timeslot;
 import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.UnavailablePeriodPenalty;
-import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
+import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 
 public class CurriculumCourseGenerator extends LoggingMain {
 

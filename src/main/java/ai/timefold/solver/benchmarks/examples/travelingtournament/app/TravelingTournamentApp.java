@@ -8,7 +8,7 @@ import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutio
 import ai.timefold.solver.benchmarks.examples.travelingtournament.domain.TravelingTournament;
 import ai.timefold.solver.benchmarks.examples.travelingtournament.persistence.TravelingTournamentImporter;
 import ai.timefold.solver.benchmarks.examples.travelingtournament.persistence.TravelingTournamentSolutionFileIO;
-import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
+import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 
 /**
  * WARNING: This is an old, complex, tailored example. You're probably better off with one of the other examples.

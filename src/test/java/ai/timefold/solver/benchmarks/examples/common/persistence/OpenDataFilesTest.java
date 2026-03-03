@@ -12,10 +12,10 @@ import ai.timefold.solver.benchmarks.examples.common.app.CommonApp;
 import ai.timefold.solver.benchmarks.examples.common.app.LoggingTest;
 import ai.timefold.solver.benchmarks.examples.common.business.ProblemFileComparator;
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
+import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 import ai.timefold.solver.core.api.score.Score;
 import ai.timefold.solver.core.api.solver.SolutionManager;
 import ai.timefold.solver.core.api.solver.SolverFactory;
-import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
 
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;

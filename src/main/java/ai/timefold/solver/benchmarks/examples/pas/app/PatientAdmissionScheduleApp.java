@@ -8,7 +8,7 @@ import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutio
 import ai.timefold.solver.benchmarks.examples.pas.domain.PatientAdmissionSchedule;
 import ai.timefold.solver.benchmarks.examples.pas.persistence.PatientAdmissionScheduleImporter;
 import ai.timefold.solver.benchmarks.examples.pas.persistence.PatientAdmissionScheduleSolutionFileIO;
-import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
+import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 
 public class PatientAdmissionScheduleApp
         extends CommonApp<PatientAdmissionSchedule> {

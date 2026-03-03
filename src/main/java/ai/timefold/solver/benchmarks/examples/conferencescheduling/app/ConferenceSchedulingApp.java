@@ -6,7 +6,7 @@ import java.io.File;
 import ai.timefold.solver.benchmarks.examples.common.app.CommonApp;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.domain.ConferenceSolution;
 import ai.timefold.solver.benchmarks.examples.conferencescheduling.persistence.ConferenceSchedulingSolutionFileIO;
-import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
+import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 
 public class ConferenceSchedulingApp
         extends CommonApp<ConferenceSolution> {

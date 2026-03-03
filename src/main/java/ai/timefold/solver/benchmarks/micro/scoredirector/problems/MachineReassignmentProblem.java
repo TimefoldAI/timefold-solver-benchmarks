@@ -7,9 +7,9 @@ import ai.timefold.solver.benchmarks.examples.machinereassignment.persistence.Ma
 import ai.timefold.solver.benchmarks.examples.machinereassignment.score.MachineReassignmentConstraintProvider;
 import ai.timefold.solver.benchmarks.micro.scoredirector.Example;
 import ai.timefold.solver.benchmarks.micro.scoredirector.ScoreDirectorType;
+import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
 import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
-import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
 
 public final class MachineReassignmentProblem
         extends AbstractProblem<MachineReassignment> {

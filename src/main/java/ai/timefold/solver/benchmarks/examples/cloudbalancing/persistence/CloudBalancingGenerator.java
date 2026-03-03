@@ -13,7 +13,7 @@ import ai.timefold.solver.benchmarks.examples.cloudbalancing.domain.CloudProcess
 import ai.timefold.solver.benchmarks.examples.common.app.CommonApp;
 import ai.timefold.solver.benchmarks.examples.common.app.LoggingMain;
 import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutionImporter;
-import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
+import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 
 public class CloudBalancingGenerator extends LoggingMain {
 

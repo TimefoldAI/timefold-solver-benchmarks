@@ -8,7 +8,7 @@ import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractSolutio
 import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.CourseSchedule;
 import ai.timefold.solver.benchmarks.examples.curriculumcourse.persistence.CurriculumCourseImporter;
 import ai.timefold.solver.benchmarks.examples.curriculumcourse.persistence.CurriculumCourseSolutionFileIO;
-import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
+import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 
 public class CurriculumCourseApp extends CommonApp<CourseSchedule> {
 

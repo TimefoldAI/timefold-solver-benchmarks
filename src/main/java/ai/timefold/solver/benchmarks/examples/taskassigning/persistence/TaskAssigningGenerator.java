@@ -24,13 +24,12 @@ import ai.timefold.solver.benchmarks.examples.taskassigning.domain.Skill;
 import ai.timefold.solver.benchmarks.examples.taskassigning.domain.Task;
 import ai.timefold.solver.benchmarks.examples.taskassigning.domain.TaskAssigningSolution;
 import ai.timefold.solver.benchmarks.examples.taskassigning.domain.TaskType;
-import ai.timefold.solver.persistence.common.api.domain.solution.SolutionFileIO;
+import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 
 public class TaskAssigningGenerator extends LoggingMain {
 
     public static final int BASE_DURATION_MINIMUM = 30;
     public static final int BASE_DURATION_MAXIMUM = 90;
-    public static final int BASE_DURATION_AVERAGE = BASE_DURATION_MINIMUM + BASE_DURATION_MAXIMUM / 2;
     private static final int SKILL_SET_SIZE_MINIMUM = 2;
     private static final int SKILL_SET_SIZE_MAXIMUM = 4;
 
