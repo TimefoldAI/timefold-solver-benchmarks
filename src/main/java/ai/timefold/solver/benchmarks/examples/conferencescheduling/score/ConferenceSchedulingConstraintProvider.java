@@ -33,14 +33,14 @@ import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.comp
 import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.countBi;
 import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.max;
 import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.min;
+import static ai.timefold.solver.core.api.score.stream.Joiners.containedIn;
+import static ai.timefold.solver.core.api.score.stream.Joiners.containing;
+import static ai.timefold.solver.core.api.score.stream.Joiners.containingAnyOf;
 import static ai.timefold.solver.core.api.score.stream.Joiners.equal;
 import static ai.timefold.solver.core.api.score.stream.Joiners.filtering;
 import static ai.timefold.solver.core.api.score.stream.Joiners.greaterThan;
 import static ai.timefold.solver.core.api.score.stream.Joiners.lessThan;
 import static ai.timefold.solver.core.api.score.stream.Joiners.overlapping;
-import static ai.timefold.solver.core.impl.score.stream.UnfinishedJoiners.containedIn;
-import static ai.timefold.solver.core.impl.score.stream.UnfinishedJoiners.containing;
-import static ai.timefold.solver.core.impl.score.stream.UnfinishedJoiners.containingAnyOf;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
