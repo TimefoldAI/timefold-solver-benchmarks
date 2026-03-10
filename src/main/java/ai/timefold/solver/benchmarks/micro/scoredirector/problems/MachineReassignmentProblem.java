@@ -2,7 +2,6 @@ package ai.timefold.solver.benchmarks.micro.scoredirector.problems;
 
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MachineReassignment;
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrProcessAssignment;
-import ai.timefold.solver.benchmarks.examples.machinereassignment.optional.score.MachineReassignmentIncrementalScoreCalculator;
 import ai.timefold.solver.benchmarks.examples.machinereassignment.persistence.MachineReassignmentSolutionFileIO;
 import ai.timefold.solver.benchmarks.examples.machinereassignment.score.MachineReassignmentConstraintProvider;
 import ai.timefold.solver.benchmarks.micro.scoredirector.Example;
@@ -24,8 +23,6 @@ public final class MachineReassignmentProblem
         return switch (scoreDirectorType) {
             case CONSTRAINT_STREAMS, CONSTRAINT_STREAMS_JUSTIFIED ->
                 scoreDirectorFactoryConfig.withConstraintProviderClass(MachineReassignmentConstraintProvider.class);
-            case INCREMENTAL -> scoreDirectorFactoryConfig
-                    .withIncrementalScoreCalculatorClass(MachineReassignmentIncrementalScoreCalculator.class);
             default -> throw new UnsupportedOperationException("Score director: " + scoreDirectorType);
         };
     }

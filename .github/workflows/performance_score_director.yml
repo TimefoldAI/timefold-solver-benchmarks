@@ -76,7 +76,7 @@ jobs:
       fail-fast: true # If one compilation fails, abort everything.
       matrix:
         # When updating this list, use find-and-replace in the entire file to keep all such lists identical.
-        example: [cloud_balancing, conference_scheduling, curriculum_course, examination, flowshop, machine_reassignment, meeting_scheduling, nurse_rostering, patient_admission_scheduling, task_assigning, traveling_tournament, vehicle_routing]
+        example: [cloud_balancing, conference_scheduling, curriculum_course, examination, machine_reassignment, meeting_scheduling, nurse_rostering, patient_admission_scheduling, task_assigning, traveling_tournament, tsp, vehicle_routing]
     env:
       MVN_USERNAME: '${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_USERNAME }}'
       MVN_PASSWORD: '${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_TOKEN }}'
@@ -155,7 +155,7 @@ jobs:
       fail-fast: true # If one compilation fails, abort everything.
       matrix:
         # When updating this list, use find-and-replace in the entire file to keep all such lists identical.
-        example: [cloud_balancing, conference_scheduling, curriculum_course, examination, flowshop, machine_reassignment, meeting_scheduling, nurse_rostering, patient_admission_scheduling, task_assigning, traveling_tournament, vehicle_routing]
+        example: [cloud_balancing, conference_scheduling, curriculum_course, examination, machine_reassignment, meeting_scheduling, nurse_rostering, patient_admission_scheduling, task_assigning, traveling_tournament, tsp, vehicle_routing]
     env:
       MVN_USERNAME: '${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_USERNAME }}'
       MVN_PASSWORD: '${{ secrets.JFROG_ENTERPRISE_READ_ONLY_ACCESS_TOKEN }}'
@@ -241,7 +241,7 @@ jobs:
       fail-fast: false # Jobs fail if the benchmark error is over predefined thresholds; other benchmarks continue.
       matrix:
         # When updating this list, use find-and-replace in the entire file to keep all such lists identical.
-        example: [cloud_balancing, conference_scheduling, curriculum_course, examination, flowshop, machine_reassignment, meeting_scheduling, nurse_rostering, patient_admission_scheduling, task_assigning, traveling_tournament, vehicle_routing]
+        example: [cloud_balancing, conference_scheduling, curriculum_course, examination, machine_reassignment, meeting_scheduling, nurse_rostering, patient_admission_scheduling, task_assigning, traveling_tournament, tsp, vehicle_routing]
     steps:
       - name: Clean results of previous runs
         shell: bash

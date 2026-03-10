@@ -7,12 +7,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
-import ai.timefold.solver.benchmarks.examples.tsp.domain.solver.nearby.VisitNearbyDistanceMeter;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.solver.nearby.CustomerNearbyDistanceMeter;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.CloudBalancingProblem;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.ConferenceSchedulingProblem;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.CurriculumCourseProblem;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.ExaminationProblem;
+import ai.timefold.solver.benchmarks.micro.scoredirector.problems.FlowShopProblem;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.MachineReassignmentProblem;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.MeetingSchedulingProblem;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.NurseRosteringProblem;
@@ -20,31 +20,22 @@ import ai.timefold.solver.benchmarks.micro.scoredirector.problems.PatientAdmissi
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.Problem;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.TaskAssigningProblem;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.TravelingTournamentProblem;
-import ai.timefold.solver.benchmarks.micro.scoredirector.problems.TspProblem;
 import ai.timefold.solver.benchmarks.micro.scoredirector.problems.VehicleRoutingProblem;
 import ai.timefold.solver.core.impl.heuristic.selector.common.nearby.NearbyDistanceMeter;
 
 public enum Example {
 
     CLOUD_BALANCING(CloudBalancingProblem::new),
-    CONFERENCE_SCHEDULING(ConferenceSchedulingProblem::new, ScoreDirectorType.CONSTRAINT_STREAMS,
-            ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED),
-    CURRICULUM_COURSE(CurriculumCourseProblem::new, ScoreDirectorType.CONSTRAINT_STREAMS,
-            ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED),
-    EXAMINATION(ExaminationProblem::new, ScoreDirectorType.CONSTRAINT_STREAMS, ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED),
-    MACHINE_REASSIGNMENT(MachineReassignmentProblem::new, ScoreDirectorType.INCREMENTAL, ScoreDirectorType.CONSTRAINT_STREAMS,
-            ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED),
-    MEETING_SCHEDULING(MeetingSchedulingProblem::new, ScoreDirectorType.CONSTRAINT_STREAMS,
-            ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED),
-    NURSE_ROSTERING(NurseRosteringProblem::new, ScoreDirectorType.CONSTRAINT_STREAMS,
-            ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED),
-    PATIENT_ADMISSION_SCHEDULING(PatientAdmissionSchedulingProblem::new, ScoreDirectorType.CONSTRAINT_STREAMS,
-            ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED),
-    TASK_ASSIGNING(TaskAssigningProblem::new, ScoreDirectorType.CONSTRAINT_STREAMS,
-            ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED),
-    TRAVELING_TOURNAMENT(TravelingTournamentProblem::new, ScoreDirectorType.CONSTRAINT_STREAMS,
-            ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED),
-    TSP(TspProblem::new, VisitNearbyDistanceMeter.class),
+    CONFERENCE_SCHEDULING(ConferenceSchedulingProblem::new),
+    CURRICULUM_COURSE(CurriculumCourseProblem::new),
+    EXAMINATION(ExaminationProblem::new),
+    FLOW_SHOP(FlowShopProblem::new),
+    MACHINE_REASSIGNMENT(MachineReassignmentProblem::new),
+    MEETING_SCHEDULING(MeetingSchedulingProblem::new),
+    NURSE_ROSTERING(NurseRosteringProblem::new),
+    PATIENT_ADMISSION_SCHEDULING(PatientAdmissionSchedulingProblem::new),
+    TASK_ASSIGNING(TaskAssigningProblem::new),
+    TRAVELING_TOURNAMENT(TravelingTournamentProblem::new),
     VEHICLE_ROUTING(VehicleRoutingProblem::new, CustomerNearbyDistanceMeter.class);
 
     private final Function<ScoreDirectorType, Problem> problemFactory;

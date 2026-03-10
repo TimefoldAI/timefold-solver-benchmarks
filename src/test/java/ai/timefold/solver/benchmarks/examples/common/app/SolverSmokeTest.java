@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -15,8 +14,6 @@ import ai.timefold.solver.benchmarks.examples.common.TestSystemProperties;
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
 import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 import ai.timefold.solver.core.api.score.Score;
-import ai.timefold.solver.core.api.score.ScoreExplanation;
-import ai.timefold.solver.core.api.score.constraint.ConstraintMatchTotal;
 import ai.timefold.solver.core.api.solver.SolutionManager;
 import ai.timefold.solver.core.api.solver.Solver;
 import ai.timefold.solver.core.api.solver.SolverFactory;
@@ -58,7 +55,7 @@ public abstract class SolverSmokeTest<Solution_, Score_ extends Score<Score_>> e
 
     @BeforeEach
     public void setUp() {
-        CommonApp<Solution_> commonApp = createCommonApp();
+        var commonApp = createCommonApp();
         solutionFileIO = commonApp.createSolutionFileIO();
         solverConfigResource = commonApp.getSolverConfigResource();
     }
@@ -90,7 +87,7 @@ public abstract class SolverSmokeTest<Solution_, Score_ extends Score<Score_>> e
 
     private DynamicTest createSpeedTest(String unsolvedDataFile, EnvironmentMode environmentMode, Score_ bestScoreLimit,
             String moveThreadCount) {
-        String testName = unsolvedDataFile.replaceFirst(".*/", "")
+        var testName = unsolvedDataFile.replaceFirst(".*/", "")
                 + ", "
                 + environmentMode
                 + ", threads: " + moveThreadCount;
@@ -108,22 +105,22 @@ public abstract class SolverSmokeTest<Solution_, Score_ extends Score<Score_>> e
 
     private void runSpeedTest(File unsolvedDataFile, Score_ bestScoreLimit, EnvironmentMode environmentMode,
             String moveThreadCount) {
-        SolverFactory<Solution_> solverFactory = buildSpeedSolverFactory(bestScoreLimit, environmentMode, moveThreadCount);
-        Solution_ problem = solutionFileIO.read(unsolvedDataFile);
+        var solverFactory = buildSpeedSolverFactory(bestScoreLimit, environmentMode, moveThreadCount);
+        var problem = solutionFileIO.read(unsolvedDataFile);
         logger.info("Opened: {}", unsolvedDataFile);
-        Solver<Solution_> solver = solverFactory.buildSolver();
-        Solution_ bestSolution = solver.solve(problem);
+        var solver = solverFactory.buildSolver();
+        var bestSolution = solver.solve(problem);
         assertScoreAndConstraintMatches(solverFactory, bestSolution, bestScoreLimit);
     }
 
     private SolverFactory<Solution_> buildSpeedSolverFactory(Score_ bestScoreLimit, EnvironmentMode environmentMode,
             String moveThreadCount) {
-        SolverConfig solverConfig = SolverConfig.createFromXmlResource(solverConfigResource);
+        var solverConfig = SolverConfig.createFromXmlResource(solverConfigResource);
         solverConfig.withEnvironmentMode(environmentMode)
                 .withTerminationConfig(new TerminationConfig()
                         .withBestScoreLimit(bestScoreLimit.toString()))
                 .withMoveThreadCount(moveThreadCount);
-        ScoreDirectorFactoryConfig scoreDirectorFactoryConfig =
+        var scoreDirectorFactoryConfig =
                 Objects.requireNonNullElseGet(solverConfig.getScoreDirectorFactoryConfig(),
                         ScoreDirectorFactoryConfig::new);
         if (scoreDirectorFactoryConfig.getConstraintProviderClass() == null) {
@@ -136,22 +133,16 @@ public abstract class SolverSmokeTest<Solution_, Score_ extends Score<Score_>> e
     private void assertScoreAndConstraintMatches(SolverFactory<Solution_> solverFactory, Solution_ bestSolution,
             Score_ bestScoreLimit) {
         assertThat(bestSolution).isNotNull();
-        SolutionManager<Solution_, Score_> solutionManager = SolutionManager.create(solverFactory);
-        Score_ bestScore = solutionManager.update(bestSolution);
+        var solutionManager = SolutionManager.<Solution_, Score_> create(solverFactory);
+        var bestScore = solutionManager.update(bestSolution);
         assertThat(bestScore)
-                .as("The bestScore (" + bestScore + ") must be at least the bestScoreLimit (" + bestScoreLimit + ").")
+                .as("The bestScore (%s) must be at least the bestScoreLimit (%s)."
+                        .formatted(bestScore, bestScoreLimit))
                 .isGreaterThanOrEqualTo(bestScoreLimit);
 
-        ScoreExplanation<Solution_, Score_> scoreExplanation = solutionManager.explain(bestSolution);
-        Map<String, ConstraintMatchTotal<Score_>> constraintMatchTotals =
-                scoreExplanation.getConstraintMatchTotalMap();
-        assertThat(constraintMatchTotals).isNotNull();
-        assertThat(constraintMatchTotals.values().stream()
-                .map(ConstraintMatchTotal::getScore)
-                .reduce(Score::add)
-                .orElse(bestScore.zero()))
-                .isEqualTo(scoreExplanation.getScore());
-        assertThat(scoreExplanation.getIndictmentMap()).isNotNull();
+        var scoreAnalysis = solutionManager.analyze(bestSolution);
+        assertThat(bestScore)
+                .isEqualTo(scoreAnalysis.score());
     }
 
     protected static class TestData<Score_ extends Score<Score_>> {

@@ -4,7 +4,6 @@ import ai.timefold.solver.benchmarks.examples.common.TestSystemProperties;
 import ai.timefold.solver.benchmarks.examples.common.app.CommonApp;
 import ai.timefold.solver.benchmarks.examples.common.app.UnsolvedDirSolveAllTurtleTest;
 import ai.timefold.solver.benchmarks.examples.flowshop.domain.JobScheduleSolution;
-import ai.timefold.solver.benchmarks.examples.flowshop.score.FlowShopEasyScoreCalculator;
 
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
@@ -16,8 +15,4 @@ class FlowShopSolveAllTurtleTest extends UnsolvedDirSolveAllTurtleTest<JobSchedu
         return new FlowShopApp();
     }
 
-    @Override
-    protected Class<FlowShopEasyScoreCalculator> overwritingEasyScoreCalculatorClass() {
-        return FlowShopEasyScoreCalculator.class;
-    }
 }

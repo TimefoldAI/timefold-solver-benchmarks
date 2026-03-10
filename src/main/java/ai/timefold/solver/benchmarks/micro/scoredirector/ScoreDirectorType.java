@@ -5,8 +5,6 @@ import java.util.Objects;
 import ai.timefold.solver.benchmarks.micro.scoredirector.jmh.AbstractBenchmark;
 import ai.timefold.solver.benchmarks.micro.scoredirector.jmh.ConstraintStreamsBenchmark;
 import ai.timefold.solver.benchmarks.micro.scoredirector.jmh.ConstraintStreamsJustifiedBenchmark;
-import ai.timefold.solver.benchmarks.micro.scoredirector.jmh.EasyBenchmark;
-import ai.timefold.solver.benchmarks.micro.scoredirector.jmh.IncrementalBenchmark;
 import ai.timefold.solver.core.api.score.Score;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
 import ai.timefold.solver.core.config.solver.EnvironmentMode;
@@ -19,10 +17,8 @@ import ai.timefold.solver.core.impl.score.director.ScoreDirectorFactoryFactory;
  */
 public enum ScoreDirectorType implements Comparable<ScoreDirectorType> {
 
-    EASY(EasyBenchmark.class, "easyExample"),
     CONSTRAINT_STREAMS_JUSTIFIED(ConstraintStreamsJustifiedBenchmark.class, "csJustifiedExample"),
-    CONSTRAINT_STREAMS(ConstraintStreamsBenchmark.class, "csExample"),
-    INCREMENTAL(IncrementalBenchmark.class, "incrementalExample");
+    CONSTRAINT_STREAMS(ConstraintStreamsBenchmark.class, "csExample");
 
     private final Class<? extends AbstractBenchmark> benchmarkClass;
     private final String benchmarkParamName;

@@ -43,7 +43,7 @@ public abstract class AbstractConfiguration {
                     .map(e -> Arrays.stream(values)
                             .filter(value -> value.toString().equalsIgnoreCase(e))
                             .findFirst()
-                            .orElseThrow(() -> new IllegalArgumentException("Unknown example: " + e)))
+                            .orElseThrow(() -> new IllegalArgumentException("Unknown example (%s)".formatted(e))))
                     .collect(Collectors.toList());
         }
     }

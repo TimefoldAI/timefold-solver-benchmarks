@@ -2,8 +2,6 @@ package ai.timefold.solver.benchmarks.micro.scoredirector.problems;
 
 import ai.timefold.solver.benchmarks.examples.cloudbalancing.domain.CloudBalance;
 import ai.timefold.solver.benchmarks.examples.cloudbalancing.domain.CloudProcess;
-import ai.timefold.solver.benchmarks.examples.cloudbalancing.optional.score.CloudBalancingIncrementalScoreCalculator;
-import ai.timefold.solver.benchmarks.examples.cloudbalancing.optional.score.CloudBalancingMapBasedEasyScoreCalculator;
 import ai.timefold.solver.benchmarks.examples.cloudbalancing.persistence.CloudBalanceSolutionFileIO;
 import ai.timefold.solver.benchmarks.examples.cloudbalancing.score.CloudBalancingConstraintProvider;
 import ai.timefold.solver.benchmarks.micro.scoredirector.Example;
@@ -24,10 +22,7 @@ public final class CloudBalancingProblem extends AbstractProblem<CloudBalance> {
         return switch (scoreDirectorType) {
             case CONSTRAINT_STREAMS, CONSTRAINT_STREAMS_JUSTIFIED ->
                 scoreDirectorFactoryConfig.withConstraintProviderClass(CloudBalancingConstraintProvider.class);
-            case EASY ->
-                scoreDirectorFactoryConfig.withEasyScoreCalculatorClass(CloudBalancingMapBasedEasyScoreCalculator.class);
-            case INCREMENTAL ->
-                scoreDirectorFactoryConfig.withIncrementalScoreCalculatorClass(CloudBalancingIncrementalScoreCalculator.class);
+            default -> throw new UnsupportedOperationException("Score director: %s".formatted(scoreDirectorType));
         };
     }
 

@@ -16,7 +16,7 @@
         <initializingScoreTrend>ONLY_DOWN</initializingScoreTrend>
     </scoreDirectorFactory>
     <termination>
-        <minutesSpentLimit>2</minutesSpentLimit>
+        <minutesSpentLimit>1</minutesSpentLimit>
     </termination>
     <customPhase>
         <customPhaseCommandClass>ai.timefold.solver.benchmarks.examples.flowshop.phase.NEHCustomPhase

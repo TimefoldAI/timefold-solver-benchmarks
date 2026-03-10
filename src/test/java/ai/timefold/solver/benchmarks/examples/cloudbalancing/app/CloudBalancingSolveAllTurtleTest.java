@@ -1,7 +1,6 @@
 package ai.timefold.solver.benchmarks.examples.cloudbalancing.app;
 
 import ai.timefold.solver.benchmarks.examples.cloudbalancing.domain.CloudBalance;
-import ai.timefold.solver.benchmarks.examples.cloudbalancing.optional.score.CloudBalancingMapBasedEasyScoreCalculator;
 import ai.timefold.solver.benchmarks.examples.common.TestSystemProperties;
 import ai.timefold.solver.benchmarks.examples.common.app.CommonApp;
 import ai.timefold.solver.benchmarks.examples.common.app.UnsolvedDirSolveAllTurtleTest;
@@ -16,8 +15,4 @@ class CloudBalancingSolveAllTurtleTest extends UnsolvedDirSolveAllTurtleTest<Clo
         return new CloudBalancingApp();
     }
 
-    @Override
-    protected Class<CloudBalancingMapBasedEasyScoreCalculator> overwritingEasyScoreCalculatorClass() {
-        return CloudBalancingMapBasedEasyScoreCalculator.class;
-    }
 }
