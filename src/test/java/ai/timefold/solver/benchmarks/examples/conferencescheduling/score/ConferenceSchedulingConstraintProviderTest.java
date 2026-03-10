@@ -1,12 +1,13 @@
 package ai.timefold.solver.benchmarks.examples.conferencescheduling.score;
 
 import static java.util.Collections.emptySet;
-import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.SequencedSet;
+import java.util.Set;
 
 import ai.timefold.solver.benchmarks.examples.common.score.AbstractConstraintProviderTest;
 import ai.timefold.solver.benchmarks.examples.common.score.ConstraintProviderTest;
@@ -45,6 +46,14 @@ class ConferenceSchedulingConstraintProviderTest
             .withStartDateTime(START.plusDays(2))
             .withEndDateTime(START.plusDays(1).plusHours(1))
             .withTagSet(singleton("c"));
+
+    private static <T> SequencedSet<T> emptySet() {
+        return new LinkedHashSet<>();
+    }
+
+    private static <T> SequencedSet<T> singleton(T element) {
+        return new LinkedHashSet<>(Set.of(element));
+    }
 
     // ************************************************************************
     // Hard constraints
@@ -130,11 +139,11 @@ class ConferenceSchedulingConstraintProviderTest
                 .withTimeslot(MONDAY_9_TO_10);
         Talk talk2 = new Talk(2)
                 .withRoom(room)
-                .withMutuallyExclusiveTalksTagSet(new HashSet<>(Arrays.asList("a", "b")))
+                .withMutuallyExclusiveTalksTagSet(new LinkedHashSet<>(Arrays.asList("a", "b")))
                 .withTimeslot(MONDAY_9_TO_10);
         Talk talk3 = new Talk(3)
                 .withRoom(room)
-                .withMutuallyExclusiveTalksTagSet(new HashSet<>(Arrays.asList("a", "b", "c")))
+                .withMutuallyExclusiveTalksTagSet(new LinkedHashSet<>(Arrays.asList("a", "b", "c")))
                 .withTimeslot(MONDAY_9_TO_10);
 
         constraintVerifier.verifyThat(
@@ -263,7 +272,7 @@ class ConferenceSchedulingConstraintProviderTest
                 .withTagSet(singleton("a"));
         Talk talk1 = new Talk(1)
                 .withRoom(room)
-                .withRequiredRoomTagSet(new HashSet<>(Arrays.asList("a", "b")))
+                .withRequiredRoomTagSet(new LinkedHashSet<>(Arrays.asList("a", "b")))
                 .withTimeslot(MONDAY_9_TO_10);
         Talk talk2 = new Talk(2)
                 .withRoom(room)
@@ -283,7 +292,7 @@ class ConferenceSchedulingConstraintProviderTest
                 .withTagSet(singleton("a"));
         Talk talk1 = new Talk(1)
                 .withRoom(room)
-                .withProhibitedRoomTagSet(new HashSet<>(Arrays.asList("a", "b")))
+                .withProhibitedRoomTagSet(new LinkedHashSet<>(Arrays.asList("a", "b")))
                 .withTimeslot(MONDAY_9_TO_10);
         Talk talk2 = new Talk(2)
                 .withRoom(room)
@@ -563,7 +572,7 @@ class ConferenceSchedulingConstraintProviderTest
     }
 
     @ConstraintProviderTest
-    void sameDayTalks(
+    void contentConflictSameDayTalks(
             ConstraintVerifier<ConferenceSchedulingConstraintProvider, ConferenceSolution> constraintVerifier) {
         Room room = new Room(0);
         Talk talk1 = new Talk(1)
@@ -598,9 +607,50 @@ class ConferenceSchedulingConstraintProviderTest
                 .withTimeslot(TUESDAY_9_TO_10);
 
         constraintVerifier.verifyThat(
-                ConferenceSchedulingConstraintProvider::sameDayTalks)
+                ConferenceSchedulingConstraintProvider::contentConflictSameDay)
                 .given(talk1, talk2, talk3, talk4, talk5, talk6)
-                .penalizesBy(960);
+                .penalizesBy(480);
+    }
+
+    @ConstraintProviderTest
+    void themeTrackConflictSameDayTalks(
+            ConstraintVerifier<ConferenceSchedulingConstraintProvider, ConferenceSolution> constraintVerifier) {
+        Room room = new Room(0);
+        Talk talk1 = new Talk(1)
+                .withRoom(room)
+                .withContentTagSet(singleton("a"))
+                .withThemeTrackTagSet(singleton("a"))
+                .withTimeslot(MONDAY_9_TO_10);
+        Talk talk2 = new Talk(3)
+                .withRoom(room)
+                .withContentTagSet(singleton("b"))
+                .withThemeTrackTagSet(singleton("a"))
+                .withTimeslot(TUESDAY_9_TO_10);
+        Talk talk3 = new Talk(4)
+                .withRoom(room)
+                .withContentTagSet(singleton("a"))
+                .withThemeTrackTagSet(singleton("a"))
+                .withTimeslot(TUESDAY_9_TO_10);
+        Talk talk4 = new Talk(5)
+                .withRoom(room)
+                .withContentTagSet(singleton("a"))
+                .withThemeTrackTagSet(singleton("b"))
+                .withTimeslot(MONDAY_9_TO_10);
+        Talk talk5 = new Talk(7)
+                .withRoom(room)
+                .withContentTagSet(singleton("b"))
+                .withThemeTrackTagSet(singleton("b"))
+                .withTimeslot(TUESDAY_9_TO_10);
+        Talk talk6 = new Talk(8)
+                .withRoom(room)
+                .withContentTagSet(singleton("a"))
+                .withThemeTrackTagSet(singleton("b"))
+                .withTimeslot(TUESDAY_9_TO_10);
+
+        constraintVerifier.verifyThat(
+                ConferenceSchedulingConstraintProvider::themeTrackConflictSameDay)
+                .given(talk1, talk2, talk3, talk4, talk5, talk6)
+                .penalizesBy(480);
     }
 
     @ConstraintProviderTest
@@ -684,7 +734,7 @@ class ConferenceSchedulingConstraintProviderTest
                 .withTagSet(singleton("a"));
         Talk talk1 = new Talk(1)
                 .withRoom(room)
-                .withPreferredRoomTagSet(new HashSet<>(Arrays.asList("a", "b")))
+                .withPreferredRoomTagSet(new LinkedHashSet<>(Arrays.asList("a", "b")))
                 .withTimeslot(MONDAY_9_TO_10);
         Talk talk2 = new Talk(2)
                 .withRoom(room)
@@ -704,7 +754,7 @@ class ConferenceSchedulingConstraintProviderTest
                 .withTagSet(singleton("a"));
         Talk talk1 = new Talk(1)
                 .withRoom(room)
-                .withUndesiredRoomTagSet(new HashSet<>(Arrays.asList("a", "b")))
+                .withUndesiredRoomTagSet(new LinkedHashSet<>(Arrays.asList("a", "b")))
                 .withTimeslot(MONDAY_9_TO_10);
         Talk talk2 = new Talk(2)
                 .withRoom(room)
