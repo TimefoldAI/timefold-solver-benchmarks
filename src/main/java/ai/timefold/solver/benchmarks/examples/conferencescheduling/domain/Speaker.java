@@ -1,6 +1,7 @@
 
 package ai.timefold.solver.benchmarks.examples.conferencescheduling.domain;
 
+import java.util.SequencedSet;
 import java.util.Set;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
@@ -13,7 +14,7 @@ public class Speaker extends AbstractPersistable {
 
     private String name;
 
-    private Set<Timeslot> unavailableTimeslotSet;
+    private SequencedSet<Timeslot> unavailableTimeslotSet;
     private Set<String> preferredTimeslotTagSet;
     private Set<String> undesiredTimeslotTagSet;
     private Set<String> requiredRoomTagSet;
@@ -45,11 +46,11 @@ public class Speaker extends AbstractPersistable {
         this.name = name;
     }
 
-    public Set<Timeslot> getUnavailableTimeslotSet() {
+    public SequencedSet<Timeslot> getUnavailableTimeslotSet() {
         return unavailableTimeslotSet;
     }
 
-    public void setUnavailableTimeslotSet(Set<Timeslot> unavailableTimeslotSet) {
+    public void setUnavailableTimeslotSet(SequencedSet<Timeslot> unavailableTimeslotSet) {
         this.unavailableTimeslotSet = unavailableTimeslotSet;
     }
 
@@ -105,7 +106,7 @@ public class Speaker extends AbstractPersistable {
     // With methods
     // ************************************************************************
 
-    public Speaker withUnavailableTimeslotSet(Set<Timeslot> unavailableTimeslotTest) {
+    public Speaker withUnavailableTimeslotSet(SequencedSet<Timeslot> unavailableTimeslotTest) {
         this.unavailableTimeslotSet = unavailableTimeslotTest;
         return this;
     }

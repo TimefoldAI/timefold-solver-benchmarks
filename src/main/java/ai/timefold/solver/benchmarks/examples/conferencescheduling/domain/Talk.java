@@ -1,6 +1,7 @@
 package ai.timefold.solver.benchmarks.examples.conferencescheduling.domain;
 
 import java.util.List;
+import java.util.SequencedSet;
 import java.util.Set;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
@@ -21,18 +22,18 @@ public class Talk extends AbstractPersistable {
     private String title;
     private TalkType talkType;
     private List<Speaker> speakerList;
-    private Set<String> themeTrackTagSet;
-    private Set<String> sectorTagSet;
-    private Set<String> audienceTypeSet;
+    private SequencedSet<String> themeTrackTagSet;
+    private SequencedSet<String> sectorTagSet;
+    private SequencedSet<String> audienceTypeSet;
     private int audienceLevel;
-    private Set<String> contentTagSet;
+    private SequencedSet<String> contentTagSet;
     private String language;
-    private Set<String> requiredRoomTagSet;
-    private Set<String> preferredRoomTagSet;
-    private Set<String> prohibitedRoomTagSet;
-    private Set<String> undesiredRoomTagSet;
-    private Set<String> mutuallyExclusiveTalksTagSet;
-    private Set<Talk> prerequisiteTalkSet;
+    private SequencedSet<String> requiredRoomTagSet;
+    private SequencedSet<String> preferredRoomTagSet;
+    private SequencedSet<String> prohibitedRoomTagSet;
+    private SequencedSet<String> undesiredRoomTagSet;
+    private SequencedSet<String> mutuallyExclusiveTalksTagSet;
+    private SequencedSet<Talk> prerequisiteTalkSet;
     private int favoriteCount;
     private int crowdControlRisk;
 
@@ -297,27 +298,27 @@ public class Talk extends AbstractPersistable {
         return speakerList;
     }
 
-    public Set<String> getThemeTrackTagSet() {
+    public SequencedSet<String> getThemeTrackTagSet() {
         return themeTrackTagSet;
     }
 
-    public void setThemeTrackTagSet(Set<String> themeTrackTagSet) {
+    public void setThemeTrackTagSet(SequencedSet<String> themeTrackTagSet) {
         this.themeTrackTagSet = themeTrackTagSet;
     }
 
-    public Set<String> getSectorTagSet() {
+    public SequencedSet<String> getSectorTagSet() {
         return sectorTagSet;
     }
 
-    public void setSectorTagSet(Set<String> sectorTagSet) {
+    public void setSectorTagSet(SequencedSet<String> sectorTagSet) {
         this.sectorTagSet = sectorTagSet;
     }
 
-    public Set<String> getAudienceTypeSet() {
+    public SequencedSet<String> getAudienceTypeSet() {
         return audienceTypeSet;
     }
 
-    public void setAudienceTypeSet(Set<String> audienceTypeSet) {
+    public void setAudienceTypeSet(SequencedSet<String> audienceTypeSet) {
         this.audienceTypeSet = audienceTypeSet;
     }
 
@@ -329,11 +330,11 @@ public class Talk extends AbstractPersistable {
         this.audienceLevel = audienceLevel;
     }
 
-    public Set<String> getContentTagSet() {
+    public SequencedSet<String> getContentTagSet() {
         return contentTagSet;
     }
 
-    public void setContentTagSet(Set<String> contentTagSet) {
+    public void setContentTagSet(SequencedSet<String> contentTagSet) {
         this.contentTagSet = contentTagSet;
     }
 
@@ -345,35 +346,35 @@ public class Talk extends AbstractPersistable {
         this.speakerList = speakerList;
     }
 
-    public Set<String> getRequiredRoomTagSet() {
+    public SequencedSet<String> getRequiredRoomTagSet() {
         return requiredRoomTagSet;
     }
 
-    public void setRequiredRoomTagSet(Set<String> requiredRoomTagSet) {
+    public void setRequiredRoomTagSet(SequencedSet<String> requiredRoomTagSet) {
         this.requiredRoomTagSet = requiredRoomTagSet;
     }
 
-    public Set<String> getPreferredRoomTagSet() {
+    public SequencedSet<String> getPreferredRoomTagSet() {
         return preferredRoomTagSet;
     }
 
-    public void setPreferredRoomTagSet(Set<String> preferredRoomTagSet) {
+    public void setPreferredRoomTagSet(SequencedSet<String> preferredRoomTagSet) {
         this.preferredRoomTagSet = preferredRoomTagSet;
     }
 
-    public Set<String> getProhibitedRoomTagSet() {
+    public SequencedSet<String> getProhibitedRoomTagSet() {
         return prohibitedRoomTagSet;
     }
 
-    public void setProhibitedRoomTagSet(Set<String> prohibitedRoomTagSet) {
+    public void setProhibitedRoomTagSet(SequencedSet<String> prohibitedRoomTagSet) {
         this.prohibitedRoomTagSet = prohibitedRoomTagSet;
     }
 
-    public Set<String> getUndesiredRoomTagSet() {
+    public SequencedSet<String> getUndesiredRoomTagSet() {
         return undesiredRoomTagSet;
     }
 
-    public void setUndesiredRoomTagSet(Set<String> undesiredRoomTagSet) {
+    public void setUndesiredRoomTagSet(SequencedSet<String> undesiredRoomTagSet) {
         this.undesiredRoomTagSet = undesiredRoomTagSet;
     }
 
@@ -401,19 +402,19 @@ public class Talk extends AbstractPersistable {
         this.room = room;
     }
 
-    public Set<String> getMutuallyExclusiveTalksTagSet() {
+    public SequencedSet<String> getMutuallyExclusiveTalksTagSet() {
         return mutuallyExclusiveTalksTagSet;
     }
 
-    public void setMutuallyExclusiveTalksTagSet(Set<String> mutuallyExclusiveTalksTagSet) {
+    public void setMutuallyExclusiveTalksTagSet(SequencedSet<String> mutuallyExclusiveTalksTagSet) {
         this.mutuallyExclusiveTalksTagSet = mutuallyExclusiveTalksTagSet;
     }
 
-    public Set<Talk> getPrerequisiteTalkSet() {
+    public SequencedSet<Talk> getPrerequisiteTalkSet() {
         return prerequisiteTalkSet;
     }
 
-    public void setPrerequisiteTalkSet(Set<Talk> prerequisiteTalkSet) {
+    public void setPrerequisiteTalkSet(SequencedSet<Talk> prerequisiteTalkSet) {
         this.prerequisiteTalkSet = prerequisiteTalkSet;
     }
 
@@ -447,17 +448,17 @@ public class Talk extends AbstractPersistable {
         return this;
     }
 
-    public Talk withThemeTrackTagSet(Set<String> themeTrackTagSet) {
+    public Talk withThemeTrackTagSet(SequencedSet<String> themeTrackTagSet) {
         this.themeTrackTagSet = themeTrackTagSet;
         return this;
     }
 
-    public Talk withSectorTagSet(Set<String> sectorTagSet) {
+    public Talk withSectorTagSet(SequencedSet<String> sectorTagSet) {
         this.sectorTagSet = sectorTagSet;
         return this;
     }
 
-    public Talk withAudienceTypeSet(Set<String> audienceTypeSet) {
+    public Talk withAudienceTypeSet(SequencedSet<String> audienceTypeSet) {
         this.audienceTypeSet = audienceTypeSet;
         return this;
     }
@@ -467,7 +468,7 @@ public class Talk extends AbstractPersistable {
         return this;
     }
 
-    public Talk withContentTagSet(Set<String> contentTagSet) {
+    public Talk withContentTagSet(SequencedSet<String> contentTagSet) {
         this.contentTagSet = contentTagSet;
         return this;
     }
@@ -477,32 +478,32 @@ public class Talk extends AbstractPersistable {
         return this;
     }
 
-    public Talk withRequiredRoomTagSet(Set<String> requiredRoomTagSet) {
+    public Talk withRequiredRoomTagSet(SequencedSet<String> requiredRoomTagSet) {
         this.requiredRoomTagSet = requiredRoomTagSet;
         return this;
     }
 
-    public Talk withPreferredRoomTagSet(Set<String> preferredRoomTagSet) {
+    public Talk withPreferredRoomTagSet(SequencedSet<String> preferredRoomTagSet) {
         this.preferredRoomTagSet = preferredRoomTagSet;
         return this;
     }
 
-    public Talk withProhibitedRoomTagSet(Set<String> prohibitedRoomTagSet) {
+    public Talk withProhibitedRoomTagSet(SequencedSet<String> prohibitedRoomTagSet) {
         this.prohibitedRoomTagSet = prohibitedRoomTagSet;
         return this;
     }
 
-    public Talk withUndesiredRoomTagSet(Set<String> undesiredRoomTagSet) {
+    public Talk withUndesiredRoomTagSet(SequencedSet<String> undesiredRoomTagSet) {
         this.undesiredRoomTagSet = undesiredRoomTagSet;
         return this;
     }
 
-    public Talk withMutuallyExclusiveTalksTagSet(Set<String> mutuallyExclusiveTalksTagSet) {
+    public Talk withMutuallyExclusiveTalksTagSet(SequencedSet<String> mutuallyExclusiveTalksTagSet) {
         this.mutuallyExclusiveTalksTagSet = mutuallyExclusiveTalksTagSet;
         return this;
     }
 
-    public Talk withPrerequisiteTalksCodesSet(Set<Talk> prerequisiteTalksCodesSet) {
+    public Talk withPrerequisiteTalksCodesSet(SequencedSet<Talk> prerequisiteTalksCodesSet) {
         this.prerequisiteTalkSet = prerequisiteTalksCodesSet;
         return this;
     }

@@ -1,6 +1,6 @@
 package ai.timefold.solver.benchmarks.examples.curriculumcourse.domain;
 
-import java.util.Set;
+import java.util.SequencedSet;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
 import ai.timefold.solver.benchmarks.examples.curriculumcourse.domain.solver.LectureComparatorFactory;
@@ -101,7 +101,7 @@ public class Lecture extends AbstractPersistable {
     }
 
     @JsonIgnore
-    public Set<Curriculum> getCurriculumSet() {
+    public SequencedSet<Curriculum> getCurriculumSet() {
         return course.getCurriculumSet();
     }
 
