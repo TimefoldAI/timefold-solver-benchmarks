@@ -1,13 +1,12 @@
 package ai.timefold.solver.benchmarks.examples.conferencescheduling.score;
 
-import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.SequencedSet;
+import java.util.Set;
 
 import ai.timefold.solver.benchmarks.examples.common.score.AbstractConstraintProviderTest;
 import ai.timefold.solver.benchmarks.examples.common.score.ConstraintProviderTest;
@@ -47,8 +46,12 @@ class ConferenceSchedulingConstraintProviderTest
             .withEndDateTime(START.plusDays(1).plusHours(1))
             .withTagSet(singleton("c"));
 
-    private static <T> SequencedSet<T> singleton(T item) {
-        return new LinkedHashSet<>(Collections.singleton(item));
+    private static <T> SequencedSet<T> emptySet() {
+        return new LinkedHashSet<>();
+    }
+
+    private static <T> SequencedSet<T> singleton(T element) {
+        return new LinkedHashSet<>(Set.of(element));
     }
 
     // ************************************************************************
