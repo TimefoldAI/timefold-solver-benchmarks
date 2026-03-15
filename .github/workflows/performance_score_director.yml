@@ -27,7 +27,7 @@ on:
         required: true
       baseline:
         description: 'Baseline branch or tag (branches need to use 999-SNAPSHOT)'
-        default: 'v1.30.0'
+        default: 'v2.0.0-beta-1'
         required: true
       jdk_branch:
         description: 'JDK version'
