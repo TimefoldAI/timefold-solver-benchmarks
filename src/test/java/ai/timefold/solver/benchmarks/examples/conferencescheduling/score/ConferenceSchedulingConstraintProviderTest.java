@@ -1,13 +1,12 @@
 package ai.timefold.solver.benchmarks.examples.conferencescheduling.score;
 
-import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.SequencedSet;
+import java.util.Set;
 
 import ai.timefold.solver.benchmarks.examples.common.score.AbstractConstraintProviderTest;
 import ai.timefold.solver.benchmarks.examples.common.score.ConstraintProviderTest;
@@ -47,8 +46,12 @@ class ConferenceSchedulingConstraintProviderTest
             .withEndDateTime(START.plusDays(1).plusHours(1))
             .withTagSet(singleton("c"));
 
-    private static <T> SequencedSet<T> singleton(T item) {
-        return new LinkedHashSet<>(Collections.singleton(item));
+    private static <T> SequencedSet<T> emptySet() {
+        return new LinkedHashSet<>();
+    }
+
+    private static <T> SequencedSet<T> singleton(T element) {
+        return new LinkedHashSet<>(Set.of(element));
     }
 
     // ************************************************************************
@@ -568,7 +571,7 @@ class ConferenceSchedulingConstraintProviderTest
     }
 
     @ConstraintProviderTest
-    void sameDayTalks(
+    void contentConflictSameDayTalks(
             ConstraintVerifier<ConferenceSchedulingConstraintProvider, ConferenceSolution> constraintVerifier) {
         Room room = new Room(0);
         Talk talk1 = new Talk(1)
@@ -603,9 +606,50 @@ class ConferenceSchedulingConstraintProviderTest
                 .withTimeslot(TUESDAY_9_TO_10);
 
         constraintVerifier.verifyThat(
-                ConferenceSchedulingConstraintProvider::sameDayTalks)
+                ConferenceSchedulingConstraintProvider::contentConflictSameDay)
                 .given(talk1, talk2, talk3, talk4, talk5, talk6)
-                .penalizesBy(960);
+                .penalizesBy(480);
+    }
+
+    @ConstraintProviderTest
+    void themeTrackConflictSameDayTalks(
+            ConstraintVerifier<ConferenceSchedulingConstraintProvider, ConferenceSolution> constraintVerifier) {
+        Room room = new Room(0);
+        Talk talk1 = new Talk(1)
+                .withRoom(room)
+                .withContentTagSet(singleton("a"))
+                .withThemeTrackTagSet(singleton("a"))
+                .withTimeslot(MONDAY_9_TO_10);
+        Talk talk2 = new Talk(3)
+                .withRoom(room)
+                .withContentTagSet(singleton("b"))
+                .withThemeTrackTagSet(singleton("a"))
+                .withTimeslot(TUESDAY_9_TO_10);
+        Talk talk3 = new Talk(4)
+                .withRoom(room)
+                .withContentTagSet(singleton("a"))
+                .withThemeTrackTagSet(singleton("a"))
+                .withTimeslot(TUESDAY_9_TO_10);
+        Talk talk4 = new Talk(5)
+                .withRoom(room)
+                .withContentTagSet(singleton("a"))
+                .withThemeTrackTagSet(singleton("b"))
+                .withTimeslot(MONDAY_9_TO_10);
+        Talk talk5 = new Talk(7)
+                .withRoom(room)
+                .withContentTagSet(singleton("b"))
+                .withThemeTrackTagSet(singleton("b"))
+                .withTimeslot(TUESDAY_9_TO_10);
+        Talk talk6 = new Talk(8)
+                .withRoom(room)
+                .withContentTagSet(singleton("a"))
+                .withThemeTrackTagSet(singleton("b"))
+                .withTimeslot(TUESDAY_9_TO_10);
+
+        constraintVerifier.verifyThat(
+                ConferenceSchedulingConstraintProvider::themeTrackConflictSameDay)
+                .given(talk1, talk2, talk3, talk4, talk5, talk6)
+                .penalizesBy(480);
     }
 
     @ConstraintProviderTest

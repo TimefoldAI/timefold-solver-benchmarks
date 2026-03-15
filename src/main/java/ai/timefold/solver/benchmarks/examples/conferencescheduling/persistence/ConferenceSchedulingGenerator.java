@@ -412,8 +412,8 @@ public class ConferenceSchedulingGenerator extends LoggingMain {
             if (random.nextDouble() < 0.20) {
                 sectorTagSet.add(sectorTagOptions.get(random.nextInt(sectorTagOptions.size())));
             }
-            var audienceType = audienceTypeOptions.get(random.nextInt(audienceTypeOptions.size()));
-            talk.setAudienceTypeSet(new LinkedHashSet<>(Collections.singleton(audienceType)));
+            talk.setAudienceTypeSet(new LinkedHashSet<>(
+                    Collections.singleton(audienceTypeOptions.get(random.nextInt(audienceTypeOptions.size())))));
             talk.setAudienceLevel(1 + random.nextInt(3));
             var contentTagSet = new LinkedHashSet<String>();
             for (var contentTagOption : contentTagOptions) {
