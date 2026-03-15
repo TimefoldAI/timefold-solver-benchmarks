@@ -5,7 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.SequencedSet;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
 import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.JacksonUniqueIdGenerator;
@@ -25,7 +25,7 @@ public class Employee extends AbstractPersistable {
 
     private String fullName;
 
-    private Set<Skill> skillSet;
+    private SequencedSet<Skill> skillSet;
     private Map<Customer, Affinity> affinityMap;
 
     @PlanningListVariable(allowsUnassignedValues = true)
@@ -50,11 +50,11 @@ public class Employee extends AbstractPersistable {
         this.fullName = fullName;
     }
 
-    public Set<Skill> getSkillSet() {
+    public SequencedSet<Skill> getSkillSet() {
         return skillSet;
     }
 
-    public void setSkillSet(Set<Skill> skillSet) {
+    public void setSkillSet(SequencedSet<Skill> skillSet) {
         this.skillSet = skillSet;
     }
 

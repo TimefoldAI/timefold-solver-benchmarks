@@ -9,6 +9,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.SequencedSet;
 import java.util.Set;
 
 import ai.timefold.solver.benchmarks.examples.common.app.CommonApp;
@@ -194,7 +195,7 @@ public class TaskAssigningGenerator extends LoggingMain {
             if (skillSetSize > skillList.size()) {
                 skillSetSize = skillList.size();
             }
-            Set<Skill> skillSet = new LinkedHashSet<>(skillSetSize);
+            SequencedSet<Skill> skillSet = new LinkedHashSet<>(skillSetSize);
             for (int j = 0; j < skillSetSize; j++) {
                 skillSet.add(skillList.get(skillListIndex));
                 skillListIndex = (skillListIndex + 1) % skillList.size();
@@ -219,20 +220,12 @@ public class TaskAssigningGenerator extends LoggingMain {
         taskTypeNameGenerator.predictMaximumSizeAndReset(taskTypeListSize);
         for (int i = 0; i < taskTypeListSize; i++) {
             String title = taskTypeNameGenerator.generateNextValue();
-            String code;
-            switch (title.replaceAll("[^ ]", "").length() + 1) {
-                case 3:
-                    code = title.replaceAll("(\\w)\\w* (\\w)\\w* (\\w)\\w*", "$1$2$3");
-                    break;
-                case 2:
-                    code = title.replaceAll("(\\w)\\w* (\\w)\\w*", "$1$2");
-                    break;
-                case 1:
-                    code = title.replaceAll("(\\w)\\w*", "$1");
-                    break;
-                default:
-                    throw new IllegalStateException("Cannot convert title (" + title + ") into a code.");
-            }
+            String code = switch (title.replaceAll("[^ ]", "").length() + 1) {
+                case 3 -> title.replaceAll("(\\w)\\w* (\\w)\\w* (\\w)\\w*", "$1$2$3");
+                case 2 -> title.replaceAll("(\\w)\\w* (\\w)\\w*", "$1$2");
+                case 1 -> title.replaceAll("(\\w)\\w*", "$1");
+                default -> throw new IllegalStateException("Cannot convert title (" + title + ") into a code.");
+            };
             if (codeSet.contains(code)) {
                 int codeSuffixNumber = 1;
                 while (codeSet.contains(code + codeSuffixNumber)) {

@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
+import java.util.SequencedSet;
 import java.util.Set;
 
 import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractTxtSolutionImporter;
@@ -116,7 +117,7 @@ public class ExaminationImporter extends AbstractTxtSolutionImporter<Examination
                 var line = bufferedReader.readLine();
                 var lineTokens = line.split(SPLIT_REGEX);
                 topic.setDuration(Integer.parseInt(lineTokens[0]));
-                Set<Student> topicStudentList = new LinkedHashSet<>(lineTokens.length - 1);
+                SequencedSet<Student> topicStudentList = new LinkedHashSet<>(lineTokens.length - 1);
                 for (var j = 1; j < lineTokens.length; j++) {
                     topicStudentList.add(findOrCreateStudent(studentMap, Integer.parseInt(lineTokens[j])));
                 }

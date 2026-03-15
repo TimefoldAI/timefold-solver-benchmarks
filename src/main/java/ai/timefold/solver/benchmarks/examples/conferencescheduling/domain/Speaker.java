@@ -1,7 +1,7 @@
 
 package ai.timefold.solver.benchmarks.examples.conferencescheduling.domain;
 
-import java.util.Set;
+import java.util.SequencedSet;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
 import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.JacksonUniqueIdGenerator;
@@ -13,13 +13,13 @@ public class Speaker extends AbstractPersistable {
 
     private String name;
 
-    private Set<Timeslot> unavailableTimeslotSet;
-    private Set<String> preferredTimeslotTagSet;
-    private Set<String> undesiredTimeslotTagSet;
-    private Set<String> requiredRoomTagSet;
-    private Set<String> preferredRoomTagSet;
-    private Set<String> prohibitedRoomTagSet;
-    private Set<String> undesiredRoomTagSet;
+    private SequencedSet<Timeslot> unavailableTimeslotSet;
+    private SequencedSet<String> preferredTimeslotTagSet;
+    private SequencedSet<String> undesiredTimeslotTagSet;
+    private SequencedSet<String> requiredRoomTagSet;
+    private SequencedSet<String> preferredRoomTagSet;
+    private SequencedSet<String> prohibitedRoomTagSet;
+    private SequencedSet<String> undesiredRoomTagSet;
 
     public Speaker() {
     }
@@ -45,59 +45,59 @@ public class Speaker extends AbstractPersistable {
         this.name = name;
     }
 
-    public Set<Timeslot> getUnavailableTimeslotSet() {
+    public SequencedSet<Timeslot> getUnavailableTimeslotSet() {
         return unavailableTimeslotSet;
     }
 
-    public void setUnavailableTimeslotSet(Set<Timeslot> unavailableTimeslotSet) {
+    public void setUnavailableTimeslotSet(SequencedSet<Timeslot> unavailableTimeslotSet) {
         this.unavailableTimeslotSet = unavailableTimeslotSet;
     }
 
-    public Set<String> getPreferredTimeslotTagSet() {
+    public SequencedSet<String> getPreferredTimeslotTagSet() {
         return preferredTimeslotTagSet;
     }
 
-    public void setPreferredTimeslotTagSet(Set<String> preferredTimeslotTagSet) {
+    public void setPreferredTimeslotTagSet(SequencedSet<String> preferredTimeslotTagSet) {
         this.preferredTimeslotTagSet = preferredTimeslotTagSet;
     }
 
-    public Set<String> getUndesiredTimeslotTagSet() {
+    public SequencedSet<String> getUndesiredTimeslotTagSet() {
         return undesiredTimeslotTagSet;
     }
 
-    public void setUndesiredTimeslotTagSet(Set<String> undesiredTimeslotTagSet) {
+    public void setUndesiredTimeslotTagSet(SequencedSet<String> undesiredTimeslotTagSet) {
         this.undesiredTimeslotTagSet = undesiredTimeslotTagSet;
     }
 
-    public Set<String> getRequiredRoomTagSet() {
+    public SequencedSet<String> getRequiredRoomTagSet() {
         return requiredRoomTagSet;
     }
 
-    public void setRequiredRoomTagSet(Set<String> requiredRoomTagSet) {
+    public void setRequiredRoomTagSet(SequencedSet<String> requiredRoomTagSet) {
         this.requiredRoomTagSet = requiredRoomTagSet;
     }
 
-    public Set<String> getPreferredRoomTagSet() {
+    public SequencedSet<String> getPreferredRoomTagSet() {
         return preferredRoomTagSet;
     }
 
-    public void setPreferredRoomTagSet(Set<String> preferredRoomTagSet) {
+    public void setPreferredRoomTagSet(SequencedSet<String> preferredRoomTagSet) {
         this.preferredRoomTagSet = preferredRoomTagSet;
     }
 
-    public Set<String> getProhibitedRoomTagSet() {
+    public SequencedSet<String> getProhibitedRoomTagSet() {
         return prohibitedRoomTagSet;
     }
 
-    public void setProhibitedRoomTagSet(Set<String> prohibitedRoomTagSet) {
+    public void setProhibitedRoomTagSet(SequencedSet<String> prohibitedRoomTagSet) {
         this.prohibitedRoomTagSet = prohibitedRoomTagSet;
     }
 
-    public Set<String> getUndesiredRoomTagSet() {
+    public SequencedSet<String> getUndesiredRoomTagSet() {
         return undesiredRoomTagSet;
     }
 
-    public void setUndesiredRoomTagSet(Set<String> undesiredRoomTagSet) {
+    public void setUndesiredRoomTagSet(SequencedSet<String> undesiredRoomTagSet) {
         this.undesiredRoomTagSet = undesiredRoomTagSet;
     }
 
@@ -105,37 +105,37 @@ public class Speaker extends AbstractPersistable {
     // With methods
     // ************************************************************************
 
-    public Speaker withUnavailableTimeslotSet(Set<Timeslot> unavailableTimeslotTest) {
+    public Speaker withUnavailableTimeslotSet(SequencedSet<Timeslot> unavailableTimeslotTest) {
         this.unavailableTimeslotSet = unavailableTimeslotTest;
         return this;
     }
 
-    public Speaker withPreferredTimeslotTagSet(Set<String> preferredTimeslotTagSet) {
+    public Speaker withPreferredTimeslotTagSet(SequencedSet<String> preferredTimeslotTagSet) {
         this.preferredTimeslotTagSet = preferredTimeslotTagSet;
         return this;
     }
 
-    public Speaker withUndesiredTimeslotTagSet(Set<String> undesiredTimeslotTagSet) {
+    public Speaker withUndesiredTimeslotTagSet(SequencedSet<String> undesiredTimeslotTagSet) {
         this.undesiredTimeslotTagSet = undesiredTimeslotTagSet;
         return this;
     }
 
-    public Speaker withRequiredRoomTagSet(Set<String> requiredRoomTagSet) {
+    public Speaker withRequiredRoomTagSet(SequencedSet<String> requiredRoomTagSet) {
         this.requiredRoomTagSet = requiredRoomTagSet;
         return this;
     }
 
-    public Speaker withPreferredRoomTagSet(Set<String> preferredRoomTagSet) {
+    public Speaker withPreferredRoomTagSet(SequencedSet<String> preferredRoomTagSet) {
         this.preferredRoomTagSet = preferredRoomTagSet;
         return this;
     }
 
-    public Speaker withUndesiredRoomTagSet(Set<String> undesiredRoomTagSet) {
+    public Speaker withUndesiredRoomTagSet(SequencedSet<String> undesiredRoomTagSet) {
         this.undesiredRoomTagSet = undesiredRoomTagSet;
         return this;
     }
 
-    public Speaker withProhibitedRoomTagSet(Set<String> prohibitedRoomTagSet) {
+    public Speaker withProhibitedRoomTagSet(SequencedSet<String> prohibitedRoomTagSet) {
         this.prohibitedRoomTagSet = prohibitedRoomTagSet;
         return this;
     }
