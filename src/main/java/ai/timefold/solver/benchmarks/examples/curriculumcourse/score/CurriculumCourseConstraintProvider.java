@@ -76,9 +76,13 @@ public class CurriculumCourseConstraintProvider implements ConstraintProvider {
                 .groupBy(Lecture::getRoom, Lecture::getPeriod, count())
                 .filter((room, period, count) -> count > 1)
                 .penalize(ONE_HARD, (room, period, count) -> {
+                    if (count > 13) { // 13 is the largest n for which n! < Integer.MAX_VALUE.
+                        throw new UnsupportedOperationException("Factorial of " + count);
+                    }
+                    var intCount = count.intValue();
                     var n = 2; // We're looking for unique pairs.
-                    var nominator = factorial(count);
-                    var denominator = factorial(n) * factorial(count - n);
+                    var nominator = factorial(intCount);
+                    var denominator = factorial(n) * factorial(intCount - n);
                     return nominator / denominator;
                 })
                 .asConstraint("roomOccupancy");
