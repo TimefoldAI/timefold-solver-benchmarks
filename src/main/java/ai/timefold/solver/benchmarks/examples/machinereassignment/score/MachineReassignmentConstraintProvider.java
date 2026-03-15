@@ -1,6 +1,6 @@
 package ai.timefold.solver.benchmarks.examples.machinereassignment.score;
 
-import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.sumLong;
+import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.sum;
 import static ai.timefold.solver.core.api.score.stream.Joiners.equal;
 import static ai.timefold.solver.core.api.score.stream.Joiners.filtering;
 
@@ -53,7 +53,7 @@ public class MachineReassignmentConstraintProvider implements ConstraintProvider
                         equal(MrMachineCapacity::getMachine, MrProcessAssignment::getMachine))
                 .groupBy((machineCapacity, processAssignment) -> machineCapacity.getMachine(),
                         (machineCapacity, processAssignment) -> machineCapacity,
-                        sumLong((machineCapacity, processAssignment) -> processAssignment
+                        sum((machineCapacity, processAssignment) -> processAssignment
                                 .getUsage(machineCapacity.getResource())))
                 .filter(((machine, machineCapacity, usage) -> machineCapacity.getMaximumCapacity() < usage))
                 .penalize(HardSoftScore.ONE_HARD,
@@ -110,7 +110,7 @@ public class MachineReassignmentConstraintProvider implements ConstraintProvider
                         .filter(MrProcessAssignment::isMoved),
                         equal(MrMachineCapacity::getMachine, MrProcessAssignment::getOriginalMachine))
                 .groupBy((machineCapacity, processAssignment) -> machineCapacity,
-                        sumLong((machineCapacity, processAssignment) -> processAssignment
+                        sum((machineCapacity, processAssignment) -> processAssignment
                                 .getUsage(machineCapacity.getResource())))
                 .filter(((machineCapacity, usage) -> machineCapacity.getMaximumCapacity() < usage))
                 .penalize(HardSoftScore.ONE_HARD,
@@ -130,7 +130,7 @@ public class MachineReassignmentConstraintProvider implements ConstraintProvider
                 .join(MrProcessAssignment.class,
                         equal(MrMachineCapacity::getMachine, MrProcessAssignment::getMachine))
                 .groupBy((machineCapacity, processAssignment) -> machineCapacity,
-                        sumLong((machineCapacity, processAssignment) -> processAssignment
+                        sum((machineCapacity, processAssignment) -> processAssignment
                                 .getUsage(machineCapacity.getResource())))
                 .filter(((machineCapacity, usage) -> machineCapacity.getSafetyCapacity() < usage))
                 .penalize(HardSoftScore.ONE_SOFT,
@@ -148,8 +148,8 @@ public class MachineReassignmentConstraintProvider implements ConstraintProvider
                 .join(MrProcessAssignment.class)
                 .groupBy((penalty, processAssignment) -> penalty,
                         (penalty, processAssignment) -> processAssignment.getMachine(),
-                        sumLong((penalty, processAssignment) -> processAssignment.getUsage(penalty.getOriginResource())),
-                        sumLong((penalty, processAssignment) -> processAssignment.getUsage(penalty.getTargetResource())))
+                        sum((penalty, processAssignment) -> processAssignment.getUsage(penalty.getOriginResource())),
+                        sum((penalty, processAssignment) -> processAssignment.getUsage(penalty.getTargetResource())))
                 .penalize(HardSoftScore.ONE_SOFT, this::balanceCost)
                 .asConstraint(MrConstraints.BALANCE_COST);
     }
@@ -186,9 +186,9 @@ public class MachineReassignmentConstraintProvider implements ConstraintProvider
         return factory.forEach(MrProcessAssignment.class)
                 .filter(MrProcessAssignment::isMoved)
                 .groupBy(MrProcessAssignment::getService, ConstraintCollectors.count())
-                .groupBy(ConstraintCollectors.max((BiFunction<MrService, Integer, Integer>) (service, count) -> count))
+                .groupBy(ConstraintCollectors.max((BiFunction<MrService, Long, Long>) (service, count) -> count))
                 .join(MrGlobalPenaltyInfo.class)
-                .penalize(HardSoftScore.ONE_SOFT,
+                .penalizeLong(HardSoftScore.ONE_SOFT,
                         (count, penalty) -> count * penalty.getServiceMoveCostWeight())
                 .asConstraint(MrConstraints.SERVICE_MOVE_COST);
     }
