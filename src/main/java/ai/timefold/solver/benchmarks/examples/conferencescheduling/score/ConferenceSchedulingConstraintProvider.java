@@ -33,6 +33,7 @@ import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.comp
 import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.countBi;
 import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.max;
 import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.min;
+import static ai.timefold.solver.core.api.score.stream.Joiners.*;
 import static ai.timefold.solver.core.api.score.stream.Joiners.equal;
 import static ai.timefold.solver.core.api.score.stream.Joiners.filtering;
 import static ai.timefold.solver.core.api.score.stream.Joiners.greaterThan;
@@ -117,8 +118,8 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
         return factory.forEachIncludingUnassigned(Talk.class)
                 .filter(talk -> talk.getTimeslot() != null)
                 .join(Speaker.class,
-                        filtering((talk, speaker) -> talk.hasSpeaker(speaker)
-                                && speaker.getUnavailableTimeslotSet().contains(talk.getTimeslot())))
+                        containing(Talk::getSpeakerList, speaker -> speaker),
+                        containedIn(Talk::getTimeslot, Speaker::getUnavailableTimeslotSet))
                 .penalize(HardSoftScore.ofHard(100), (talk, speaker) -> talk.getDurationInMinutes())
                 .asConstraint(SPEAKER_UNAVAILABLE_TIMESLOT);
     }
@@ -136,7 +137,7 @@ public class ConferenceSchedulingConstraintProvider implements ConstraintProvide
         return factory.forEach(Talk.class)
                 .join(Talk.class,
                         greaterThan(t -> t.getTimeslot().getEndDateTime(), t -> t.getTimeslot().getStartDateTime()),
-                        filtering((talk1, talk2) -> talk2.getPrerequisiteTalkSet().contains(talk1)))
+                        containedIn(talk1 -> talk1, Talk::getPrerequisiteTalkSet))
                 .penalize(HardSoftScore.ofHard(10), Talk::combinedDurationInMinutes)
                 .asConstraint(TALK_PREREQUISITE_TALKS);
     }
