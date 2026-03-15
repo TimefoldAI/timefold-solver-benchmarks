@@ -186,7 +186,7 @@ public class MachineReassignmentConstraintProvider implements ConstraintProvider
         return factory.forEach(MrProcessAssignment.class)
                 .filter(MrProcessAssignment::isMoved)
                 .groupBy(MrProcessAssignment::getService, ConstraintCollectors.count())
-                .groupBy(ConstraintCollectors.max((BiFunction<MrService, Long, Long>) (service, count) -> count))
+                .groupBy(ConstraintCollectors.max((MrService service, Long count) -> count))
                 .join(MrGlobalPenaltyInfo.class)
                 .penalize(HardSoftScore.ONE_SOFT,
                         (count, penalty) -> count * penalty.getServiceMoveCostWeight())
