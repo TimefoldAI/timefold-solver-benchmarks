@@ -65,8 +65,6 @@ public final class Main extends AbstractMain<Configuration> {
         var options = getBaseJmhConfig(configuration);
         options = processBenchmark(options, configuration, ScoreDirectorType.CONSTRAINT_STREAMS);
         options = processBenchmark(options, configuration, ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED);
-        options = processBenchmark(options, configuration, ScoreDirectorType.EASY);
-        options = processBenchmark(options, configuration, ScoreDirectorType.INCREMENTAL);
         options = initAsyncProfiler(options);
 
         var runner = new Runner(options.build());

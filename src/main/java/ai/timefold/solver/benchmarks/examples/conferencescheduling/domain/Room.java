@@ -1,6 +1,6 @@
 package ai.timefold.solver.benchmarks.examples.conferencescheduling.domain;
 
-import java.util.Set;
+import java.util.SequencedSet;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
 import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.JacksonUniqueIdGenerator;
@@ -13,9 +13,8 @@ public class Room extends AbstractPersistable {
     private String name;
     private int capacity;
 
-    private Set<TalkType> talkTypeSet;
-    private Set<Timeslot> unavailableTimeslotSet;
-    private Set<String> tagSet;
+    private SequencedSet<TalkType> talkTypeSet;
+    private SequencedSet<String> tagSet;
 
     public Room() {
     }
@@ -49,19 +48,19 @@ public class Room extends AbstractPersistable {
         this.capacity = capacity;
     }
 
-    public Set<TalkType> getTalkTypeSet() {
+    public SequencedSet<TalkType> getTalkTypeSet() {
         return talkTypeSet;
     }
 
-    public void setTalkTypeSet(Set<TalkType> talkTypeSet) {
+    public void setTalkTypeSet(SequencedSet<TalkType> talkTypeSet) {
         this.talkTypeSet = talkTypeSet;
     }
 
-    public Set<String> getTagSet() {
+    public SequencedSet<String> getTagSet() {
         return tagSet;
     }
 
-    public void setTagSet(Set<String> tagSet) {
+    public void setTagSet(SequencedSet<String> tagSet) {
         this.tagSet = tagSet;
     }
 
@@ -74,12 +73,12 @@ public class Room extends AbstractPersistable {
         return this;
     }
 
-    public Room withTalkTypeSet(Set<TalkType> talkTypeSet) {
+    public Room withTalkTypeSet(SequencedSet<TalkType> talkTypeSet) {
         this.talkTypeSet = talkTypeSet;
         return this;
     }
 
-    public Room withTagSet(Set<String> tagSet) {
+    public Room withTagSet(SequencedSet<String> tagSet) {
         this.tagSet = tagSet;
         return this;
     }

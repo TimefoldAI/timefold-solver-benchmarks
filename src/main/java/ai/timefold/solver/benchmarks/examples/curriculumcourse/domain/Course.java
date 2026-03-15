@@ -4,7 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.SequencedSet;
 import java.util.stream.Collectors;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
@@ -21,7 +21,7 @@ public class Course extends AbstractPersistable {
     private int lectureSize;
     private int minWorkingDaySize;
 
-    private Set<Curriculum> curriculumSet;
+    private SequencedSet<Curriculum> curriculumSet;
     private int studentSize;
 
     public Course() {
@@ -70,11 +70,11 @@ public class Course extends AbstractPersistable {
         this.minWorkingDaySize = minWorkingDaySize;
     }
 
-    public Set<Curriculum> getCurriculumSet() {
+    public SequencedSet<Curriculum> getCurriculumSet() {
         return curriculumSet;
     }
 
-    public void setCurriculumSet(Set<Curriculum> curriculumSet) {
+    public void setCurriculumSet(SequencedSet<Curriculum> curriculumSet) {
         this.curriculumSet = curriculumSet;
     }
 

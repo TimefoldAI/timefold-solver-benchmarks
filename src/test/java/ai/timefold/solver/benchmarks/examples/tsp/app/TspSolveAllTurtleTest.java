@@ -4,7 +4,6 @@ import ai.timefold.solver.benchmarks.examples.common.TestSystemProperties;
 import ai.timefold.solver.benchmarks.examples.common.app.CommonApp;
 import ai.timefold.solver.benchmarks.examples.common.app.UnsolvedDirSolveAllTurtleTest;
 import ai.timefold.solver.benchmarks.examples.tsp.domain.TspSolution;
-import ai.timefold.solver.benchmarks.examples.tsp.optional.score.TspEasyScoreCalculator;
 
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
@@ -16,8 +15,4 @@ class TspSolveAllTurtleTest extends UnsolvedDirSolveAllTurtleTest<TspSolution> {
         return new TspApp();
     }
 
-    @Override
-    protected Class<TspEasyScoreCalculator> overwritingEasyScoreCalculatorClass() {
-        return TspEasyScoreCalculator.class;
-    }
 }

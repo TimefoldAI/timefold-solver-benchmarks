@@ -4,8 +4,6 @@ import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Customer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Vehicle;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedCustomer;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.optional.score.VehicleRoutingEasyScoreCalculator;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.optional.score.VehicleRoutingIncrementalScoreCalculator;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.persistence.VehicleRoutingSolutionFileIO;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.score.VehicleRoutingConstraintProvider;
 import ai.timefold.solver.benchmarks.micro.scoredirector.Example;
@@ -26,9 +24,7 @@ public final class VehicleRoutingProblem extends AbstractProblem<VehicleRoutingS
         return switch (scoreDirectorType) {
             case CONSTRAINT_STREAMS, CONSTRAINT_STREAMS_JUSTIFIED ->
                 scoreDirectorFactoryConfig.withConstraintProviderClass(VehicleRoutingConstraintProvider.class);
-            case EASY -> scoreDirectorFactoryConfig.withEasyScoreCalculatorClass(VehicleRoutingEasyScoreCalculator.class);
-            case INCREMENTAL ->
-                scoreDirectorFactoryConfig.withIncrementalScoreCalculatorClass(VehicleRoutingIncrementalScoreCalculator.class);
+            default -> throw new UnsupportedOperationException("Score director: %s".formatted(scoreDirectorType));
         };
     }
 

@@ -3,7 +3,7 @@ package ai.timefold.solver.benchmarks.examples.conferencescheduling.domain;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.SequencedSet;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
 import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.JacksonUniqueIdGenerator;
@@ -17,8 +17,8 @@ public class Timeslot extends AbstractPersistable {
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
 
-    private Set<TalkType> talkTypeSet;
-    private Set<String> tagSet;
+    private SequencedSet<TalkType> talkTypeSet;
+    private SequencedSet<String> tagSet;
 
     // Cached
     private int durationInMinutes;
@@ -108,19 +108,19 @@ public class Timeslot extends AbstractPersistable {
                 : (int) Duration.between(startDateTime, endDateTime).toMinutes();
     }
 
-    public Set<TalkType> getTalkTypeSet() {
+    public SequencedSet<TalkType> getTalkTypeSet() {
         return talkTypeSet;
     }
 
-    public void setTalkTypeSet(Set<TalkType> talkTypeSet) {
+    public void setTalkTypeSet(SequencedSet<TalkType> talkTypeSet) {
         this.talkTypeSet = talkTypeSet;
     }
 
-    public Set<String> getTagSet() {
+    public SequencedSet<String> getTagSet() {
         return tagSet;
     }
 
-    public void setTagSet(Set<String> tagSet) {
+    public void setTagSet(SequencedSet<String> tagSet) {
         this.tagSet = tagSet;
     }
 
@@ -138,12 +138,12 @@ public class Timeslot extends AbstractPersistable {
         return this;
     }
 
-    public Timeslot withTalkTypeSet(Set<TalkType> talkTypeSet) {
+    public Timeslot withTalkTypeSet(SequencedSet<TalkType> talkTypeSet) {
         this.talkTypeSet = talkTypeSet;
         return this;
     }
 
-    public Timeslot withTagSet(Set<String> tagSet) {
+    public Timeslot withTagSet(SequencedSet<String> tagSet) {
         this.tagSet = tagSet;
         return this;
     }

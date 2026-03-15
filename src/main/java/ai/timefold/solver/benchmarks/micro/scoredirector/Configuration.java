@@ -24,8 +24,6 @@ final class Configuration extends AbstractConfiguration {
                     .map(sdt -> switch (sdt) {
                         case "cs" -> ScoreDirectorType.CONSTRAINT_STREAMS;
                         case "cs_justified" -> ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED;
-                        case "easy" -> ScoreDirectorType.EASY;
-                        case "incremental" -> ScoreDirectorType.INCREMENTAL;
                         default -> throw new IllegalArgumentException("Unknown score director type: " + sdt);
                     })
                     .collect(Collectors.toList());

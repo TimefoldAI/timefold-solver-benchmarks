@@ -1,7 +1,7 @@
 package ai.timefold.solver.benchmarks.examples.conferencescheduling.domain;
 
 import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.SequencedSet;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
 import ai.timefold.solver.benchmarks.examples.common.persistence.jackson.JacksonUniqueIdGenerator;
@@ -13,8 +13,8 @@ public class TalkType extends AbstractPersistable {
 
     private String name;
 
-    private Set<Timeslot> compatibleTimeslotSet;
-    private Set<Room> compatibleRoomSet;
+    private SequencedSet<Timeslot> compatibleTimeslotSet;
+    private SequencedSet<Room> compatibleRoomSet;
 
     public TalkType() {
     }
@@ -45,19 +45,19 @@ public class TalkType extends AbstractPersistable {
         this.name = name;
     }
 
-    public Set<Timeslot> getCompatibleTimeslotSet() {
+    public SequencedSet<Timeslot> getCompatibleTimeslotSet() {
         return compatibleTimeslotSet;
     }
 
-    public void setCompatibleTimeslotSet(Set<Timeslot> compatibleTimeslotSet) {
+    public void setCompatibleTimeslotSet(SequencedSet<Timeslot> compatibleTimeslotSet) {
         this.compatibleTimeslotSet = new LinkedHashSet<>(compatibleTimeslotSet);
     }
 
-    public Set<Room> getCompatibleRoomSet() {
+    public SequencedSet<Room> getCompatibleRoomSet() {
         return compatibleRoomSet;
     }
 
-    public void setCompatibleRoomSet(Set<Room> compatibleRoomSet) {
+    public void setCompatibleRoomSet(SequencedSet<Room> compatibleRoomSet) {
         this.compatibleRoomSet = new LinkedHashSet<>(compatibleRoomSet);
     }
 

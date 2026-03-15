@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -13,10 +12,7 @@ import java.util.stream.Stream;
 
 import ai.timefold.solver.benchmarks.examples.common.TestSystemProperties;
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
-import ai.timefold.solver.core.api.score.calculator.EasyScoreCalculator;
-import ai.timefold.solver.core.api.solver.Solver;
 import ai.timefold.solver.core.api.solver.SolverFactory;
-import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
 import ai.timefold.solver.core.config.solver.EnvironmentMode;
 import ai.timefold.solver.core.config.solver.SolverConfig;
 import ai.timefold.solver.core.config.solver.termination.TerminationConfig;
@@ -47,37 +43,37 @@ public abstract class SolveAllTurtleTest<Solution_> extends LoggingTest {
     protected abstract ProblemFactory<Solution_> createProblemFactory(CommonApp<Solution_> commonApp);
 
     private List<File> getFilteredSolutionFiles(CommonApp<Solution_> commonApp) {
-        List<File> solutionFiles = getSolutionFiles(commonApp);
-        String propertyValue = System.getProperty(TestSystemProperties.TURTLE_TEST_RUN_TIME_LIMIT);
+        var solutionFiles = getSolutionFiles(commonApp);
+        var propertyValue = System.getProperty(TestSystemProperties.TURTLE_TEST_RUN_TIME_LIMIT);
         if (propertyValue == null) {
             logger.info("Will run all tests due to no time limit being set.");
             return solutionFiles;
         }
-        int availableMinutes = Integer.parseInt(propertyValue);
-        int testCount = solutionFiles.size();
-        int maximumTestCount = (int) Math.floor(availableMinutes / 10.0); // One test will take 10 minutes to run.
+        var availableMinutes = Integer.parseInt(propertyValue);
+        var testCount = solutionFiles.size();
+        var maximumTestCount = (int) Math.floor(availableMinutes / 10.0); // One test will take 10 minutes to run.
         if (testCount <= maximumTestCount) {
             logger.info("Will run all tests as they all fit within the time limit of {} minutes.", availableMinutes);
             return solutionFiles;
         }
-        long seed = System.nanoTime();
+        var seed = System.nanoTime();
         logger.info("Will randomly filter out some tests to fit within the time window. Using random seed ({}).", seed);
-        Random random = new Random(seed);
-        double ratioOfTestsToRun = maximumTestCount / (double) testCount;
-        Map<File, List<File>> testsPerParentDirectoryMap = solutionFiles.stream()
+        var random = new Random(seed);
+        var ratioOfTestsToRun = maximumTestCount / (double) testCount;
+        var testsPerParentDirectoryMap = solutionFiles.stream()
                 .collect(Collectors.groupingBy(File::getParentFile, Collectors.toList()));
         List<File> filteredSolutionFiles = new ArrayList<>(maximumTestCount);
         // Make sure that each directory gets at least one test.
-        for (List<File> testsInDirectory : testsPerParentDirectoryMap.values()) {
-            int testsToRunInDirectory = (int) Math.max(1, testsInDirectory.size() * ratioOfTestsToRun);
-            for (int i = 0; i < testsToRunInDirectory; i++) {
-                int fileIndex = random.nextInt(testsInDirectory.size());
+        for (var testsInDirectory : testsPerParentDirectoryMap.values()) {
+            var testsToRunInDirectory = (int) Math.max(1, testsInDirectory.size() * ratioOfTestsToRun);
+            for (var i = 0; i < testsToRunInDirectory; i++) {
+                var fileIndex = random.nextInt(testsInDirectory.size());
                 filteredSolutionFiles.add(testsInDirectory.remove(fileIndex));
             }
         }
         // If we are still over the limit, remove random tests.
         while (filteredSolutionFiles.size() > maximumTestCount) {
-            int fileIndex = random.nextInt(filteredSolutionFiles.size());
+            var fileIndex = random.nextInt(filteredSolutionFiles.size());
             filteredSolutionFiles.remove(fileIndex);
         }
         logger.info("Filtered out ({}) out of ({}) tests to run in ({}) minutes.",
@@ -88,8 +84,8 @@ public abstract class SolveAllTurtleTest<Solution_> extends LoggingTest {
     @Execution(ExecutionMode.CONCURRENT)
     @TestFactory
     Stream<DynamicTest> runStepAndFullAssert() {
-        CommonApp<Solution_> commonApp = createCommonApp();
-        ProblemFactory<Solution_> problemFactory = createProblemFactory(commonApp);
+        var commonApp = createCommonApp();
+        var problemFactory = createProblemFactory(commonApp);
         /*
          * When run in Github Actions, we are limited by the maximum amount of time that the job can run for.
          * This code intends to limit the number of tests so that they can all run within the time limit.
@@ -111,7 +107,7 @@ public abstract class SolveAllTurtleTest<Solution_> extends LoggingTest {
     }
 
     private static SolverConfig buildSolverConfig(String solverConfigResource) {
-        SolverConfig solverConfig = SolverConfig.createFromXmlResource(solverConfigResource);
+        var solverConfig = SolverConfig.createFromXmlResource(solverConfigResource);
         // buildAndSolve() fills in minutesSpentLimit
         solverConfig.setTerminationConfig(new TerminationConfig());
         if (MOVE_THREAD_COUNT_OVERRIDE != null) {
@@ -124,19 +120,9 @@ public abstract class SolveAllTurtleTest<Solution_> extends LoggingTest {
             Solution_ problem, long maximumMinutesSpent) {
         solverConfig.getTerminationConfig().setMinutesSpentLimit(maximumMinutesSpent);
         solverConfig.setEnvironmentMode(environmentMode);
-        Class<? extends EasyScoreCalculator> easyScoreCalculatorClass = overwritingEasyScoreCalculatorClass();
-        if (easyScoreCalculatorClass != null && environmentMode.isStepAssertOrMore()) {
-            ScoreDirectorFactoryConfig assertionScoreDirectorFactoryConfig = new ScoreDirectorFactoryConfig();
-            assertionScoreDirectorFactoryConfig.setEasyScoreCalculatorClass(easyScoreCalculatorClass);
-            solverConfig.getScoreDirectorFactoryConfig().setAssertionScoreDirectorFactory(
-                    assertionScoreDirectorFactoryConfig);
-        }
-        SolverFactory<Solution_> solverFactory = SolverFactory.create(solverConfig);
-        Solver<Solution_> solver = solverFactory.buildSolver();
+        var solverFactory = SolverFactory.<Solution_> create(solverConfig);
+        var solver = solverFactory.buildSolver();
         return solver.solve(problem);
     }
 
-    protected Class<? extends EasyScoreCalculator> overwritingEasyScoreCalculatorClass() {
-        return null;
-    }
 }

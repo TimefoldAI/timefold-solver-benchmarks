@@ -6,7 +6,6 @@ import static ai.timefold.solver.benchmarks.examples.nurserostering.optional.sco
 import static ai.timefold.solver.benchmarks.examples.nurserostering.optional.score.EmployeeConsecutiveAssignmentStart.isWeekendAndNotFirstDayOfWeekend;
 
 import java.time.DayOfWeek;
-import java.util.Arrays;
 
 import ai.timefold.solver.benchmarks.examples.nurserostering.domain.Employee;
 import ai.timefold.solver.benchmarks.examples.nurserostering.domain.NurseRosterParametrization;
@@ -104,7 +103,6 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
                         (employee, contract, shiftCount) -> contract.getViolationAmount(shiftCount))
                 .filter((employee, contract, violationAmount) -> violationAmount != 0)
                 .penalize(HardSoftBigDecimalScore.ONE_SOFT, (employee, contract, violationAmount) -> violationAmount)
-                .indictWith((employee, contract, violationAmount) -> Arrays.asList(employee, contract))
                 .asConstraint("Minimum and maximum number of assignments");
     }
 
@@ -132,7 +130,6 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
                         (employee, contract, shiftList) -> contract.getViolationAmount(shiftList.getLength()))
                 .filter((contract, employee, violationAmount) -> violationAmount != 0)
                 .penalize(HardSoftBigDecimalScore.ONE_SOFT, (contract, employee, violationAmount) -> violationAmount)
-                .indictWith((contract, employee, violationAmount) -> Arrays.asList(employee, contract))
                 .asConstraint("consecutiveWorkingDays");
     }
 
@@ -175,7 +172,6 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
                         })
                 .filter((employee, contract, violationAmount) -> violationAmount != 0)
                 .penalize(HardSoftBigDecimalScore.ONE_SOFT, (employee, contract, violationAmount) -> violationAmount)
-                .indictWith((employee, contract, violationAmount) -> Arrays.asList(employee, contract))
                 .asConstraint("consecutiveFreeDays");
     }
 
@@ -195,7 +191,6 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
                 .penalize(HardSoftBigDecimalScore.ONE_SOFT,
                         (contract, employee, nrp) -> contract
                                 .getViolationAmount(nrp.getLastShiftDateDayIndex() - nrp.getFirstShiftDateDayIndex() + 1))
-                .indictWith((contract, employee, nrp) -> Arrays.asList(employee, contract))
                 .asConstraint("maximumConsecutiveFreeDays - no shifts");
     }
 
@@ -218,7 +213,6 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
                         (employee, contract, shiftList) -> contract.getViolationAmount(shiftList.getLength()))
                 .filter((employee, contract, violationAmount) -> violationAmount != 0)
                 .penalize(HardSoftBigDecimalScore.ONE_SOFT, (employee, contract, violationAmount) -> violationAmount)
-                .indictWith((employee, contract, violationAmount) -> Arrays.asList(employee, contract))
                 .asConstraint("consecutiveWorkingWeekends");
     }
 
@@ -239,7 +233,6 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
                 .penalize(HardSoftBigDecimalScore.ONE_SOFT,
                         (employee, contract, shiftList) -> getDistanceToFirstDayOfWeekend(employee, shiftList.getFirstItem())
                                 * contract.getWeight())
-                .indictWith((employee, contract, shiftList) -> Arrays.asList(employee, contract))
                 .asConstraint("startOnNotFirstDayOfWeekend");
     }
 
@@ -260,7 +253,6 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
                 .penalize(HardSoftBigDecimalScore.ONE_SOFT,
                         (employee, contract, shiftList) -> getDistanceToLastDayOfWeekend(employee, shiftList.getLastItem())
                                 * contract.getWeight())
-                .indictWith((employee, contract, shiftList) -> Arrays.asList(employee, contract))
                 .asConstraint("endOnNotLastDayOfWeekend");
     }
 
@@ -286,7 +278,6 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
                 .filter((contract, employee, type, count) -> count < employee.getWeekendLength())
                 .penalize(HardSoftBigDecimalScore.ONE_SOFT,
                         (contract, employee, type, count) -> (employee.getWeekendLength() - count) * contract.getWeight())
-                .indictWith((contract, employee, type, count) -> Arrays.asList(employee, contract))
                 .asConstraint("identicalShiftTypesDuringWeekend");
     }
 

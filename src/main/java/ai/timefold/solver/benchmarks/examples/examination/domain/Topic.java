@@ -1,7 +1,8 @@
 package ai.timefold.solver.benchmarks.examples.examination.domain;
 
 import java.util.Arrays;
-import java.util.Set;
+import java.util.LinkedHashSet;
+import java.util.SequencedSet;
 import java.util.stream.Collectors;
 
 import ai.timefold.solver.benchmarks.examples.common.domain.AbstractPersistable;
@@ -14,11 +15,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class Topic extends AbstractPersistable {
 
     private int duration; // in minutes
-    private Set<Student> studentSet;
+    private SequencedSet<Student> studentSet;
 
     // Calculated during initialization, not modified during score calculation.
     private boolean frontLoadLarge;
-    private Set<Topic> coincidenceTopicSet = null;
+    private SequencedSet<Topic> coincidenceTopicSet = null;
 
     public int getDuration() {
         return duration;
@@ -28,11 +29,11 @@ public class Topic extends AbstractPersistable {
         this.duration = duration;
     }
 
-    public Set<Student> getStudentSet() {
+    public SequencedSet<Student> getStudentSet() {
         return studentSet;
     }
 
-    public void setStudentSet(Set<Student> studentSet) {
+    public void setStudentSet(SequencedSet<Student> studentSet) {
         this.studentSet = studentSet;
     }
 
@@ -49,11 +50,11 @@ public class Topic extends AbstractPersistable {
         this.frontLoadLarge = frontLoadLarge;
     }
 
-    public Set<Topic> getCoincidenceTopicSet() {
+    public SequencedSet<Topic> getCoincidenceTopicSet() {
         return coincidenceTopicSet;
     }
 
-    public void setCoincidenceTopicSet(Set<Topic> coincidenceTopicSet) {
+    public void setCoincidenceTopicSet(SequencedSet<Topic> coincidenceTopicSet) {
         this.coincidenceTopicSet = coincidenceTopicSet;
     }
 
@@ -81,7 +82,7 @@ public class Topic extends AbstractPersistable {
     }
 
     public Topic withStudents(Student... students) {
-        this.setStudentSet(Arrays.stream(students).collect(Collectors.toSet()));
+        this.setStudentSet(Arrays.stream(students).collect(Collectors.toCollection(LinkedHashSet::new)));
         return this;
     }
 
@@ -90,7 +91,7 @@ public class Topic extends AbstractPersistable {
         return this;
     }
 
-    public Topic withCoincidenceTopicSet(Set<Topic> coincidenceTopicSet) {
+    public Topic withCoincidenceTopicSet(SequencedSet<Topic> coincidenceTopicSet) {
         this.setCoincidenceTopicSet(coincidenceTopicSet);
         return this;
     }
