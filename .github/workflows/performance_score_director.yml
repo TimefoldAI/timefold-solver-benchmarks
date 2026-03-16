@@ -18,6 +18,9 @@ name: ScoreDirector Perf Regression Test
 permissions:
   contents: read
 
+env:
+  TIMEFOLD_ENTERPRISE_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
+
 on:
   workflow_dispatch:
     inputs:

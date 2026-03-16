@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: '0 3 * * *' # Every day at 3am UTC
 
+env:
+  TIMEFOLD_ENTERPRISE_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
+
 jobs:
   test:
     concurrency:
@@ -12,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        example: [cloudbalancing, conferencescheduling, curriculumcourse, examination, machinereassignment, meetingscheduling, nurserostering, pas, taskassigning, travelingtournament, tsp, vehiclerouting]
+        example: [cloudbalancing, conferencescheduling, curriculumcourse, examination, flow_shop, machinereassignment, meetingscheduling, nurserostering, pas, taskassigning, travelingtournament, tsp, vehiclerouting]
     steps:
       # Clone timefold-solver
       - name: Checkout timefold-solver
