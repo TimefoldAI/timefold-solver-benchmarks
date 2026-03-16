@@ -125,4 +125,6 @@ jobs:
       - name: Build and test timefold-solver-benchmarks
         working-directory: ./timefold-solver-benchmarks
         shell: bash
+        env:
+          TIMEFOLD_ENTERPRISE_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
         run: ./mvnw -B clean verify
