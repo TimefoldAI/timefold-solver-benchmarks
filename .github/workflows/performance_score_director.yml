@@ -18,9 +18,6 @@ name: ScoreDirector Perf Regression Test
 permissions:
   contents: read
 
-env:
-  TIMEFOLD_ENTERPRISE_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
-
 on:
   workflow_dispatch:
     inputs:
@@ -298,9 +295,10 @@ jobs:
       - name: (Baseline) Run the benchmark
         working-directory: ./timefold-solver-benchmarks
         id: benchmark_baseline
+        shell: bash
         env:
           RUN_ID: ${{ env.BASELINE_DIR }}
-        shell: bash
+          TIMEFOLD_ENTERPRISE_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
         run: |
           mkdir target
           cp benchmarks-baseline.jar target/benchmarks.jar
@@ -319,9 +317,10 @@ jobs:
       - name: (SUT) Run the benchmark
         id: benchmark_sut
         working-directory: ./timefold-solver-benchmarks
+        shell: bash
         env:
           RUN_ID: ${{ env.SUT_DIR }}
-        shell: bash
+          TIMEFOLD_ENTERPRISE_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
         run: |
           rm target/benchmarks.jar
           cp benchmarks-sut.jar target/benchmarks.jar

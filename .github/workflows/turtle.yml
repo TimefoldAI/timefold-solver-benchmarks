@@ -4,9 +4,6 @@ on:
   schedule:
     - cron: '0 3 * * *' # Every day at 3am UTC
 
-env:
-  TIMEFOLD_ENTERPRISE_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
-
 jobs:
   test:
     concurrency:
@@ -57,4 +54,6 @@ jobs:
       - name: Run and test timefold-solver-benchmarks per example
         working-directory: ./timefold-solver-benchmarks
         shell: bash
+        env:
+          TIMEFOLD_ENTERPRISE_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
         run: ./mvnw -B -Dai.timefold.solver.benchmarks.examples.turtle=${{matrix.example}} -Dai.timefold.solver.benchmarks.examples.turtle.runTimeLimitMinutes=300 test
