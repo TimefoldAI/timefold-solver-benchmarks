@@ -75,40 +75,8 @@ public class CurriculumCourseConstraintProvider implements ConstraintProvider {
         return factory.forEach(Lecture.class)
                 .groupBy(Lecture::getRoom, Lecture::getPeriod, count())
                 .filter((room, period, count) -> count > 1)
-                .penalize(ONE_HARD, (room, period, count) -> {
-                    if (count > 13) { // 13 is the largest n for which n! < Integer.MAX_VALUE.
-                        throw new UnsupportedOperationException("Factorial of " + count);
-                    }
-                    var intCount = count.intValue();
-                    var n = 2; // We're looking for unique pairs.
-                    var nominator = factorial(intCount);
-                    var denominator = factorial(n) * factorial(intCount - n);
-                    return nominator / denominator;
-                })
+                .penalize(ONE_HARD, (room, period, count) -> (count * (count - 1)) / 2)
                 .asConstraint("roomOccupancy");
-    }
-
-    private static final int MAX_ANTICIPATED_CONFLICTING_LESSONS = 20; // Arbitrary limit for caching.
-    private static final int[] FACTORIAL_CACHE = new int[MAX_ANTICIPATED_CONFLICTING_LESSONS];
-
-    private static int factorial(int number) {
-        if (number < MAX_ANTICIPATED_CONFLICTING_LESSONS) {
-            var cache = FACTORIAL_CACHE[number];
-            if (cache == 0) {
-                cache = factorialUncached(number);
-                FACTORIAL_CACHE[number] = cache;
-            }
-            return cache;
-        }
-        return factorialUncached(number);
-    }
-
-    private static int factorialUncached(int number) {
-        return switch (number) {
-            case 0, 1 -> 1;
-            case 2 -> 2;
-            default -> number * factorial(number - 1);
-        };
     }
 
     Constraint unavailablePeriodPenalty(ConstraintFactory factory) {

@@ -4,8 +4,6 @@ import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.sum;
 import static ai.timefold.solver.core.api.score.stream.Joiners.equal;
 import static ai.timefold.solver.core.api.score.stream.Joiners.filtering;
 
-import java.util.function.BiFunction;
-
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrBalancePenalty;
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrGlobalPenaltyInfo;
 import ai.timefold.solver.benchmarks.examples.machinereassignment.domain.MrMachine;
