@@ -100,7 +100,7 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
                                 ConstraintCollectors.countTri()))
                 .map((employee, contract, shiftCount) -> employee,
                         (employee, contract, shiftCount) -> contract,
-                        (employee, contract, shiftCount) -> contract.getViolationAmount(shiftCount))
+                        (employee, contract, shiftCount) -> contract.getViolationAmount(shiftCount.intValue()))
                 .filter((employee, contract, violationAmount) -> violationAmount != 0)
                 .penalize(HardSoftBigDecimalScore.ONE_SOFT, (employee, contract, violationAmount) -> violationAmount)
                 .asConstraint("Minimum and maximum number of assignments");
@@ -419,7 +419,7 @@ public class NurseRosteringConstraintProvider implements ConstraintProvider {
     Constraint loadBalanceShiftAssignments(ConstraintFactory constraintFactory) {
         return constraintFactory.forEach(ShiftAssignment.class)
                 .groupBy(ShiftAssignment::getEmployee, ConstraintCollectors.count())
-                .complement(Employee.class, e -> 0)
+                .complement(Employee.class, e -> 0L)
                 .groupBy(ConstraintCollectors.loadBalance((e, count) -> e, (e, count) -> count))
                 .penalizeBigDecimal(HardSoftBigDecimalScore.ONE_SOFT, LoadBalance::unfairness)
                 .asConstraint("loadBalanceShiftAssignments");
