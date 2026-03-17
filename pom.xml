@@ -20,6 +20,7 @@
         <version.org.junit>5.10.2</version.org.junit>
         <version.org.mockito>5.11.0</version.org.mockito>
         <version.spotless.plugin>3.3.0</version.spotless.plugin>
+        <version.org.bouncycastle>1.83</version.org.bouncycastle>
         <spotless.skip>false</spotless.skip>
         <spotless.goal>apply</spotless.goal>
         <java.module.name>ai.timefold.solver.benchmarks</java.module.name>
@@ -35,6 +36,13 @@
                 <groupId>ai.timefold.solver.enterprise</groupId>
                 <artifactId>timefold-solver-enterprise-build-parent</artifactId>
                 <version>${version.ai.timefold.solver}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bc-jdk18on-bom</artifactId>
+                <version>${version.org.bouncycastle}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -75,6 +83,12 @@
             <artifactId>jdom2</artifactId>
             <version>${version.org.jdom}</version>
         </dependency>
+        <!-- License check -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+        </dependency>
+
         <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
