@@ -129,7 +129,7 @@ public abstract class CommonApp<Solution_> extends LoggingMain {
 
     public final Solution_ solve(Solution_ solution, long minutesSpentLimit) {
         var solverFactory = SolverFactory.<Solution_> createFromXmlResource(solverConfigResource);
-        var solver = solverFactory.buildSolver(new SolverConfigOverride<Solution_>()
+        var solver = solverFactory.buildSolver(new SolverConfigOverride()
                 .withTerminationConfig(new TerminationConfig()
                         .withMinutesSpentLimit(minutesSpentLimit)));
         return solver.solve(solution);
