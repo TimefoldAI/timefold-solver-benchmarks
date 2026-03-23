@@ -607,7 +607,22 @@ public enum CVRPLIBDataset implements Dataset<CVRPLIBDataset> {
     RC2_10_7("RC2_10_7.txt", 24391.4, false),
     RC2_10_8("RC2_10_8.txt", 23279.8, false),
     RC2_10_9("RC2_10_9.txt", 22731.6, false),
-    RC2_10_10("RC2_10_10.txt", 21731.2, false);
+    RC2_10_10("RC2_10_10.txt", 21731.2, false),
+    // CMT
+    CMT1("CMT1-n50-k10.vrp", 524.61, false),
+    CMT2("CMT2-n75-k16.vrp", 835.26, false),
+    CMT3("CMT3-n100-k13.vrp", 826.14, false),
+    CMT4("CMT4-n150-k16.vrp", 1028.42, false),
+    CMT5("CMT5-n199-k24.vrp", 1291.29, false),
+    CMT6("CMT6-n50-k10.vrp", 555.43, false),
+    CMT7("CMT7-n75-k16.vrp", 909.68, false),
+    CMT8("CMT8-n100-k13.vrp", 865.94, false),
+    CMT9("CMT9-n150-k16.vrp", 1162.55, false),
+    CMT10("CMT10-n199-k24.vrp", 1395.85, false),
+    CMT11("CMT11-n120-k12.vrp", 1042.11, false),
+    CMT12("CMT12-n100-k15.vrp", 819.56, false),
+    CMT13("CMT13-n120-k12.vrp", 1541.14, false),
+    CMT14("CMT14-n100-k15.vrp", 866.37, false);
 
     private final String filename;
     private final BigDecimal bestKnownDistance;

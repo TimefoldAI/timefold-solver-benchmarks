@@ -226,6 +226,8 @@ public class VehicleRoutingImporter extends
             DistanceType distanceType = solution.getDistanceType();
             locationMap = new LinkedHashMap<>(customerListSize);
             List<Location> customerLocationList = new ArrayList<>(customerListSize);
+            readOptionalConstantLine("DISTANCE\\s*:\\s*[\\d\\.]+");
+            readOptionalConstantLine("SERVICE_TIME\\s*:\\s*[\\d\\.]+");
             readConstantLine("NODE_COORD_SECTION");
             for (int i = 0; i < customerListSize; i++) {
                 String line = bufferedReader.readLine();
