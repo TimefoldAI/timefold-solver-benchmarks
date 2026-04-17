@@ -33,7 +33,7 @@ public abstract class AbstractCompetitiveBenchmark<Dataset_ extends Dataset<Data
     public static final long MAX_SECONDS = 60;
     public static final long UNIMPROVED_SECONDS_TERMINATION = MAX_SECONDS / 3;
 
-    static final int MAX_THREADS = 4; // Set to the number of performance cores on your machine.
+    static final int MAX_THREADS = 8; // Set to the number of performance cores on your machine.
     // Recommended to divide MAX_THREADS without remainder.
     // Don't overdo it with move threads; it's not a silver bullet.
     public static final int ENTERPRISE_MOVE_THREAD_COUNT = 4;

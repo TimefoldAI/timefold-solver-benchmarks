@@ -45,6 +45,7 @@ public class VehicleRoutingImporter extends
         private int customerListSize;
         private int vehicleListSize;
         private int capacity;
+        private int totalDemand;
         private Map<Long, Location> locationMap;
         private List<Depot> depotList;
 
@@ -277,6 +278,7 @@ public class VehicleRoutingImporter extends
                 String[] lineTokens = splitBySpacesOrTabs(line.trim(), timewindowed ? 5 : 2);
                 long id = Long.parseLong(lineTokens[0]);
                 int demand = Integer.parseInt(lineTokens[1]);
+                totalDemand += demand;
                 // Depots have no demand
                 if (demand == 0) {
                     Location location = locationMap.get(id);
@@ -341,7 +343,11 @@ public class VehicleRoutingImporter extends
                 }
                 String vehicleListSizeString = inputFileName.replaceAll(inputFileNameRegex, "$1");
                 try {
-                    vehicleListSize = Integer.parseInt(vehicleListSizeString);
+                    // vehicleListSize = Integer.parseInt(vehicleListSizeString);
+                    // Safety margin: 30% + 3 more vehicles than the trivial bin packing LB
+                    vehicleListSize = totalDemand / capacity;
+                    vehicleListSize += (int) (vehicleListSize * 0.3);
+                    vehicleListSize += 3;
                 } catch (NumberFormatException e) {
                     throw new IllegalArgumentException("The inputFileName (" + inputFileName
                             + ") has a vehicleListSizeString (" + vehicleListSizeString + ") that is not a number.", e);

@@ -18,8 +18,11 @@ public class Main
 
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
         var benchmark = new Main();
-        benchmark.run(List.of(CVRPLIBConfiguration.COMMUNITY_EDITION, CVRPLIBConfiguration.ENTERPRISE_EDITION),
+        benchmark.run(
+                List.of(CVRPLIBConfiguration.COMMUNITY_EDITION, CVRPLIBConfiguration.COMMUNITY_EDITION_EVOLUTIONARY_ALGORITHM),
                 CVRPLIBDataset.values());
+        //                List.of(CVRPLIBConfiguration.COMMUNITY_EDITION),
+        //                CVRPLIBDataset.X_N101_K25);
     }
 
     @Override
