@@ -150,15 +150,15 @@ then
     git clone --depth 1 --branch $COMMUNITY https://github.com/Christopher-Chianelli/timefold-solver.git
     git clone --depth 1 --branch $ENTERPRISE $ENTERPRISE_URL
     git clone --depth 1 --branch $QUICKSTART https://github.com/TimefoldAI/timefold-quickstarts.git
-
-    echo "Building Solver and Solver Enterprise for branch $1"
-    cd timefold-solver
-    mvn -q clean install -Dquickly &> /dev/null
-    cd ..
-    cd timefold-solver-enterprise
-    mvn -q clean install -Dquickly &> /dev/null
-    cd ..
 fi
+
+echo "Building Solver and Solver Enterprise for branch $1"
+cd timefold-solver
+mvn -q clean install -Dquickly &> /dev/null
+cd ..
+cd timefold-solver-enterprise
+mvn -q clean install -Dquickly &> /dev/null
+cd ..
 
 echo "Quickstart,RandomSeed,MoveThreadCount,Score" > "$1".csv
 for quickstart in bed-allocation conference-scheduling employee-scheduling \
