@@ -37,6 +37,12 @@ jobs:
           repository: TimefoldAI/timefold-quickstarts
           ref: ${{ github.event.inputs.version == 'split' && 'development' || (github.event.inputs.version == '2.x' && 'development' || 'development-1.x') }}
           path: timefold-quickstarts
+      - name: (SUT) Setup JDK and Maven
+        uses: actions/setup-java@v5
+        with:
+          java-version: 21
+          distribution: 'temurin'
+          check-latest: true
       - run: bash ./benchmark.sh ${{ inputs.version }}
         env:
           SKIP_CLONE: true
