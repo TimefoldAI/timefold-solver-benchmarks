@@ -65,7 +65,12 @@ quickstart_jar() {
 run_quickstart() {
   # Set $BASE_URL to override the default http://localhost:8080
   cd $(quickstart_dir $1)
-  mvn -q clean package -Denterprise -DskipTests &> /dev/null
+  mvn -q clean package -Denterprise -DskipTests # &> /dev/null
+  if [ $? -ne 0 ]
+  then
+      echo "Build failed"
+      exit 1
+  fi
   nohup java "-Dquarkus.timefold.solver.termination.spent-limit=${SOLVE_TIME}" "-Dquarkus.timefold.solver.random-seed=${RANDOM_SEED}" "-Dquarkus.timefold.solver.move-thread-count=${MOVE_THREAD_COUNT}" -jar $(quickstart_jar $1) &> /dev/null &
   sleep 5
   BASE_URL="${BASE_URL:-http://localhost:8080}"
