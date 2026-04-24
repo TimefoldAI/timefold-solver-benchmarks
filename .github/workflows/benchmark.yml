@@ -16,8 +16,6 @@ on:
 jobs:
   all:
     runs-on: self-hosted
-    env:
-      SKIP_CLONE: true
     steps:
       - uses: actions/checkout@v4
       - name: Checkout timefold-solver
@@ -40,3 +38,6 @@ jobs:
           ref: ${{ github.event.inputs.version == 'split' && 'development' || (github.event.inputs.version == '2.x' && 'development' || 'development-1.x') }}
           path: timefold-quickstarts
       - run: bash ./benchmark.sh ${{ inputs.version }}
+        env:
+          SKIP_CLONE: true
+          TIMEFOLD_ENTERPRISE_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
