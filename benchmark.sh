@@ -159,10 +159,10 @@ fi
 
 echo "Building Solver and Solver Enterprise for branch $1"
 cd timefold-solver
-mvn clean install -Dquickly &> /dev/null
+mvn clean install -Dquickly # &> /dev/null
 cd ..
 cd timefold-solver-enterprise
-mvn clean install -Dquickly &> /dev/null
+mvn clean install -Dquickly # &> /dev/null
 cd ..
 
 echo "Quickstart,RandomSeed,MoveThreadCount,Score" > "$1".csv
