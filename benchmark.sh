@@ -65,11 +65,11 @@ quickstart_jar() {
 run_quickstart() {
   # Set $BASE_URL to override the default http://localhost:8080
   cd $(quickstart_dir $1)
-  mvn -q clean package -Denterprise -DskipTests # &> /dev/null
+  mvn clean package -Denterprise -DskipTests 1>&2 #&> /dev/null
   if [ $? -ne 0 ]
   then
       echo "Build failed"
-      exit 1
+      return 1
   fi
   nohup java "-Dquarkus.timefold.solver.termination.spent-limit=${SOLVE_TIME}" "-Dquarkus.timefold.solver.random-seed=${RANDOM_SEED}" "-Dquarkus.timefold.solver.move-thread-count=${MOVE_THREAD_COUNT}" -jar $(quickstart_jar $1) &> /dev/null &
   sleep 5
@@ -159,10 +159,10 @@ fi
 
 echo "Building Solver and Solver Enterprise for branch $1"
 cd timefold-solver
-mvn -q clean install -Dquickly &> /dev/null
+mvn clean install -Dquickly &> /dev/null
 cd ..
 cd timefold-solver-enterprise
-mvn -q clean install -Dquickly &> /dev/null
+mvn clean install -Dquickly &> /dev/null
 cd ..
 
 echo "Quickstart,RandomSeed,MoveThreadCount,Score" > "$1".csv
