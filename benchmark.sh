@@ -1,6 +1,6 @@
 #!/bin/bash
 BASE_DIR=$(pwd)
-SOLVE_TIME=10m
+SOLVE_TIME=2m
 #TIMEOUT_SECONDS=100
 
 declare -A DEMO_DATA
