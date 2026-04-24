@@ -30,6 +30,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: TimefoldAI/timefold-solver-enterprise
+          token: ${{ secrets.BENCHMARK_PUBLISH_TOKEN }}
           ref: ${{ github.event.inputs.version == 'split' && 'perf/split-random' || (github.event.inputs.version == '2.x' && 'main' || '1.x') }}
           path: timefold-solver-enterprise
       - name: Checkout timefold-quickstarts
