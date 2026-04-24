@@ -15,7 +15,7 @@ on:
 
 jobs:
   all:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     env:
       SKIP_CLONE: true
     steps:
