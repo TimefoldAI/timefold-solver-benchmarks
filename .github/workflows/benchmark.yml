@@ -19,21 +19,21 @@ jobs:
     env:
       SKIP_CLONE: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Checkout timefold-solver
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: Christopher-Chianelli/timefold-solver
           ref: ${{ github.event.inputs.version == 'split' && 'perf/split-random' || (github.event.inputs.version == '2.x' && 'main' || '1.x') }}
           path: timefold-solver
       - name: Checkout timefold-solver-enterprise
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: TimefoldAI/timefold-solver-enterprise
           ref: ${{ github.event.inputs.version == 'split' && 'perf/split-random' || (github.event.inputs.version == '2.x' && 'main' || '1.x') }}
           path: timefold-solver-enterprise
       - name: Checkout timefold-quickstarts
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: TimefoldAI/timefold-quickstarts
           ref: ${{ github.event.inputs.version == 'split' && 'development' || (github.event.inputs.version == '2.x' && 'development' || 'development-1.x') }}
