@@ -9,7 +9,7 @@ import ai.timefold.solver.benchmarks.micro.scoredirector.Example;
 import ai.timefold.solver.benchmarks.micro.scoredirector.ScoreDirectorType;
 import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
-import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
+import ai.timefold.solver.core.config.solver.SolverConfig;
 
 public final class FlowShopProblem extends AbstractProblem<JobScheduleSolution> {
 
@@ -17,8 +17,7 @@ public final class FlowShopProblem extends AbstractProblem<JobScheduleSolution> 
         super(Example.FLOW_SHOP, scoreDirectorType);
     }
 
-    @Override
-    protected ScoreDirectorFactoryConfig buildScoreDirectorFactoryConfig(ScoreDirectorType scoreDirectorType) {
+    private ScoreDirectorFactoryConfig buildScoreDirectorFactoryConfig(ScoreDirectorType scoreDirectorType) {
         var scoreDirectorFactoryConfig = buildInitialScoreDirectorFactoryConfig();
         return switch (scoreDirectorType) {
             case CONSTRAINT_STREAMS, CONSTRAINT_STREAMS_JUSTIFIED ->
@@ -27,8 +26,11 @@ public final class FlowShopProblem extends AbstractProblem<JobScheduleSolution> 
     }
 
     @Override
-    protected SolutionDescriptor<JobScheduleSolution> buildSolutionDescriptor() {
-        return SolutionDescriptor.buildSolutionDescriptor(JobScheduleSolution.class, Machine.class, Job.class);
+    protected SolverConfig buildSolverConfig(ScoreDirectorType scoreDirectorType) {
+        return new SolverConfig()
+                .withSolutionClass(JobScheduleSolution.class)
+                .withEntityClasses(Machine.class, Job.class)
+                .withScoreDirectorFactory(buildScoreDirectorFactoryConfig(scoreDirectorType));
     }
 
     @Override

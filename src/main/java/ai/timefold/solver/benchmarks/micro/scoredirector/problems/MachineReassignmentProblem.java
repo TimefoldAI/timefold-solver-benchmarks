@@ -8,7 +8,7 @@ import ai.timefold.solver.benchmarks.micro.scoredirector.Example;
 import ai.timefold.solver.benchmarks.micro.scoredirector.ScoreDirectorType;
 import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
-import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
+import ai.timefold.solver.core.config.solver.SolverConfig;
 
 public final class MachineReassignmentProblem
         extends AbstractProblem<MachineReassignment> {
@@ -17,19 +17,20 @@ public final class MachineReassignmentProblem
         super(Example.MACHINE_REASSIGNMENT, scoreDirectorType);
     }
 
-    @Override
-    protected ScoreDirectorFactoryConfig buildScoreDirectorFactoryConfig(ScoreDirectorType scoreDirectorType) {
+    private ScoreDirectorFactoryConfig buildScoreDirectorFactoryConfig(ScoreDirectorType scoreDirectorType) {
         var scoreDirectorFactoryConfig = buildInitialScoreDirectorFactoryConfig();
         return switch (scoreDirectorType) {
             case CONSTRAINT_STREAMS, CONSTRAINT_STREAMS_JUSTIFIED ->
                 scoreDirectorFactoryConfig.withConstraintProviderClass(MachineReassignmentConstraintProvider.class);
-            default -> throw new UnsupportedOperationException("Score director: " + scoreDirectorType);
         };
     }
 
     @Override
-    protected SolutionDescriptor<MachineReassignment> buildSolutionDescriptor() {
-        return SolutionDescriptor.buildSolutionDescriptor(MachineReassignment.class, MrProcessAssignment.class);
+    protected SolverConfig buildSolverConfig(ScoreDirectorType scoreDirectorType) {
+        return new SolverConfig()
+                .withSolutionClass(MachineReassignment.class)
+                .withEntityClasses(MrProcessAssignment.class)
+                .withScoreDirectorFactory(buildScoreDirectorFactoryConfig(scoreDirectorType));
     }
 
     @Override

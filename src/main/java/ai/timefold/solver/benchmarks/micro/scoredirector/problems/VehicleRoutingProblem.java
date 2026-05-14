@@ -3,14 +3,13 @@ package ai.timefold.solver.benchmarks.micro.scoredirector.problems;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Customer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Vehicle;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.timewindowed.TimeWindowedCustomer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.persistence.VehicleRoutingSolutionFileIO;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.score.VehicleRoutingConstraintProvider;
 import ai.timefold.solver.benchmarks.micro.scoredirector.Example;
 import ai.timefold.solver.benchmarks.micro.scoredirector.ScoreDirectorType;
 import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
-import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
+import ai.timefold.solver.core.config.solver.SolverConfig;
 
 public final class VehicleRoutingProblem extends AbstractProblem<VehicleRoutingSolution> {
 
@@ -18,20 +17,20 @@ public final class VehicleRoutingProblem extends AbstractProblem<VehicleRoutingS
         super(Example.VEHICLE_ROUTING, scoreDirectorType);
     }
 
-    @Override
-    protected ScoreDirectorFactoryConfig buildScoreDirectorFactoryConfig(ScoreDirectorType scoreDirectorType) {
+    private ScoreDirectorFactoryConfig buildScoreDirectorFactoryConfig(ScoreDirectorType scoreDirectorType) {
         var scoreDirectorFactoryConfig = buildInitialScoreDirectorFactoryConfig();
         return switch (scoreDirectorType) {
             case CONSTRAINT_STREAMS, CONSTRAINT_STREAMS_JUSTIFIED ->
                 scoreDirectorFactoryConfig.withConstraintProviderClass(VehicleRoutingConstraintProvider.class);
-            default -> throw new UnsupportedOperationException("Score director: %s".formatted(scoreDirectorType));
         };
     }
 
     @Override
-    protected SolutionDescriptor<VehicleRoutingSolution> buildSolutionDescriptor() {
-        return SolutionDescriptor.buildSolutionDescriptor(VehicleRoutingSolution.class, Vehicle.class, Customer.class,
-                TimeWindowedCustomer.class);
+    protected SolverConfig buildSolverConfig(ScoreDirectorType scoreDirectorType) {
+        return new SolverConfig()
+                .withSolutionClass(VehicleRoutingSolution.class)
+                .withEntityClasses(Vehicle.class, Customer.class)
+                .withScoreDirectorFactory(buildScoreDirectorFactoryConfig(scoreDirectorType));
     }
 
     @Override

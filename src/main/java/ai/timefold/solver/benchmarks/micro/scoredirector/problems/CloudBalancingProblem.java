@@ -8,7 +8,7 @@ import ai.timefold.solver.benchmarks.micro.scoredirector.Example;
 import ai.timefold.solver.benchmarks.micro.scoredirector.ScoreDirectorType;
 import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
-import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
+import ai.timefold.solver.core.config.solver.SolverConfig;
 
 public final class CloudBalancingProblem extends AbstractProblem<CloudBalance> {
 
@@ -16,19 +16,20 @@ public final class CloudBalancingProblem extends AbstractProblem<CloudBalance> {
         super(Example.CLOUD_BALANCING, scoreDirectorType);
     }
 
-    @Override
-    protected ScoreDirectorFactoryConfig buildScoreDirectorFactoryConfig(ScoreDirectorType scoreDirectorType) {
+    private ScoreDirectorFactoryConfig buildScoreDirectorFactoryConfig(ScoreDirectorType scoreDirectorType) {
         var scoreDirectorFactoryConfig = buildInitialScoreDirectorFactoryConfig();
         return switch (scoreDirectorType) {
             case CONSTRAINT_STREAMS, CONSTRAINT_STREAMS_JUSTIFIED ->
                 scoreDirectorFactoryConfig.withConstraintProviderClass(CloudBalancingConstraintProvider.class);
-            default -> throw new UnsupportedOperationException("Score director: %s".formatted(scoreDirectorType));
         };
     }
 
     @Override
-    protected SolutionDescriptor<CloudBalance> buildSolutionDescriptor() {
-        return SolutionDescriptor.buildSolutionDescriptor(CloudBalance.class, CloudProcess.class);
+    protected SolverConfig buildSolverConfig(ScoreDirectorType scoreDirectorType) {
+        return new SolverConfig()
+                .withSolutionClass(CloudBalance.class)
+                .withEntityClasses(CloudProcess.class)
+                .withScoreDirectorFactory(buildScoreDirectorFactoryConfig(scoreDirectorType));
     }
 
     @Override

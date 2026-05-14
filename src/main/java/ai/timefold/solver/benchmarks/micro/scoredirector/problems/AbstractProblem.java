@@ -25,6 +25,7 @@ import ai.timefold.solver.core.impl.score.constraint.ConstraintMatchPolicy;
 import ai.timefold.solver.core.impl.score.director.InnerScoreDirector;
 import ai.timefold.solver.core.impl.score.director.ScoreDirectorFactory;
 import ai.timefold.solver.core.impl.solver.DefaultSolver;
+import ai.timefold.solver.core.impl.solver.DefaultSolverFactory;
 import ai.timefold.solver.core.impl.solver.scope.SolverScope;
 import ai.timefold.solver.core.preview.api.move.Move;
 
@@ -53,12 +54,13 @@ abstract class AbstractProblem<Solution_> implements Problem {
     private long invocationCount = 0;
     private boolean willUndo = true;
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     protected AbstractProblem(final Example example, final ScoreDirectorType scoreDirectorType) {
         this.example = Objects.requireNonNull(example);
         this.scoreDirectorType = Objects.requireNonNull(scoreDirectorType);
-        this.solutionDescriptor = buildSolutionDescriptor();
-        var scoreDirectorFactoryConfig = buildScoreDirectorFactoryConfig(scoreDirectorType);
-        this.scoreDirectorFactory = ScoreDirectorType.buildScoreDirectorFactory(scoreDirectorFactoryConfig, solutionDescriptor);
+        var solverConfig = buildSolverConfig(scoreDirectorType);
+        this.solutionDescriptor = ((DefaultSolverFactory)SolverFactory.create(solverConfig)).getSolutionDescriptor();
+        this.scoreDirectorFactory = ScoreDirectorType.buildScoreDirectorFactory(solverConfig.getScoreDirectorFactoryConfig(), solutionDescriptor);
         this.originalSolution = readOriginalSolution();
     }
 
@@ -66,13 +68,10 @@ abstract class AbstractProblem<Solution_> implements Problem {
         return switch (scoreDirectorType) {
             case CONSTRAINT_STREAMS, CONSTRAINT_STREAMS_JUSTIFIED -> new ScoreDirectorFactoryConfig()
                     .withConstraintStreamAutomaticNodeSharing(true);
-            default -> new ScoreDirectorFactoryConfig();
         };
     }
 
-    abstract protected ScoreDirectorFactoryConfig buildScoreDirectorFactoryConfig(ScoreDirectorType scoreDirectorType);
-
-    abstract protected SolutionDescriptor<Solution_> buildSolutionDescriptor();
+    abstract protected SolverConfig buildSolverConfig(ScoreDirectorType scoreDirectorType);
 
     private Solution_ readOriginalSolution() {
         var directoryName = this.example.getDirectoryName();

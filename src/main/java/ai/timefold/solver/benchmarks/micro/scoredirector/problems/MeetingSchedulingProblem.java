@@ -10,7 +10,7 @@ import ai.timefold.solver.benchmarks.micro.scoredirector.Example;
 import ai.timefold.solver.benchmarks.micro.scoredirector.ScoreDirectorType;
 import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
-import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
+import ai.timefold.solver.core.config.solver.SolverConfig;
 
 public final class MeetingSchedulingProblem extends AbstractProblem<MeetingSchedule> {
 
@@ -18,8 +18,7 @@ public final class MeetingSchedulingProblem extends AbstractProblem<MeetingSched
         super(Example.MEETING_SCHEDULING, scoreDirectorType);
     }
 
-    @Override
-    protected ScoreDirectorFactoryConfig buildScoreDirectorFactoryConfig(ScoreDirectorType scoreDirectorType) {
+    private ScoreDirectorFactoryConfig buildScoreDirectorFactoryConfig(ScoreDirectorType scoreDirectorType) {
         var scoreDirectorFactoryConfig = buildInitialScoreDirectorFactoryConfig();
         var nonNullScoreDirectorType = Objects.requireNonNull(scoreDirectorType);
         if (nonNullScoreDirectorType == ScoreDirectorType.CONSTRAINT_STREAMS
@@ -30,8 +29,11 @@ public final class MeetingSchedulingProblem extends AbstractProblem<MeetingSched
     }
 
     @Override
-    protected SolutionDescriptor<MeetingSchedule> buildSolutionDescriptor() {
-        return SolutionDescriptor.buildSolutionDescriptor(MeetingSchedule.class, MeetingAssignment.class);
+    protected SolverConfig buildSolverConfig(ScoreDirectorType scoreDirectorType) {
+        return new SolverConfig()
+                .withSolutionClass(MeetingSchedule.class)
+                .withEntityClasses(MeetingAssignment.class)
+                .withScoreDirectorFactory(buildScoreDirectorFactoryConfig(scoreDirectorType));
     }
 
     @Override
