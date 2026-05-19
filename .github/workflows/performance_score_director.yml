@@ -130,8 +130,10 @@ jobs:
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
-          if git branch --list "${{ github.event.inputs.baseline }}" | grep -q .; then
-            git checkout ${{ github.event.inputs.baseline }}
+          TARGET_BRANCH="${{ github.event.inputs.baseline }}"
+          if git ls-remote --exit-code --heads origin "$TARGET_BRANCH" > /dev/null; then
+            git fetch --depth=1 origin "$TARGET_BRANCH"
+            git checkout -B "$TARGET_BRANCH" FETCH_HEAD
           fi
           git status
       - name: Compile the benchmark
@@ -200,8 +202,10 @@ jobs:
         working-directory: ./timefold-solver-enterprise
         shell: bash
         run: |
-          if git branch --list "${{ github.event.inputs.branch }}" | grep -q .; then
-            git checkout ${{ github.event.inputs.branch }}
+          TARGET_BRANCH="${{ github.event.inputs.branch }}"
+          if git ls-remote --exit-code --heads origin "$TARGET_BRANCH" > /dev/null; then
+            git fetch --depth=1 origin "$TARGET_BRANCH"
+            git checkout -B "$TARGET_BRANCH" FETCH_HEAD
           fi
           git status
       - name: Quickly build timefold-solver-enterprise
@@ -215,8 +219,10 @@ jobs:
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         run: |
-          if git branch --list "${{ github.event.inputs.branch }}" | grep -q .; then
-            git checkout ${{ github.event.inputs.branch }}
+          TARGET_BRANCH="${{ github.event.inputs.branch }}"
+          if git ls-remote --exit-code --heads origin "$TARGET_BRANCH" > /dev/null; then
+            git fetch --depth=1 origin "$TARGET_BRANCH"
+            git checkout -B "$TARGET_BRANCH" FETCH_HEAD
           fi
           git status
       - name: Compile the benchmarks
