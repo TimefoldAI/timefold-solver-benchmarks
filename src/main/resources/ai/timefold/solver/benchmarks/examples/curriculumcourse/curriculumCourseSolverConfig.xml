@@ -22,13 +22,6 @@
         <constructionHeuristicType>FIRST_FIT_DECREASING</constructionHeuristicType>
     </constructionHeuristic>
     <localSearch>
-        <unionMoveSelector>
-            <changeMoveSelector/>
-            <swapMoveSelector>
-                <filterClass>ai.timefold.solver.examples.curriculumcourse.solver.move.DifferentCourseSwapMoveFilter
-                </filterClass>
-            </swapMoveSelector>
-        </unionMoveSelector>
         <acceptor>
             <lateAcceptanceSize>600</lateAcceptanceSize>
         </acceptor>

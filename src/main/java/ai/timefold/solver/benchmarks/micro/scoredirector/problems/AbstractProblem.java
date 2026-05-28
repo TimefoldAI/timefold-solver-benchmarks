@@ -54,13 +54,14 @@ abstract class AbstractProblem<Solution_> implements Problem {
     private long invocationCount = 0;
     private boolean willUndo = true;
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     protected AbstractProblem(final Example example, final ScoreDirectorType scoreDirectorType) {
         this.example = Objects.requireNonNull(example);
         this.scoreDirectorType = Objects.requireNonNull(scoreDirectorType);
         var solverConfig = buildSolverConfig(scoreDirectorType);
-        this.solutionDescriptor = ((DefaultSolverFactory)SolverFactory.create(solverConfig)).getSolutionDescriptor();
-        this.scoreDirectorFactory = ScoreDirectorType.buildScoreDirectorFactory(solverConfig.getScoreDirectorFactoryConfig(), solutionDescriptor);
+        this.solutionDescriptor = ((DefaultSolverFactory) SolverFactory.create(solverConfig)).getSolutionDescriptor();
+        this.scoreDirectorFactory =
+                ScoreDirectorType.buildScoreDirectorFactory(solverConfig.getScoreDirectorFactoryConfig(), solutionDescriptor);
         this.originalSolution = readOriginalSolution();
     }
 
