@@ -38,4 +38,6 @@ jobs:
           repository: TimefoldAI/timefold-quickstarts
           ref: ${{ github.event.inputs.version == 'split' && 'development' || (github.event.inputs.version == '2.x' && 'development' || 'development-1.x') }}
           path: timefold-quickstarts
-      - run: bash ./benchmark.sh ${{ inputs.version }}
+      - env:
+          VERSION: ${{ inputs.version }}
+        run: bash ./benchmark.sh $VERSION
