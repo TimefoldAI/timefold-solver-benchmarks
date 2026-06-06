@@ -64,7 +64,7 @@ jobs:
         with:
           repository: TimefoldAI/timefold-quickstarts
           path: ./timefold-quickstarts
-          ref: main
+          ref: development
 
       - name: Setup JDK and Maven
         uses: actions/setup-java@v5
@@ -124,7 +124,7 @@ jobs:
         with:
           repository: TimefoldAI/timefold-quickstarts
           path: ./timefold-quickstarts
-          ref: main
+          ref: development
 
       - name: Setup JDK and Maven
         uses: actions/setup-java@v5
