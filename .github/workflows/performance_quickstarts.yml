@@ -85,6 +85,19 @@ jobs:
         shell: bash
         run: ./mvnw -B -Dquickly clean install
 
+      - name: Checkout timefold-solver-enterprise
+        uses: actions/checkout@v4
+        with:
+          repository: TimefoldAI/timefold-solver-enterprise
+          ref: ${{ github.event.inputs.baseline }}
+          token: ${{ secrets.BENCHMARK_PUBLISH_TOKEN }}
+          path: ./timefold-solver-enterprise
+
+      - name: Quickly build timefold-solver-enterprise
+        working-directory: ./timefold-solver-enterprise
+        shell: bash
+        run: ./mvnw -B -Dquickly clean install
+
       - name: Switch quickstarts to baseline branch if it exists
         working-directory: ./timefold-quickstarts
         shell: bash
@@ -100,7 +113,7 @@ jobs:
       - name: Build the quickstart
         shell: bash
         run: |
-          mvn -B -DskipTests package \
+          mvn -B -DskipTests -Penterprise package \
             -f timefold-quickstarts/java/${{ matrix.example }}/pom.xml
 
       - name: Upload the binaries
@@ -145,6 +158,31 @@ jobs:
         shell: bash
         run: ./mvnw -B -Dquickly clean install
 
+      - name: Checkout timefold-solver-enterprise
+        uses: actions/checkout@v4
+        with:
+          repository: TimefoldAI/timefold-solver-enterprise
+          ref: main
+          token: ${{ secrets.BENCHMARK_PUBLISH_TOKEN }}
+          path: ./timefold-solver-enterprise
+
+      - name: Switch timefold-solver-enterprise to branch under test if it exists
+        working-directory: ./timefold-solver-enterprise
+        shell: bash
+        env:
+          TARGET_BRANCH: ${{ github.event.inputs.branch }}
+        run: |
+          if git ls-remote --exit-code --heads origin "$TARGET_BRANCH" > /dev/null; then
+            git fetch --depth=1 origin "$TARGET_BRANCH"
+            git checkout -B "$TARGET_BRANCH" FETCH_HEAD
+          fi
+          git status
+
+      - name: Quickly build timefold-solver-enterprise
+        working-directory: ./timefold-solver-enterprise
+        shell: bash
+        run: ./mvnw -B -Dquickly clean install
+
       - name: Switch quickstarts to branch under test if it exists
         working-directory: ./timefold-quickstarts
         shell: bash
@@ -160,7 +198,7 @@ jobs:
       - name: Build the quickstart
         shell: bash
         run: |
-          mvn -B -DskipTests package \
+          mvn -B -DskipTests -Penterprise package \
             -f timefold-quickstarts/java/${{ matrix.example }}/pom.xml
 
       - name: Upload the binaries
@@ -228,6 +266,8 @@ jobs:
       - name: (Baseline) Run the benchmark
         id: benchmark_baseline
         shell: bash
+        env:
+          TIMEFOLD_ENTERPRISE_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
         run: |
           python3 timefold-solver-benchmarks/benchmark-quickstarts.py \
             ${{ matrix.example }} ./baseline-app \
@@ -249,6 +289,8 @@ jobs:
       - name: (SUT) Run the benchmark
         id: benchmark_sut
         shell: bash
+        env:
+          TIMEFOLD_ENTERPRISE_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
         run: |
           python3 timefold-solver-benchmarks/benchmark-quickstarts.py \
             ${{ matrix.example }} ./sut-app \
