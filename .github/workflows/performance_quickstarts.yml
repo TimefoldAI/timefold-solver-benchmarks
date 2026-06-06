@@ -1,0 +1,311 @@
+# Both baseline and SUT (Software Under Test) are built from source first,
+# with their binaries uploaded as artifacts.
+# This is done on GitHub infrastructure, to achieve maximum parallelization.
+#
+# The benchmark job downloads the binaries and runs them.
+# The baseline is established first, then the SUT is measured.
+# They both run in the same job,
+# to guarantee they run on the same machine with the same performance characteristics.
+# This is done on a self-hosted runner which we completely control.
+#
+# Each benchmark gives a 99.9 % confidence interval.
+# The confidence intervals are compared to determine if the branch under test is a regression or an improvement.
+# The error threshold is expected to be below +/- 3.0 %.
+#
+name: Quickstart Perf Regression Test
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      jdk_baseline:
+        description: 'JDK version'
+        default: '25'
+        required: true
+      baseline:
+        description: 'Baseline branch or tag'
+        default: 'main'
+        required: true
+      jdk_branch:
+        description: 'JDK version'
+        default: '25'
+        required: true
+      branch:
+        description: 'Branch to benchmark (needs to use 999-SNAPSHOT)'
+        default: 'main'
+        required: true
+      branch_owner:
+        description: 'User owning the branch'
+        default: 'TimefoldAI'
+        required: true
+      runs:
+        description: 'Solver runs per quickstart per version'
+        default: '20'
+        required: false
+      time_limit:
+        description: 'Solver time limit per run in seconds'
+        default: '60'
+        required: false
+
+run-name: "TimefoldAI's ${{ github.event.inputs.baseline }} vs. ${{ github.event.inputs.branch_owner }}'s ${{ github.event.inputs.branch }} (Java ${{ github.event.inputs.jdk_baseline }} vs. ${{ github.event.inputs.jdk_branch }})"
+
+jobs:
+  build_baseline:
+    runs-on: ubuntu-latest # Leverage massive parallelization of Github-hosted runners.
+    strategy:
+      fail-fast: true # If one compilation fails, abort everything.
+      matrix:
+        # When updating this list, use find-and-replace in the entire file to keep all such lists identical.
+        example: [bed-allocation, conference-scheduling, employee-scheduling, facility-location, flight-crew-scheduling, food-packaging, maintenance-scheduling, meeting-scheduling, order-picking, project-job-scheduling, school-timetabling, sports-league-scheduling, task-assigning, tournament-scheduling, vehicle-routing]
+    steps:
+      - name: Checkout timefold-solver-quickstarts
+        uses: actions/checkout@v4
+        with:
+          repository: TimefoldAI/timefold-solver-quickstarts
+          path: ./timefold-solver-quickstarts
+          ref: main
+
+      - name: Setup JDK and Maven
+        uses: actions/setup-java@v5
+        with:
+          java-version: 25 # Always build with the least recent supported JDK.
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Checkout timefold-solver
+        uses: actions/checkout@v4
+        with:
+          repository: TimefoldAI/timefold-solver
+          ref: ${{ github.event.inputs.baseline }}
+          path: ./timefold-solver
+
+      - name: Quickly build timefold-solver
+        working-directory: ./timefold-solver
+        shell: bash
+        run: ./mvnw -B -Dquickly clean install
+
+      - name: Switch quickstarts to baseline branch if it exists
+        working-directory: ./timefold-solver-quickstarts
+        shell: bash
+        env:
+          TARGET_BRANCH: ${{ github.event.inputs.baseline }}
+        run: |
+          if git ls-remote --exit-code --heads origin "$TARGET_BRANCH" > /dev/null; then
+            git fetch --depth=1 origin "$TARGET_BRANCH"
+            git checkout -B "$TARGET_BRANCH" FETCH_HEAD
+          fi
+          git status
+
+      - name: Build the quickstart
+        shell: bash
+        run: |
+          mvn -B -DskipTests package \
+            -f timefold-solver-quickstarts/java/${{ matrix.example }}/pom.xml
+
+      - name: Upload the binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: baseline-${{ matrix.example }}
+          path: |
+            ./timefold-solver-quickstarts/java/${{ matrix.example }}/target/quarkus-app/
+          if-no-files-found: error
+
+  build_sut:
+    runs-on: ubuntu-latest # Leverage massive parallelization of Github-hosted runners.
+    strategy:
+      fail-fast: true # If one compilation fails, abort everything.
+      matrix:
+        # When updating this list, use find-and-replace in the entire file to keep all such lists identical.
+        example: [bed-allocation, conference-scheduling, employee-scheduling, facility-location, flight-crew-scheduling, food-packaging, maintenance-scheduling, meeting-scheduling, order-picking, project-job-scheduling, school-timetabling, sports-league-scheduling, task-assigning, tournament-scheduling, vehicle-routing]
+    steps:
+      - name: Checkout timefold-solver-quickstarts
+        uses: actions/checkout@v4
+        with:
+          repository: TimefoldAI/timefold-solver-quickstarts
+          path: ./timefold-solver-quickstarts
+          ref: main
+
+      - name: Setup JDK and Maven
+        uses: actions/setup-java@v5
+        with:
+          java-version: 25 # Always build with the least recent supported JDK.
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Checkout timefold-solver
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.inputs.branch_owner }}/timefold-solver
+          ref: ${{ github.event.inputs.branch }}
+          path: ./timefold-solver
+
+      - name: Quickly build timefold-solver
+        working-directory: ./timefold-solver
+        shell: bash
+        run: ./mvnw -B -Dquickly clean install
+
+      - name: Switch quickstarts to branch under test if it exists
+        working-directory: ./timefold-solver-quickstarts
+        shell: bash
+        env:
+          TARGET_BRANCH: ${{ github.event.inputs.branch }}
+        run: |
+          if git ls-remote --exit-code --heads origin "$TARGET_BRANCH" > /dev/null; then
+            git fetch --depth=1 origin "$TARGET_BRANCH"
+            git checkout -B "$TARGET_BRANCH" FETCH_HEAD
+          fi
+          git status
+
+      - name: Build the quickstart
+        shell: bash
+        run: |
+          mvn -B -DskipTests package \
+            -f timefold-solver-quickstarts/java/${{ matrix.example }}/pom.xml
+
+      - name: Upload the binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: sut-${{ matrix.example }}
+          path: |
+            ./timefold-solver-quickstarts/java/${{ matrix.example }}/target/quarkus-app/
+          if-no-files-found: error
+
+  benchmark:
+    needs: [ build_baseline, build_sut ]
+    runs-on: self-hosted # We need a stable machine to actually run the benchmarks.
+    strategy:
+      fail-fast: false # Jobs fail if the benchmark error is over predefined thresholds; other benchmarks continue.
+      matrix:
+        # When updating this list, use find-and-replace in the entire file to keep all such lists identical.
+        example: [bed-allocation, conference-scheduling, employee-scheduling, facility-location, flight-crew-scheduling, food-packaging, maintenance-scheduling, meeting-scheduling, order-picking, project-job-scheduling, school-timetabling, sports-league-scheduling, task-assigning, tournament-scheduling, vehicle-routing]
+    steps:
+      - name: Clean results of previous runs
+        shell: bash
+        env:
+          BASELINE: ${{ github.event.inputs.baseline }}
+          BRANCH: ${{ github.event.inputs.branch }}
+        run: |
+          # DIRs are different, so that we can run "main" against "main" and have separate results.
+          # Strip CR/LF from inputs before writing to $GITHUB_ENV to prevent env-file injection.
+          SANITIZED_BASELINE=$(echo "$BASELINE" | tr -d '\r\n' | sed 's/\//\-/g')
+          SANITIZED_BRANCH=$(echo "$BRANCH" | tr -d '\r\n' | sed 's/\//\-/g')
+          {
+            echo "SANITIZED_BASELINE=$SANITIZED_BASELINE"
+            echo "SANITIZED_BRANCH=$SANITIZED_BRANCH"
+          } >> "$GITHUB_ENV"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 'x'
+
+      - name: Checkout timefold-solver-benchmarks
+        uses: actions/checkout@v4
+        with:
+          repository: TimefoldAI/timefold-solver-benchmarks
+          path: ./timefold-solver-benchmarks
+
+      - name: Download the baseline binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: baseline-${{ matrix.example }}
+          path: ./baseline-app
+
+      - name: Download the SUT binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: sut-${{ matrix.example }}
+          path: ./sut-app
+
+      - name: (Baseline) Setup JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: ${{ github.event.inputs.jdk_baseline }}
+          distribution: 'temurin'
+          check-latest: true
+
+      - name: (Baseline) Run the benchmark
+        id: benchmark_baseline
+        shell: bash
+        run: |
+          python3 timefold-solver-benchmarks/benchmark-quickstarts.py \
+            ${{ matrix.example }} ./baseline-app \
+            --runs ${{ github.event.inputs.runs }} \
+            --time-limit ${{ github.event.inputs.time_limit }} \
+            --base-port $((8080 + ${{ strategy.job-index }})) \
+            --output baseline.csv
+          echo "RANGE_MID=$(tail -1 baseline.csv | cut -d',' -f3)"   >> "$GITHUB_OUTPUT"
+          echo "RANGE_START=$(tail -1 baseline.csv | cut -d',' -f7)" >> "$GITHUB_OUTPUT"
+          echo "RANGE_END=$(tail -1 baseline.csv | cut -d',' -f8)"   >> "$GITHUB_OUTPUT"
+
+      - name: (SUT) Setup JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: ${{ github.event.inputs.jdk_branch }}
+          distribution: 'temurin'
+          check-latest: true
+
+      - name: (SUT) Run the benchmark
+        id: benchmark_sut
+        shell: bash
+        run: |
+          python3 timefold-solver-benchmarks/benchmark-quickstarts.py \
+            ${{ matrix.example }} ./sut-app \
+            --runs ${{ github.event.inputs.runs }} \
+            --time-limit ${{ github.event.inputs.time_limit }} \
+            --base-port $((8080 + ${{ strategy.job-index }})) \
+            --output sut.csv
+          echo "RANGE_MID=$(tail -1 sut.csv | cut -d',' -f3)"   >> "$GITHUB_OUTPUT"
+          echo "RANGE_START=$(tail -1 sut.csv | cut -d',' -f7)" >> "$GITHUB_OUTPUT"
+          echo "RANGE_END=$(tail -1 sut.csv | cut -d',' -f8)"   >> "$GITHUB_OUTPUT"
+
+      - name: Report results
+        env:
+          BASELINE: ${{ github.event.inputs.baseline }}
+          BRANCH: ${{ github.event.inputs.branch }}
+          OWNER: ${{ github.event.inputs.branch_owner }}
+          EXAMPLE: ${{ matrix.example }}
+          BASELINE_RANGE_START: ${{ steps.benchmark_baseline.outputs.RANGE_START }}
+          BASELINE_RANGE_MID:   ${{ steps.benchmark_baseline.outputs.RANGE_MID }}
+          BASELINE_RANGE_END:   ${{ steps.benchmark_baseline.outputs.RANGE_END }}
+          SUT_RANGE_START: ${{ steps.benchmark_sut.outputs.RANGE_START }}
+          SUT_RANGE_MID:   ${{ steps.benchmark_sut.outputs.RANGE_MID }}
+          SUT_RANGE_END:   ${{ steps.benchmark_sut.outputs.RANGE_END }}
+        shell: bash
+        run: |
+          BASELINE_DEV=$(echo "scale=2; ($BASELINE_RANGE_MID / $BASELINE_RANGE_START) * 100 - 100" | bc)
+          SUT_DEV=$(echo "scale=2; ($SUT_RANGE_MID / $SUT_RANGE_START) * 100 - 100" | bc)
+          DIFF_MID=$(echo "scale=2; ($BASELINE_RANGE_MID / $SUT_RANGE_MID) * 100" | bc)
+          FAIL=false
+
+          if (( $(echo "$DIFF_MID >= 97.00" | bc -l) && $(echo "$DIFF_MID <= 103.00" | bc -l) )); then
+            echo "### ✅ Within tolerance" >> $GITHUB_STEP_SUMMARY
+          elif [ "$SUT_RANGE_START" -gt "$BASELINE_RANGE_END" ]; then
+            echo "### 🚀 Statistically significant improvement" >> $GITHUB_STEP_SUMMARY
+          elif [ "$BASELINE_RANGE_START" -gt "$SUT_RANGE_END" ]; then
+            echo "### ‼️ Statistically significant regression ‼️" >> $GITHUB_STEP_SUMMARY
+            FAIL=true
+          else
+            echo "### ⁉️ Undetermined result ⁉️" >> $GITHUB_STEP_SUMMARY
+            FAIL=true
+          fi
+
+          BASELINE_URL="https://github.com/TimefoldAI/timefold-solver/tree/$BASELINE"
+          SUT_URL="https://github.com/$OWNER/timefold-solver/tree/$BRANCH"
+
+          echo "|        |   **Ref**   |      **Mean**     |" >> $GITHUB_STEP_SUMMARY
+          echo "|:------:|:-----------:|:-----------------:|" >> $GITHUB_STEP_SUMMARY
+          echo "|  _Old_ | [TimefoldAI's $BASELINE]($BASELINE_URL) | $BASELINE_RANGE_MID ± $BASELINE_DEV % |" >> $GITHUB_STEP_SUMMARY
+          echo "|  _New_ | [$OWNER's $BRANCH]($SUT_URL) | $SUT_RANGE_MID ± $SUT_DEV % |" >> $GITHUB_STEP_SUMMARY
+          echo "| _Diff_ |             |   $DIFF_MID %   |" >> $GITHUB_STEP_SUMMARY
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Quickstart: $EXAMPLE" >> $GITHUB_STEP_SUMMARY
+          echo "Mean is in moves per second. Higher is better." >> $GITHUB_STEP_SUMMARY
+          echo "Mean ± X % describes a 99.9 % confidence interval." >> $GITHUB_STEP_SUMMARY
+          echo "Diff under 100 % represents an improvement, over 100 % a regression." >> $GITHUB_STEP_SUMMARY
+
+          if [ "$FAIL" = true ]; then
+            exit 1
+          fi
