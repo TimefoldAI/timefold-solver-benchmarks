@@ -27,7 +27,10 @@ jobs:
           if git log --since="24 hours ago" --oneline | grep -q .; then
             cd ../timefold-solver-benchmarks
             echo '{}' | gh workflow run performance_score_director.yml --json
-            echo "Launched nightly perf tests." >> $GITHUB_STEP_SUMMARY
+            echo "Launched nightly score director perf tests." >> $GITHUB_STEP_SUMMARY
+            sleep 1m
+            echo '{}' | gh workflow run performance_quickstarts.yml --json
+            echo "Queued nightly quickstart perf tests." >> $GITHUB_STEP_SUMMARY
           else
             # Don't waste money.
             echo "No commits in the past 24 hours." >> $GITHUB_STEP_SUMMARY
