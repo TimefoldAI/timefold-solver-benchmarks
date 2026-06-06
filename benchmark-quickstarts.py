@@ -108,6 +108,7 @@ def _run_once(
             "java",
             f"-Dquarkus.http.port={port}",
             f"-Dquarkus.timefold.solver.termination.spent-limit={time_limit}s",
+            "-Dquarkus.timefold.solver.move-thread-count=NONE",
             "-Dquarkus.log.category.ai.timefold.solver.level=INFO",
             "-Dquarkus.console.color=false",
             "-jar", str(jar),
