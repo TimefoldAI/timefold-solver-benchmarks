@@ -59,11 +59,11 @@ jobs:
         # When updating this list, use find-and-replace in the entire file to keep all such lists identical.
         example: [bed-allocation, conference-scheduling, employee-scheduling, facility-location, flight-crew-scheduling, food-packaging, maintenance-scheduling, meeting-scheduling, order-picking, project-job-scheduling, school-timetabling, sports-league-scheduling, task-assigning, tournament-scheduling, vehicle-routing]
     steps:
-      - name: Checkout timefold-solver-quickstarts
+      - name: Checkout timefold-quickstarts
         uses: actions/checkout@v4
         with:
-          repository: TimefoldAI/timefold-solver-quickstarts
-          path: ./timefold-solver-quickstarts
+          repository: TimefoldAI/timefold-quickstarts
+          path: ./timefold-quickstarts
           ref: main
 
       - name: Setup JDK and Maven
@@ -86,7 +86,7 @@ jobs:
         run: ./mvnw -B -Dquickly clean install
 
       - name: Switch quickstarts to baseline branch if it exists
-        working-directory: ./timefold-solver-quickstarts
+        working-directory: ./timefold-quickstarts
         shell: bash
         env:
           TARGET_BRANCH: ${{ github.event.inputs.baseline }}
@@ -101,14 +101,14 @@ jobs:
         shell: bash
         run: |
           mvn -B -DskipTests package \
-            -f timefold-solver-quickstarts/java/${{ matrix.example }}/pom.xml
+            -f timefold-quickstarts/java/${{ matrix.example }}/pom.xml
 
       - name: Upload the binaries
         uses: actions/upload-artifact@v4
         with:
           name: baseline-${{ matrix.example }}
           path: |
-            ./timefold-solver-quickstarts/java/${{ matrix.example }}/target/quarkus-app/
+            ./timefold-quickstarts/java/${{ matrix.example }}/target/quarkus-app/
           if-no-files-found: error
 
   build_sut:
@@ -119,11 +119,11 @@ jobs:
         # When updating this list, use find-and-replace in the entire file to keep all such lists identical.
         example: [bed-allocation, conference-scheduling, employee-scheduling, facility-location, flight-crew-scheduling, food-packaging, maintenance-scheduling, meeting-scheduling, order-picking, project-job-scheduling, school-timetabling, sports-league-scheduling, task-assigning, tournament-scheduling, vehicle-routing]
     steps:
-      - name: Checkout timefold-solver-quickstarts
+      - name: Checkout timefold-quickstarts
         uses: actions/checkout@v4
         with:
-          repository: TimefoldAI/timefold-solver-quickstarts
-          path: ./timefold-solver-quickstarts
+          repository: TimefoldAI/timefold-quickstarts
+          path: ./timefold-quickstarts
           ref: main
 
       - name: Setup JDK and Maven
@@ -146,7 +146,7 @@ jobs:
         run: ./mvnw -B -Dquickly clean install
 
       - name: Switch quickstarts to branch under test if it exists
-        working-directory: ./timefold-solver-quickstarts
+        working-directory: ./timefold-quickstarts
         shell: bash
         env:
           TARGET_BRANCH: ${{ github.event.inputs.branch }}
@@ -161,14 +161,14 @@ jobs:
         shell: bash
         run: |
           mvn -B -DskipTests package \
-            -f timefold-solver-quickstarts/java/${{ matrix.example }}/pom.xml
+            -f timefold-quickstarts/java/${{ matrix.example }}/pom.xml
 
       - name: Upload the binaries
         uses: actions/upload-artifact@v4
         with:
           name: sut-${{ matrix.example }}
           path: |
-            ./timefold-solver-quickstarts/java/${{ matrix.example }}/target/quarkus-app/
+            ./timefold-quickstarts/java/${{ matrix.example }}/target/quarkus-app/
           if-no-files-found: error
 
   benchmark:
