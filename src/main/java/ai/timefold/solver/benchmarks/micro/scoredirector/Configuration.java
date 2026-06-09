@@ -31,22 +31,19 @@ final class Configuration extends AbstractConfiguration {
 
         var enabledExamples = parseExamples(properties.getProperty("example"), Example.values());
         var benchmarkProperties = readBenchmarkProperties(properties, getDefault());
-        return new Configuration(enabledScoreDirectorTypes, enabledExamples, benchmarkProperties.forkCount(),
-                benchmarkProperties.warmupIterations(), benchmarkProperties.measurementIterations(),
-                benchmarkProperties.relativeScoreErrorThreshold());
+        return new Configuration(enabledScoreDirectorTypes, enabledExamples, benchmarkProperties.batchSize(), benchmarkProperties.forkCount(), benchmarkProperties.warmupIterations(), benchmarkProperties.measurementIterations(), benchmarkProperties.relativeScoreErrorThreshold());
     }
 
     public static Configuration getDefault() {
-        return new Configuration(Arrays.asList(ScoreDirectorType.values()), Arrays.asList(Example.values()), DEFAULT_FORK_COUNT,
-                DEFAULT_WARMUP_ITERATIONS, DEFAULT_MEASUREMENT_ITERATIONS, DEFAULT_RELATIVE_SCORE_ERROR_THRESHOLD);
+        return new Configuration(Arrays.asList(ScoreDirectorType.values()), Arrays.asList(Example.values()), DEFAULT_FORK_COUNT, DEFAULT_BATCH_SIZE, DEFAULT_WARMUP_ITERATIONS, DEFAULT_MEASUREMENT_ITERATIONS, DEFAULT_RELATIVE_SCORE_ERROR_THRESHOLD);
     }
 
     private final List<ScoreDirectorType> enabledScoreDirectorTypes;
     private final List<Example> enabledExamples;
 
     private Configuration(List<ScoreDirectorType> enabledScoreDirectorTypes, List<Example> enabledExamples,
-            int forkCount, int warmupIterations, int measurementIterations, double relativeScoreErrorThreshold) {
-        super(forkCount, warmupIterations, measurementIterations, relativeScoreErrorThreshold);
+            int forkCount, int batchSize, int warmupIterations, int measurementIterations, double relativeScoreErrorThreshold) {
+        super(forkCount, batchSize, warmupIterations, measurementIterations, relativeScoreErrorThreshold);
         this.enabledScoreDirectorTypes = enabledScoreDirectorTypes;
         this.enabledExamples = enabledExamples;
     }

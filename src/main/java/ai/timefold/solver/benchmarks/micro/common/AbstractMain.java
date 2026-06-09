@@ -181,7 +181,9 @@ public abstract class AbstractMain<C extends AbstractConfiguration> {
         return new OptionsBuilder()
                 .forks(configuration.getForkCount())
                 .warmupIterations(configuration.getWarmupIterations())
+                .warmupBatchSize(5000)
                 .measurementIterations(configuration.getMeasurementIterations())
+                .measurementBatchSize(5000)
                 .jvmArgs("-XX:+UseParallelGC", "-Xms4g", "-Xmx4g") // Throughput-focused GC.
                 .result(resultsDirectory.resolve("results.json").toAbsolutePath().toString())
                 .resultFormat(ResultFormatType.JSON)

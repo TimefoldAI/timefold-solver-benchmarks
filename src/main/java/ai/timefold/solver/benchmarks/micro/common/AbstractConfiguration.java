@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 public abstract class AbstractConfiguration {
 
     protected static final int DEFAULT_FORK_COUNT = 10;
+    protected static final int DEFAULT_BATCH_SIZE = 5_000;
     protected static final int DEFAULT_WARMUP_ITERATIONS = 5;
     protected static final int DEFAULT_MEASUREMENT_ITERATIONS = 5;
     protected static final double DEFAULT_RELATIVE_SCORE_ERROR_THRESHOLD = 0.02;
@@ -16,6 +17,8 @@ public abstract class AbstractConfiguration {
             AbstractConfiguration defaultConfiguration) {
         var forkCount = (int) parseDouble(properties, "forks",
                 Integer.toString(defaultConfiguration.getForkCount()));
+        var batchSize = (int) parseDouble(properties, "batch_size",
+                Integer.toString(defaultConfiguration.getBatchSize()));
         var warmupIterations = (int) parseDouble(properties, "warmup_iterations",
                 Integer.toString(defaultConfiguration.getWarmupIterations()));
         var measurementIterations =
@@ -23,7 +26,7 @@ public abstract class AbstractConfiguration {
                         Integer.toString(defaultConfiguration.getMeasurementIterations()));
         var relativeScoreErrorThreshold = parseDouble(properties, "relative_score_error_threshold",
                 Double.toString(defaultConfiguration.getRelativeScoreErrorThreshold()));
-        return new BenchmarkProperties(forkCount, warmupIterations, measurementIterations, relativeScoreErrorThreshold);
+        return new BenchmarkProperties(forkCount, batchSize, warmupIterations, measurementIterations, relativeScoreErrorThreshold);
     }
 
     protected static double parseDouble(Properties properties, String property, String def) {
@@ -49,13 +52,15 @@ public abstract class AbstractConfiguration {
     }
 
     private final int forkCount;
+    private final int batchSize;
     private final int warmupIterations;
     private final int measurementIterations;
     private final double relativeScoreErrorThreshold;
 
-    protected AbstractConfiguration(int forkCount, int warmupIterations, int measurementIterations,
+    protected AbstractConfiguration(int forkCount, int batchSize, int warmupIterations, int measurementIterations,
             double relativeScoreErrorThreshold) {
         this.forkCount = forkCount;
+        this.batchSize = batchSize;
         this.warmupIterations = warmupIterations;
         this.measurementIterations = measurementIterations;
         this.relativeScoreErrorThreshold = relativeScoreErrorThreshold;
@@ -64,6 +69,11 @@ public abstract class AbstractConfiguration {
     public int getForkCount() {
         return forkCount;
     }
+
+    public int getBatchSize() {
+        return batchSize;
+    }
+
 
     public int getWarmupIterations() {
         return warmupIterations;

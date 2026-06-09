@@ -15,7 +15,7 @@ import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.infra.Blackhole;
 
 @State(Scope.Benchmark)
-@BenchmarkMode(Mode.Throughput)
+@BenchmarkMode(Mode.SingleShotTime)
 public abstract class AbstractBenchmark {
 
     public Problem problem;

@@ -17,19 +17,18 @@ final class Configuration extends AbstractConfiguration {
 
         var enabledExamples = parseExamples(properties.getProperty("examples"), Example.values());
         var benchmarkProperties = readBenchmarkProperties(properties, getDefault());
-        return new Configuration(enabledExamples, benchmarkProperties.forkCount(), benchmarkProperties.warmupIterations(),
-                benchmarkProperties.measurementIterations(), benchmarkProperties.relativeScoreErrorThreshold());
+        return new Configuration(enabledExamples, benchmarkProperties.forkCount(), benchmarkProperties.batchSize(), benchmarkProperties.warmupIterations(), benchmarkProperties.measurementIterations(), benchmarkProperties.relativeScoreErrorThreshold());
     }
 
     public static Configuration getDefault() {
-        return new Configuration(Arrays.asList(Example.values()), 20, 5, 5, 0.02);
+        return new Configuration(Arrays.asList(Example.values()), DEFAULT_FORK_COUNT, DEFAULT_BATCH_SIZE, DEFAULT_WARMUP_ITERATIONS, DEFAULT_MEASUREMENT_ITERATIONS, DEFAULT_RELATIVE_SCORE_ERROR_THRESHOLD);
     }
 
     private final List<Example> enabledExamples;
 
-    private Configuration(List<Example> enabledExamples, int forkCount, int warmupIterations, int measurementIterations,
+    private Configuration(List<Example> enabledExamples, int forkCount, int batchSize, int warmupIterations, int measurementIterations,
             double relativeScoreErrorThreshold) {
-        super(forkCount, warmupIterations, measurementIterations, relativeScoreErrorThreshold);
+        super(forkCount, batchSize, warmupIterations, measurementIterations, relativeScoreErrorThreshold);
         this.enabledExamples = enabledExamples;
     }
 
