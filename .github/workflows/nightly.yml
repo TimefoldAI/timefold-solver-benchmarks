@@ -1,4 +1,4 @@
-name: Schedule a nightly run of the Score Director performance benchmark
+name: Schedule a nightly run
 
 on:
   schedule:
@@ -26,6 +26,9 @@ jobs:
           cd timefold-solver
           if git log --since="24 hours ago" --oneline | grep -q .; then
             cd ../timefold-solver-benchmarks
+            echo '{}' | gh workflow run turtle.yml --json
+            echo "Launched nightly turtle tests." >> $GITHUB_STEP_SUMMARY
+            sleep 1m
             echo '{}' | gh workflow run performance_score_director.yml --json
             echo "Launched nightly score director perf tests." >> $GITHUB_STEP_SUMMARY
             sleep 1m

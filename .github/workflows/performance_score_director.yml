@@ -236,6 +236,9 @@ jobs:
           if-no-files-found: error
 
   benchmark:
+    concurrency:
+      group: perf-score_director-${{ matrix.example }}
+      cancel-in-progress: true
     needs: [ build_baseline, build_sut ]
     runs-on: self-hosted # We need a stable machine to actually run the benchmarks.
     strategy:
