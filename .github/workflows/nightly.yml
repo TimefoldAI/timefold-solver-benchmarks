@@ -2,7 +2,7 @@ name: Schedule a nightly run
 
 on:
   schedule:
-    - cron: '59 23 * * 1-5' # Every workday at the end of the day.
+    - cron: '0 20 * * *' # Every day at 10pm CEST (8pm UTC).
 
 jobs:
   trigger:
