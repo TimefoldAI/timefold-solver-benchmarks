@@ -270,7 +270,7 @@ jobs:
         id: benchmark_baseline
         shell: bash
         env:
-          TIMEFOLD_ENTERPRISE_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
+          TIMEFOLD_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
           RUNS: ${{ github.event.inputs.runs }}
           TIME_LIMIT: ${{ github.event.inputs.time_limit }}
         run: |
@@ -280,10 +280,9 @@ jobs:
             --time-limit $TIME_LIMIT \
             --base-port $((8080 + ${{ strategy.job-index }})) \
             --output baseline.csv
-          echo "RANGE_MID=$(tail -1 baseline.csv | cut -d',' -f3)"   >> "$GITHUB_OUTPUT"
-          echo "RANGE_START=$(tail -1 baseline.csv | cut -d',' -f7)" >> "$GITHUB_OUTPUT"
-          echo "RANGE_END=$(tail -1 baseline.csv | cut -d',' -f8)"   >> "$GITHUB_OUTPUT"
-
+          echo   "RANGE_MID=$(tail -1 baseline.csv | cut -d',' -f3 | tr -cd '0-9' | xargs)"   >> "$GITHUB_OUTPUT"
+          echo "RANGE_START=$(tail -1 baseline.csv | cut -d',' -f7 | tr -cd '0-9' | xargs)" >> "$GITHUB_OUTPUT"
+          echo   "RANGE_END=$(tail -1 baseline.csv | cut -d',' -f8 | tr -cd '0-9' | xargs)"   >> "$GITHUB_OUTPUT"
       - name: (SUT) Setup JDK
         uses: actions/setup-java@v5
         with:
@@ -295,7 +294,7 @@ jobs:
         id: benchmark_sut
         shell: bash
         env:
-          TIMEFOLD_ENTERPRISE_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
+          TIMEFOLD_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
         run: |
           python3 timefold-solver-benchmarks/benchmark-quickstarts.py \
             ${{ matrix.example }} ./sut-app \
@@ -303,9 +302,9 @@ jobs:
             --time-limit ${{ github.event.inputs.time_limit }} \
             --base-port $((8080 + ${{ strategy.job-index }})) \
             --output sut.csv
-          echo "RANGE_MID=$(tail -1 sut.csv | cut -d',' -f3)"   >> "$GITHUB_OUTPUT"
-          echo "RANGE_START=$(tail -1 sut.csv | cut -d',' -f7)" >> "$GITHUB_OUTPUT"
-          echo "RANGE_END=$(tail -1 sut.csv | cut -d',' -f8)"   >> "$GITHUB_OUTPUT"
+          echo   "RANGE_MID=$(tail -1 sut.csv | cut -d',' -f3 | tr -cd '0-9' | xargs)"   >> "$GITHUB_OUTPUT"
+          echo "RANGE_START=$(tail -1 sut.csv | cut -d',' -f7 | tr -cd '0-9' | xargs)" >> "$GITHUB_OUTPUT"
+          echo   "RANGE_END=$(tail -1 sut.csv | cut -d',' -f8 | tr -cd '0-9' | xargs)"   >> "$GITHUB_OUTPUT"
 
       - name: Report results
         env:
