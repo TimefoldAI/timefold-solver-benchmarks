@@ -18,6 +18,17 @@ jobs:
         with:
           path: ./timefold-solver
           repository: TimefoldAI/timefold-solver
+      # Runs the workflows in this order:
+      # 1. turtle.yml
+      # 2. performance_score_director.yml
+      # 3. performance_quickstarts.yml
+      # Gives enough time between triggers to let the previous workflow get fully queued
+      # before another starts interfering with it.
+      # It is imperative that the performance jobs run in their entirety and are not pre-empted by other jobs,
+      # otherwise the performance results will be inconsistent and unreliable.
+      # The turtle jobs can run at any time,
+      # as they run on Github runners, and not on our custom performance runner
+      # and therefore cannot interfere with the performance jobs.
       - name: Schedule the other workflow
         shell: bash
         env:
@@ -28,10 +39,9 @@ jobs:
             cd ../timefold-solver-benchmarks
             echo '{}' | gh workflow run turtle.yml --json
             echo "Launched nightly turtle tests." >> $GITHUB_STEP_SUMMARY
-            sleep 1m
             echo '{}' | gh workflow run performance_score_director.yml --json
             echo "Launched nightly score director perf tests." >> $GITHUB_STEP_SUMMARY
-            sleep 1m
+            sleep 5m
             echo '{}' | gh workflow run performance_quickstarts.yml --json
             echo "Queued nightly quickstart perf tests." >> $GITHUB_STEP_SUMMARY
           else
