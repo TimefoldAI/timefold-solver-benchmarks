@@ -295,11 +295,13 @@ jobs:
         shell: bash
         env:
           TIMEFOLD_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
+          RUNS: ${{ github.event.inputs.runs }}
+          TIME_LIMIT: ${{ github.event.inputs.time_limit }}
         run: |
           python3 timefold-solver-benchmarks/benchmark-quickstarts.py \
             ${{ matrix.example }} ./sut-app \
-            --runs ${{ github.event.inputs.runs }} \
-            --time-limit ${{ github.event.inputs.time_limit }} \
+            --runs $RUNS \
+            --time-limit $TIME_LIMIT \
             --base-port $((8080 + ${{ strategy.job-index }})) \
             --output sut.csv
           echo   "RANGE_MID=$(tail -1 sut.csv | cut -d',' -f3 | tr -cd '0-9' | xargs)"   >> "$GITHUB_OUTPUT"
