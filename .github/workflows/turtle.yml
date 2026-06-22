@@ -28,7 +28,7 @@ jobs:
     steps:
       # Clone timefold-solver
       - name: Checkout timefold-solver
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: ${{ github.event.inputs.branch_owner }}/timefold-solver
           ref: ${{ github.event.inputs.branch }}
@@ -48,7 +48,7 @@ jobs:
 
       # Clone timefold-solver-enterprise
       - name: Checkout timefold-solver-enterprise
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: TimefoldAI/timefold-solver-enterprise
           token: ${{ secrets.JRELEASER_GITHUB_TOKEN }} # Safe; only used to clone the repo and not stored in the fork.
@@ -60,7 +60,7 @@ jobs:
 
       # Clone timefold-solver-benchmarks
       - name: Checkout timefold-solver-benchmarks
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: TimefoldAI/timefold-solver-benchmarks
           path: ./timefold-solver-benchmarks

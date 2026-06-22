@@ -60,7 +60,7 @@ jobs:
         example: [bed-allocation, conference-scheduling, employee-scheduling, facility-location, flight-crew-scheduling, food-packaging, maintenance-scheduling, meeting-scheduling, order-picking, project-job-scheduling, school-timetabling, sports-league-scheduling, task-assigning, tournament-scheduling, vehicle-routing]
     steps:
       - name: Checkout timefold-quickstarts
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: TimefoldAI/timefold-quickstarts
           path: ./timefold-quickstarts
@@ -74,7 +74,7 @@ jobs:
           cache: 'maven'
 
       - name: Checkout timefold-solver
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: TimefoldAI/timefold-solver
           ref: ${{ github.event.inputs.baseline }}
@@ -86,7 +86,7 @@ jobs:
         run: ./mvnw -B -Dquickly clean install
 
       - name: Checkout timefold-solver-enterprise
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: TimefoldAI/timefold-solver-enterprise
           ref: ${{ github.event.inputs.baseline }}
@@ -133,7 +133,7 @@ jobs:
         example: [bed-allocation, conference-scheduling, employee-scheduling, facility-location, flight-crew-scheduling, food-packaging, maintenance-scheduling, meeting-scheduling, order-picking, project-job-scheduling, school-timetabling, sports-league-scheduling, task-assigning, tournament-scheduling, vehicle-routing]
     steps:
       - name: Checkout timefold-quickstarts
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: TimefoldAI/timefold-quickstarts
           path: ./timefold-quickstarts
@@ -147,7 +147,7 @@ jobs:
           cache: 'maven'
 
       - name: Checkout timefold-solver
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: ${{ github.event.inputs.branch_owner }}/timefold-solver
           ref: ${{ github.event.inputs.branch }}
@@ -159,7 +159,7 @@ jobs:
         run: ./mvnw -B -Dquickly clean install
 
       - name: Checkout timefold-solver-enterprise
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: TimefoldAI/timefold-solver-enterprise
           ref: main
@@ -242,7 +242,7 @@ jobs:
           python-version: 'x'
 
       - name: Checkout timefold-solver-benchmarks
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: TimefoldAI/timefold-solver-benchmarks
           path: ./timefold-solver-benchmarks
