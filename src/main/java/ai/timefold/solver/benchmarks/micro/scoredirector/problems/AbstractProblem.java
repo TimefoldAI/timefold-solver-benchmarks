@@ -26,6 +26,7 @@ import ai.timefold.solver.core.impl.score.director.InnerScoreDirector;
 import ai.timefold.solver.core.impl.score.director.ScoreDirectorFactory;
 import ai.timefold.solver.core.impl.solver.DefaultSolver;
 import ai.timefold.solver.core.impl.solver.DefaultSolverFactory;
+import ai.timefold.solver.core.impl.solver.random.RandomSource;
 import ai.timefold.solver.core.impl.solver.scope.SolverScope;
 import ai.timefold.solver.core.preview.api.move.Move;
 
@@ -139,7 +140,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
         // Prepare the lifecycle.
         var solverScope = new SolverScope<Solution_>();
         solverScope.setScoreDirector(scoreDirector);
-        solverScope.setWorkingRandom(new Random(0)); // Fully reproducible random selection.
+        solverScope.setWorkingRandom(RandomSource.seeded(0)); // Fully reproducible random selection.
         moveRepository.solvingStarted(solverScope);
         phaseScope = new LocalSearchPhaseScope<>(solverScope, 0);
         moveRepository.phaseStarted(phaseScope);
