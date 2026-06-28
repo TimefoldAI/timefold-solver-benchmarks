@@ -3,7 +3,6 @@ package ai.timefold.solver.benchmarks.micro.scoredirector.problems;
 import java.io.File;
 import java.util.Iterator;
 import java.util.Objects;
-import java.util.Random;
 import java.util.stream.Stream;
 
 import ai.timefold.solver.benchmarks.micro.scoredirector.Example;
