@@ -25,7 +25,7 @@ on:
         required: true
       baseline:
         description: 'Baseline branch or tag'
-        default: 'v2.2.0'
+        default: 'v2.3.0'
         required: true
       jdk_branch:
         description: 'JDK version'
@@ -114,14 +114,14 @@ jobs:
         shell: bash
         run: |
           mvn -B -DskipTests -Penterprise package \
-            -f timefold-quickstarts/java/${{ matrix.example }}/pom.xml
+            -f timefold-quickstarts/use-cases/${{ matrix.example }}/pom.xml
 
       - name: Upload the binaries
         uses: actions/upload-artifact@v7
         with:
           name: baseline-${{ matrix.example }}
           path: |
-            ./timefold-quickstarts/java/${{ matrix.example }}/target/quarkus-app/
+            ./timefold-quickstarts/use-cases/${{ matrix.example }}/target/quarkus-app/
           if-no-files-found: error
 
   build_sut:
@@ -199,14 +199,14 @@ jobs:
         shell: bash
         run: |
           mvn -B -DskipTests -Penterprise package \
-            -f timefold-quickstarts/java/${{ matrix.example }}/pom.xml
+            -f timefold-quickstarts/use-cases/${{ matrix.example }}/pom.xml
 
       - name: Upload the binaries
         uses: actions/upload-artifact@v7
         with:
           name: sut-${{ matrix.example }}
           path: |
-            ./timefold-quickstarts/java/${{ matrix.example }}/target/quarkus-app/
+            ./timefold-quickstarts/use-cases/${{ matrix.example }}/target/quarkus-app/
           if-no-files-found: error
 
   benchmark:
