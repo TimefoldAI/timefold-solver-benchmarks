@@ -104,7 +104,10 @@ jobs:
         env:
           TARGET_BRANCH: ${{ github.event.inputs.baseline }}
         run: |
-          if git ls-remote --exit-code --heads origin "$TARGET_BRANCH" > /dev/null; then
+          # Match a branch OR a tag named $TARGET_BRANCH (no --heads): baseline is often a tag
+          # (e.g. a release version), and quickstarts is tagged in lockstep with solver releases.
+          # Falls back to the already-checked-out `development` if no match exists.
+          if git ls-remote --exit-code origin "$TARGET_BRANCH" > /dev/null; then
             git fetch --depth=1 origin "$TARGET_BRANCH"
             git checkout -B "$TARGET_BRANCH" FETCH_HEAD
           fi
@@ -172,7 +175,9 @@ jobs:
         env:
           TARGET_BRANCH: ${{ github.event.inputs.branch }}
         run: |
-          if git ls-remote --exit-code --heads origin "$TARGET_BRANCH" > /dev/null; then
+          # Match a branch OR a tag named $TARGET_BRANCH (no --heads): the branch under test may
+          # also be a tag. Falls back to the already-checked-out `main` if no match exists.
+          if git ls-remote --exit-code origin "$TARGET_BRANCH" > /dev/null; then
             git fetch --depth=1 origin "$TARGET_BRANCH"
             git checkout -B "$TARGET_BRANCH" FETCH_HEAD
           fi
@@ -189,7 +194,10 @@ jobs:
         env:
           TARGET_BRANCH: ${{ github.event.inputs.branch }}
         run: |
-          if git ls-remote --exit-code --heads origin "$TARGET_BRANCH" > /dev/null; then
+          # Match a branch OR a tag named $TARGET_BRANCH (no --heads): the branch under test may
+          # also be a tag, and quickstarts is tagged in lockstep with solver releases.
+          # Falls back to the already-checked-out `development` if no match exists.
+          if git ls-remote --exit-code origin "$TARGET_BRANCH" > /dev/null; then
             git fetch --depth=1 origin "$TARGET_BRANCH"
             git checkout -B "$TARGET_BRANCH" FETCH_HEAD
           fi
