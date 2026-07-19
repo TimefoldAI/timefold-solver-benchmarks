@@ -134,7 +134,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
     public final void setupIteration() {
         // We only care about incremental performance; therefore calculate the entire solution outside of invocation.
         scoreDirector.setWorkingSolution(scoreDirector.cloneSolution(originalSolution)); // Use fresh solution again.
-        scoreDirector.triggerVariableListeners();
+        scoreDirector.updateShadowVariables();
         scoreDirector.calculateScore();
         // Prepare the lifecycle.
         var solverScope = new SolverScope<Solution_>();
