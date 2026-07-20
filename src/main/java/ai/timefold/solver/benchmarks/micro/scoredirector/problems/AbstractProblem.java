@@ -2,31 +2,40 @@ package ai.timefold.solver.benchmarks.micro.scoredirector.problems;
 
 import java.io.File;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import ai.timefold.solver.benchmarks.micro.scoredirector.Example;
 import ai.timefold.solver.benchmarks.micro.scoredirector.ScoreDirectorType;
 import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
-import ai.timefold.solver.core.api.score.SimpleScore;
-import ai.timefold.solver.core.api.score.calculator.EasyScoreCalculator;
 import ai.timefold.solver.core.api.solver.SolverFactory;
+import ai.timefold.solver.core.config.localsearch.LocalSearchPhaseConfig;
+import ai.timefold.solver.core.config.phase.PhaseConfig;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
 import ai.timefold.solver.core.config.solver.EnvironmentMode;
 import ai.timefold.solver.core.config.solver.SolverConfig;
+import ai.timefold.solver.core.config.solver.termination.TerminationConfig;
 import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
+import ai.timefold.solver.core.impl.heuristic.HeuristicConfigPolicy;
 import ai.timefold.solver.core.impl.localsearch.DefaultLocalSearchPhase;
 import ai.timefold.solver.core.impl.localsearch.decider.LocalSearchDecider;
 import ai.timefold.solver.core.impl.localsearch.scope.LocalSearchPhaseScope;
 import ai.timefold.solver.core.impl.localsearch.scope.LocalSearchStepScope;
 import ai.timefold.solver.core.impl.neighborhood.MoveRepository;
+import ai.timefold.solver.core.impl.phase.PhaseFactory;
 import ai.timefold.solver.core.impl.score.constraint.ConstraintMatchPolicy;
 import ai.timefold.solver.core.impl.score.director.InnerScoreDirector;
 import ai.timefold.solver.core.impl.score.director.ScoreDirectorFactory;
-import ai.timefold.solver.core.impl.solver.DefaultSolver;
+import ai.timefold.solver.core.impl.solver.ClassInstanceCache;
 import ai.timefold.solver.core.impl.solver.DefaultSolverFactory;
 import ai.timefold.solver.core.impl.solver.random.RandomSource;
+import ai.timefold.solver.core.impl.solver.recaller.BestSolutionRecallerFactory;
 import ai.timefold.solver.core.impl.solver.scope.SolverScope;
+import ai.timefold.solver.core.impl.solver.termination.BasicPlumbingTermination;
+import ai.timefold.solver.core.impl.solver.termination.SolverTermination;
+import ai.timefold.solver.core.impl.solver.termination.TerminationFactory;
 import ai.timefold.solver.core.preview.api.move.Move;
 
 import org.slf4j.Logger;
@@ -97,15 +106,30 @@ abstract class AbstractProblem<Solution_> implements Problem {
 
     protected MoveRepository<Solution_> buildMoveRepository(SolutionDescriptor<Solution_> solutionDescriptor) {
         // Build the top-level local search move selector as the solver would've built it.
-        var solverConfig = new SolverConfig()
+        // Deliberately not going through SolverFactory.create(SolverConfig): that would build its own,
+        // separate SolutionDescriptor, and the resulting selectors would end up bound to a different
+        // ListVariableDescriptor instance than the real score director's canonical one. Shadow variable
+        // notifications are dispatched to the score director's own canonical supply only, so a selector
+        // holding a foreign descriptor would silently stop receiving updates after its first snapshot.
+        var configPolicyBuilder = new HeuristicConfigPolicy.Builder<Solution_>()
+                .withPreviewFeatureSet(Set.of())
                 .withEnvironmentMode(EnvironmentMode.PHASE_ASSERT)
-                .withSolutionClass(solutionDescriptor.getSolutionClass())
-                .withEntityClasses(solutionDescriptor.getEntityClassSet().toArray(new Class[0]))
-                .withEasyScoreCalculatorClass(DummyEasyScoreCalculator.class);
-        this.example.getNearbyDistanceMeter().ifPresent(solverConfig::setNearbyDistanceMeterClass);
-        var solver = (DefaultSolver<Solution_>) SolverFactory.create(solverConfig)
-                .buildSolver();
-        var localSearchPhase = (DefaultLocalSearchPhase<Solution_>) solver.getPhaseList().getLast();
+                .withRandom(RandomSource.seeded(0))
+                .withInitializingScoreTrend(scoreDirectorFactory.getInitializingScoreTrend())
+                .withSolutionDescriptor(solutionDescriptor)
+                .withClassInstanceCache(ClassInstanceCache.create());
+        this.example.getNearbyDistanceMeter().ifPresent(configPolicyBuilder::withNearbyDistanceMeterClass);
+        var configPolicy = configPolicyBuilder.build();
+
+        var basicPlumbingTermination = new BasicPlumbingTermination<Solution_>(false);
+        SolverTermination<Solution_> termination = TerminationFactory.<Solution_> create(new TerminationConfig())
+                .buildTermination(configPolicy, basicPlumbingTermination);
+        var bestSolutionRecaller =
+                BestSolutionRecallerFactory.create().<Solution_> buildBestSolutionRecaller(EnvironmentMode.PHASE_ASSERT);
+
+        var phaseList = PhaseFactory.<Solution_> buildPhases(List.<PhaseConfig> of(new LocalSearchPhaseConfig()),
+                configPolicy, bestSolutionRecaller, termination);
+        var localSearchPhase = (DefaultLocalSearchPhase<Solution_>) phaseList.getLast();
         try { // Decider is not accessible. Hack our way in.
             var deciderField = Stream.of(DefaultLocalSearchPhase.class.getDeclaredFields())
                     .filter(f -> f.getName().equals("decider"))
@@ -134,7 +158,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
     public final void setupIteration() {
         // We only care about incremental performance; therefore calculate the entire solution outside of invocation.
         scoreDirector.setWorkingSolution(scoreDirector.cloneSolution(originalSolution)); // Use fresh solution again.
-        scoreDirector.triggerVariableListeners();
+        scoreDirector.updateShadowVariables();
         scoreDirector.calculateScore();
         // Prepare the lifecycle.
         var solverScope = new SolverScope<Solution_>();
@@ -212,17 +236,6 @@ abstract class AbstractProblem<Solution_> implements Problem {
     public final void teardownTrial() {
         scoreDirector.close();
         // No need to do anything.
-    }
-
-    public static final class DummyEasyScoreCalculator<Solution_> implements EasyScoreCalculator<Solution_, SimpleScore> {
-
-        public DummyEasyScoreCalculator() { // No-arg constructor required.
-        }
-
-        @Override
-        public SimpleScore calculateScore(Solution_ solution) {
-            return SimpleScore.ZERO;
-        }
     }
 
 }
