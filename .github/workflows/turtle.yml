@@ -35,7 +35,7 @@ jobs:
           path: ./timefold-solver
 
       - name: Setup Temurin OpenJDK and Maven
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v5.6.0
         with:
           java-version: ${{ github.event.inputs.jdk }}
           distribution: 'temurin'
