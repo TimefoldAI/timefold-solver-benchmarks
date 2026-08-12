@@ -27,7 +27,7 @@ on:
         required: true
       baseline:
         description: 'Baseline branch or tag (branches need to use 999-SNAPSHOT)'
-        default: 'v2.3.0'
+        default: 'v2.5.0'
         required: true
       jdk_branch:
         description: 'JDK version'
@@ -318,7 +318,7 @@ jobs:
         shell: bash
         env:
           RUN_ID: ${{ env.BASELINE_DIR }}
-          TIMEFOLD_ENTERPRISE_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
+          TIMEFOLD_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
         run: |
           mkdir target
           cp benchmarks-baseline.jar target/benchmarks.jar
@@ -340,7 +340,7 @@ jobs:
         shell: bash
         env:
           RUN_ID: ${{ env.SUT_DIR }}
-          TIMEFOLD_ENTERPRISE_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
+          TIMEFOLD_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
         run: |
           rm target/benchmarks.jar
           cp benchmarks-sut.jar target/benchmarks.jar
