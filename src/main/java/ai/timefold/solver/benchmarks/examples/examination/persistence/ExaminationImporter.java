@@ -11,16 +11,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Queue;
+import java.util.SequencedMap;
 import java.util.SequencedSet;
-import java.util.Set;
 
 import ai.timefold.solver.benchmarks.examples.common.persistence.AbstractTxtSolutionImporter;
 import ai.timefold.solver.benchmarks.examples.common.persistence.SolutionConverter;
@@ -68,9 +65,9 @@ public class ExaminationImporter extends AbstractTxtSolutionImporter<Examination
         private static final Comparator<Topic> COMPARATOR = Comparator.comparing(Topic::getStudentSize)
                 .thenComparingLong(Topic::getId);
         private Examination examination;
-        private Map<Topic, Set<Topic>> coincidenceMap;
-        private Map<Topic, Set<Topic>> exclusionMap;
-        private Map<Topic, Set<Topic>> afterMap;
+        private SequencedMap<Topic, SequencedSet<Topic>> coincidenceMap;
+        private SequencedMap<Topic, SequencedSet<Topic>> exclusionMap;
+        private SequencedMap<Topic, SequencedSet<Topic>> afterMap;
 
         @Override
         public Examination readSolution() throws IOException {
@@ -108,7 +105,7 @@ public class ExaminationImporter extends AbstractTxtSolutionImporter<Examination
             coincidenceMap = new LinkedHashMap<>();
             exclusionMap = new LinkedHashMap<>();
             afterMap = new LinkedHashMap<>();
-            Map<Integer, Student> studentMap = new HashMap<>();
+            var studentMap = new LinkedHashMap<Integer, Student>();
             var examSize = readHeaderWithNumber("Exams");
             List<Topic> topicList = new ArrayList<>(examSize);
             for (var i = 0; i < examSize; i++) {
@@ -124,9 +121,9 @@ public class ExaminationImporter extends AbstractTxtSolutionImporter<Examination
                 topic.setStudentSet(topicStudentList);
                 topic.setFrontLoadLarge(false);
                 topicList.add(topic);
-                coincidenceMap.put(topic, new HashSet<>());
-                exclusionMap.put(topic, new HashSet<>());
-                afterMap.put(topic, new HashSet<>());
+                coincidenceMap.put(topic, new LinkedHashSet<>());
+                exclusionMap.put(topic, new LinkedHashSet<>());
+                afterMap.put(topic, new LinkedHashSet<>());
             }
             examination.setTopicList(topicList);
             examination.setTopicConflictList(calculateTopicConflictList(topicList));
@@ -155,7 +152,7 @@ public class ExaminationImporter extends AbstractTxtSolutionImporter<Examination
             return topicConflictList;
         }
 
-        private Student findOrCreateStudent(Map<Integer, Student> studentMap, int id) {
+        private Student findOrCreateStudent(SequencedMap<Integer, Student> studentMap, int id) {
             var student = studentMap.get(id);
             if (student == null) {
                 student = new Student(id);
@@ -409,10 +406,8 @@ public class ExaminationImporter extends AbstractTxtSolutionImporter<Examination
             examination.setConstraintWeightOverrides(ConstraintWeightOverrides.of(overrides));
         }
 
-        private String[] readInstitutionalWeightingProperty(String property,
-                int propertySize) throws IOException {
-            String[] lineTokens;
-            lineTokens = bufferedReader.readLine().split(SPLIT_REGEX);
+        private String[] readInstitutionalWeightingProperty(String property, int propertySize) throws IOException {
+            var lineTokens = bufferedReader.readLine().split(SPLIT_REGEX);
             if (!lineTokens[0].equals(property) || lineTokens.length != propertySize) {
                 throw new IllegalArgumentException("Read line (" + Arrays.toString(lineTokens)
                         + ") is expected to contain " + propertySize + " tokens and start with " + property + ".");
@@ -423,7 +418,7 @@ public class ExaminationImporter extends AbstractTxtSolutionImporter<Examination
         private void tagFrontLoadLargeTopics() {
             List<Topic> sortedTopicList = new ArrayList<>(examination.getTopicList());
             sortedTopicList.sort(COMPARATOR);
-            int frontLoadLargeTopicSize = examination.getConstraintProperties().getFrontLoadLargeTopicSize();
+            var frontLoadLargeTopicSize = examination.getConstraintProperties().getFrontLoadLargeTopicSize();
             if (frontLoadLargeTopicSize == 0) {
                 return;
             }
@@ -441,7 +436,7 @@ public class ExaminationImporter extends AbstractTxtSolutionImporter<Examination
 
         private void tagFrontLoadLastPeriods() {
             var periodList = examination.getPeriodList();
-            int frontLoadLastPeriodSize = examination.getConstraintProperties().getFrontLoadLastPeriodSize();
+            var frontLoadLastPeriodSize = examination.getConstraintProperties().getFrontLoadLastPeriodSize();
             if (frontLoadLastPeriodSize == 0) {
                 return;
             }
@@ -459,8 +454,8 @@ public class ExaminationImporter extends AbstractTxtSolutionImporter<Examination
 
         private void createExamList() {
             var topicList = examination.getTopicList();
-            List<Exam> examList = new ArrayList<>(topicList.size());
-            Map<Topic, LeadingExam> leadingTopicToExamMap = new HashMap<>(topicList.size());
+            var examList = new ArrayList<Exam>(topicList.size());
+            var leadingTopicToExamMap = new LinkedHashMap<Topic, LeadingExam>(topicList.size());
             for (var topic : topicList) {
                 Exam exam;
                 var leadingTopic = topic;
