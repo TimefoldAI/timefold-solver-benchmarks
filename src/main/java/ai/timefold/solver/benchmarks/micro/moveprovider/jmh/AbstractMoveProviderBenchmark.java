@@ -25,9 +25,10 @@ import org.openjdk.jmh.infra.Blackhole;
  * returns (see {@code MoveProviderProblem.runInvocation}): the working solution returns to exactly
  * its pre-invocation state every time, so nothing ever drifts within an iteration. Only the random
  * source used to draw candidates keeps advancing across invocations, so consecutive invocations
- * still draw different candidates, reproducibly, from the same per-iteration seed. Undoing pays a
- * real, deliberately accepted cost: it forces one {@code calculateScore()} per invocation, which
- * this benchmark used to avoid entirely.
+ * still draw different candidates, reproducibly, from the same per-iteration seed. The undo goes
+ * through {@code MoveDirector.executeTemporaryWithoutScoring}, so no measured invocation ever
+ * calculates score; the only exception is {@code MoveProviderProblem}'s bounded, off-the-clock
+ * flush every {@link #FLUSH_EVERY_N_STEPS} invocations, unrelated to what is being measured here.
  *
  * <p>
  * Also the single home of every parameter shared between the two benchmark subclasses (
@@ -45,6 +46,8 @@ public abstract class AbstractMoveProviderBenchmark {
     public static final int MIN_SAMPLE_SIZE = 2;
     public static final int MAX_SAMPLE_SIZE = 10;
     public static final int TASK_ASSIGNING_MAX_SUB_LIST_SIZE = 15;
+    // Memory bound only, not a measurement; see MoveProviderProblem's maybeFlushConstraintStreamSession().
+    public static final int FLUSH_EVERY_N_STEPS = 100;
 
     public MoveProviderProblem<?> problem;
 
@@ -74,6 +77,11 @@ public abstract class AbstractMoveProviderBenchmark {
     @Benchmark
     public Move<?> manyDraws(Blackhole blackhole) {
         return problem.runInvocation(MANY_DRAWS, MAX_DRAW_ATTEMPTS_PER_MOVE, blackhole);
+    }
+
+    @TearDown(Level.Invocation)
+    public void teardownInvocation() {
+        problem.tearDownInvocation();
     }
 
     @TearDown(Level.Iteration)
