@@ -6,6 +6,7 @@ import java.util.Objects;
 
 import ai.timefold.solver.benchmarks.micro.moveprovider.Example;
 import ai.timefold.solver.benchmarks.micro.moveprovider.MoveProviderCase;
+import ai.timefold.solver.benchmarks.micro.moveprovider.jmh.AbstractMoveProviderBenchmark;
 import ai.timefold.solver.core.api.score.Score;
 import ai.timefold.solver.core.api.solver.SolverFactory;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
@@ -45,10 +46,12 @@ import org.openjdk.jmh.infra.Blackhole;
  * iteration, so consecutive invocations still draw different candidates, reproducibly.
  *
  * <p>
- * Undo goes through {@code MoveDirector.executeTemporary}, the same mechanism local search itself
- * uses for temporary/rejected moves - which forces one {@code calculateScore()} per invocation. That
- * is a real, deliberately accepted cost: it no longer isolates the dataset-network signal from the
- * constraint-stream cost the way this benchmark originally set out to.
+ * Undo goes through {@code MoveDirector.executeTemporaryWithoutScoring} - the same "record while a
+ * move is applied, then replay in reverse" mechanism local search itself uses for temporary moves
+ * via {@code executeTemporary}, minus the {@code calculateScore()} every {@code executeTemporary}
+ * overload otherwise forces (they all exist to learn a move's score effect; this benchmark has no
+ * use for it and does not want to pay for it - see that method's javadoc). This benchmark therefore
+ * still never calculates score, exactly as it never did before undo existed here at all.
  */
 public final class MoveProviderProblem<Solution_> {
 
@@ -120,10 +123,8 @@ public final class MoveProviderProblem<Solution_> {
      * Draws {@code movesPerStep} candidates (only the last is committed), executes it, settles the
      * dataset network, then undoes it before returning - so the working solution is exactly as it
      * was before this invocation, regardless of which move got drawn. Undoing goes through
-     * {@code MoveDirector.executeTemporary}, the same "record while a move is applied, then replay
-     * in reverse" mechanism local search itself uses for temporary moves; it forces one
-     * {@code calculateScore()} per invocation, deliberately accepted as the cost of a cheap, exact,
-     * non-cloning undo.
+     * {@code MoveDirector.executeTemporaryWithoutScoring}, so no {@code calculateScore()} is ever
+     * called - not by this method, not by anything it calls.
      * <p>
      * The settle happens between execute and undo, not after both: the undo dirties the dataset
      * network's tuples again on the way back, so settling only after the full round-trip would
@@ -144,10 +145,10 @@ public final class MoveProviderProblem<Solution_> {
             blackhole.consume(lastMove); // No move is ever thrown away.
         }
         // The step must happen; drawMove() has already guaranteed a non-null move.
-        scoreDirector.getMoveDirector().executeTemporary(lastMove, workingSolution -> {
+        scoreDirector.getMoveDirector().executeTemporaryWithoutScoring(lastMove, workingSolution -> {
             moveRepository.stepEnded(stepScope); // Settles the dataset network; this is what scenario 2 measures.
             return null;
-        }, false); // false: once undone, the pre-move score is already exactly right; no need to recompute it.
+        });
         return lastMove;
     }
 
@@ -169,6 +170,25 @@ public final class MoveProviderProblem<Solution_> {
         throw new IllegalStateException(
                 "The moveProvider (%s) of example (%s) produced no non-null move in (%d) attempts."
                         .formatted(moveProviderCase, example, maxDrawAttemptsPerMove));
+    }
+
+    public void tearDownInvocation() {
+        maybeFlushConstraintStreamSession();
+    }
+
+    /**
+     * Bounded periodic flush, not a measurement. Never calling {@code calculateScore()} lets the
+     * constraint-stream session's filtered root nodes (installed for any variable that allows
+     * unassigned) accumulate one queued tuple per filter flip with nothing draining it -
+     * {@code InnerScoreDirector.requiresFlushing()} exists precisely to flag this. Guard against it
+     * the same way the enterprise {@code MultiThreadedLocalSearchDecider} already does in production:
+     * every {@code FLUSH_EVERY_N_STEPS} invocations, if flushing is required, calculate score once
+     * and discard the result.
+     */
+    private void maybeFlushConstraintStreamSession() {
+        if (invocationCounter >= AbstractMoveProviderBenchmark.FLUSH_EVERY_N_STEPS && scoreDirector.requiresFlushing()) {
+            scoreDirector.calculateScore();
+        }
     }
 
     public void tearDownIteration() {
