@@ -32,7 +32,6 @@ IMPROVEMENT = "🚀 improvement"
 TOLERANCE = "✅ within tolerance"
 MISSING = "❌ missing data"
 
-_VERDICT_ORDER = {REGRESSION: 0, UNDETERMINED: 1, MISSING: 2, IMPROVEMENT: 3, TOLERANCE: 4}
 _FAILING_VERDICTS = {REGRESSION, UNDETERMINED, MISSING}
 
 
@@ -132,7 +131,8 @@ def build_report(data_dir: str, expect: list, baseline_ref: str, branch_ref: str
     header = " · ".join(f"{v} {counts[v]}" for v in
                          (REGRESSION, UNDETERMINED, MISSING, IMPROVEMENT, TOLERANCE) if v in counts)
 
-    rows.sort(key=lambda r: (_VERDICT_ORDER[r[5]], r[4] if r[4] is not None else 0.0))
+    # Move provider first, then benchmark scenario in its declared (not alphabetical) order.
+    rows.sort(key=lambda r: (r[0], SCENARIOS.index(r[1])))
 
     lines = [f"### {header}", ""]
     lines.append(f"_Old_: [TimefoldAI's {baseline_ref}]({ref_url('TimefoldAI', baseline_ref)})  ")
