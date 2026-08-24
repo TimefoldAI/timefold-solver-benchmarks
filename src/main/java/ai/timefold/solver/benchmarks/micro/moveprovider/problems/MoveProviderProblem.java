@@ -89,20 +89,28 @@ public final class MoveProviderProblem<Solution_> {
         return scoreDirectorFactoryFactory.buildScoreDirectorFactory(EnvironmentMode.NO_ASSERT, solutionDescriptor);
     }
 
-    @SuppressWarnings("unchecked")
     public void setupTrial() {
-        moveStreamFactory = new DefaultMoveStreamFactory<>(solutionDescriptor, EnvironmentMode.NO_ASSERT);
-        moveProvider = (MoveProvider<Solution_>) moveProviderCase.createMoveProvider(solutionDescriptor.getMetaModel());
         scoreDirector = scoreDirectorFactory.createScoreDirectorBuilder()
                 .withConstraintMatchPolicy(ConstraintMatchPolicy.DISABLED)
                 .build();
     }
 
+    @SuppressWarnings("unchecked")
     public void setupIteration() {
         // We only care about incremental performance; therefore calculate the entire solution outside of invocation.
         scoreDirector.setWorkingSolution(scoreDirector.cloneSolution(originalSolution));
         scoreDirector.updateShadowVariables();
         scoreDirector.calculateScore();
+        // A fresh factory and provider every iteration, same as every production call site
+        // (DefaultLocalSearchPhaseFactory, DefaultNeighborhoodTester) pairs one factory with one
+        // repository and never reuses the factory for a second build(). Reusing the factory across
+        // iterations left every previous iteration's enumerating streams registered in
+        // EnumeratingStreamFactory.sharingStreamMap forever (build() creates fresh predicate/joiner
+        // lambda instances each call, so the equals()-based node-sharing cache never recognizes them
+        // as duplicates) - each new session then had to build and populate all of them, causing
+        // performance to degrade every iteration.
+        moveStreamFactory = new DefaultMoveStreamFactory<>(solutionDescriptor, EnvironmentMode.NO_ASSERT);
+        moveProvider = (MoveProvider<Solution_>) moveProviderCase.createMoveProvider(solutionDescriptor.getMetaModel());
         // Prepare the lifecycle. A fresh repository every iteration: its dataset session binds to
         // this iteration's working solution.
         moveRepository = new NeighborhoodsBasedMoveRepository<>(moveStreamFactory, List.of(moveProvider));
