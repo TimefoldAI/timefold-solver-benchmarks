@@ -66,14 +66,28 @@ def load_side(path: str) -> dict:
     return result
 
 
-def load_all(data_dir: str) -> tuple[dict, dict]:
-    baseline, sut = {}, {}
+def load_all(data_dir: str) -> tuple[dict, dict, dict]:
+    """The third dict maps provider_key -> assets artifact URL (one per provider subjob, covering
+    both scenarios and both baseline and SUT - see "Archive benchmark assets" in the workflow)."""
+    baseline, sut, asset_urls = {}, {}, {}
     for baseline_path in glob.glob(os.path.join(data_dir, "*", "baseline-results.json")):
-        sut_path = os.path.join(os.path.dirname(baseline_path), "sut-results.json")
-        baseline.update(load_side(baseline_path))
+        provider_dir = os.path.dirname(baseline_path)
+        sut_path = os.path.join(provider_dir, "sut-results.json")
+        baseline_side = load_side(baseline_path)
+        baseline.update(baseline_side)
         if os.path.exists(sut_path):
             sut.update(load_side(sut_path))
-    return baseline, sut
+        url_path = os.path.join(provider_dir, "assets-url.txt")
+        if os.path.exists(url_path):
+            url = open(url_path).read().strip()
+            if url:
+                for provider_key in {key[0] for key in baseline_side}:
+                    asset_urls[provider_key] = url
+    return baseline, sut, asset_urls
+
+
+def format_assets_link(url: "str | None") -> str:
+    return "—" if not url else f"[flamegraphs/JFR]({url})"
 
 
 def relative_error(side: dict) -> float:
@@ -116,7 +130,7 @@ def ref_url(repo_owner: str, ref: str) -> str:
 
 
 def build_report(data_dir: str, expect: list, baseline_ref: str, branch_ref: str, owner: str) -> tuple[str, int]:
-    baseline_data, sut_data = load_all(data_dir)
+    baseline_data, sut_data, asset_urls = load_all(data_dir)
     rows = []
     for provider_key in expect:
         for scenario in SCENARIOS:
@@ -138,19 +152,22 @@ def build_report(data_dir: str, expect: list, baseline_ref: str, branch_ref: str
     lines.append(f"_Old_: [TimefoldAI's {baseline_ref}]({ref_url('TimefoldAI', baseline_ref)})  ")
     lines.append(f"_New_: [{owner}'s {branch_ref}]({ref_url(owner, branch_ref)})")
     lines.append("")
-    lines.append("| Move provider | Scenario | Old (ops/s) | New (ops/s) | Δ | Verdict |")
-    lines.append("|---|---|---:|---:|---:|---|")
+    lines.append("| Move provider | Scenario | Old (ops/s) | New (ops/s) | Δ | Verdict | Assets |")
+    lines.append("|---|---|---:|---:|---:|---|---|")
     for provider_key, scenario, old, new, delta_pct, verdict, high_error in rows:
         provider_name = provider_key.split(":", 1)[1].upper()
         delta_str = "—" if delta_pct is None else f"{delta_pct:+.1f} %"
         verdict_str = verdict + (" ⚠️" if high_error else "")
+        assets_str = format_assets_link(asset_urls.get(provider_key))
         lines.append(f"| {provider_name} | {scenario} | {format_side(old)} | {format_side(new)} "
-                      f"| {delta_str} | {verdict_str} |")
+                      f"| {delta_str} | {verdict_str} | {assets_str} |")
 
     lines.append("")
     lines.append("Δ is (new / old - 1) × 100. Positive is faster, negative is a slowdown.")
     lines.append(f"Δ within ± {TOLERANCE_PCT:.0f} % is treated as noise. ± after a speed is a 99.9 % confidence interval.")
     lines.append(f"⚠️ marks a relative score error over ± {HIGH_ERROR_THRESHOLD * 100:.0f} % (annotation only, does not change the verdict).")
+    lines.append("Assets links to the one GitHub Actions artifact holding the JFR recordings and "
+                  "CPU/alloc flamegraphs and heatmaps for both scenarios of that move provider, old and new alike.")
     lines.append(f"Measured on `{RUNNER_LABEL}` runners.")
 
     exit_code = 1 if any(row[5] in _FAILING_VERDICTS for row in rows) else 0
@@ -189,6 +206,11 @@ def _selftest() -> None:
     high_err_side = {"score": 100.0, "score_error": 5.0, "conf_lo": 90.0, "conf_hi": 110.0}
     delta, verdict, high_error = evaluate_row(fast, high_err_side)
     assert verdict == TOLERANCE and high_error is True
+
+    # Assets link: present when a URL was recorded, "—" when the subjob found no assets to archive.
+    assert format_assets_link(None) == "—"
+    assert format_assets_link("") == "—"
+    assert format_assets_link("https://example.com/artifact/1") == "[flamegraphs/JFR](https://example.com/artifact/1)"
 
     print("summarize-moveprovider.py: selftest OK")
 
