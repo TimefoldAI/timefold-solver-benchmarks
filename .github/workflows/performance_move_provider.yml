@@ -279,6 +279,8 @@ jobs:
       # Fine-tuned for stability, same as the ScoreDirector benchmark. Selects exactly the one
       # provider family/name this subjob is responsible for; the other family is left blank so that
       # AbstractConfiguration#parseExamples resolves it to "run nothing" rather than "run everything".
+      # TEMPORARY: forks/warmup/measurement cut to 2/2/2 to debug the CI faster; results are not
+      # statistically reliable at this setting. To revert, change all three back to 20/5/5.
       - name: Configure the benchmark
         working-directory: ./timefold-solver-benchmarks
         shell: bash
@@ -288,9 +290,9 @@ jobs:
           FAMILY="${PROVIDER%%:*}"
           NAME="${PROVIDER#*:}"
           {
-            echo "forks=20"
-            echo "warmup_iterations=5"
-            echo "measurement_iterations=5"
+            echo "forks=2"
+            echo "warmup_iterations=2"
+            echo "measurement_iterations=2"
             echo "relative_score_error_threshold=0.02"
             if [ "$FAMILY" = basic ]; then
               echo "basic_move_provider=$NAME"
