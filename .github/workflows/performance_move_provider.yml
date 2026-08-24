@@ -349,6 +349,13 @@ jobs:
           cp benchmarks-baseline.jar target/benchmarks.jar
           ./run-moveprovider.sh
           cp results/moveprovider/$RUN_ID/results.json baseline-results.json
+          # JMH does not fail the process when one benchmark trial errors out - it just omits it
+          # from the results, so a crashed run can still exit 0. Both scenarios must be present.
+          COUNT=$(jq 'length' baseline-results.json)
+          if [ "$COUNT" -ne 2 ]; then
+            echo "::error::Baseline run produced $COUNT/2 benchmark results - it did not produce metrics."
+            exit 1
+          fi
 
       - name: (SUT) Setup JDK and Maven
         uses: actions/setup-java@v5.7.0
@@ -368,6 +375,13 @@ jobs:
           cp benchmarks-sut.jar target/benchmarks.jar
           ./run-moveprovider.sh
           cp results/moveprovider/$RUN_ID/results.json sut-results.json
+          # JMH does not fail the process when one benchmark trial errors out - it just omits it
+          # from the results, so a crashed run can still exit 0. Both scenarios must be present.
+          COUNT=$(jq 'length' sut-results.json)
+          if [ "$COUNT" -ne 2 ]; then
+            echo "::error::SUT run produced $COUNT/2 benchmark results - it did not produce metrics."
+            exit 1
+          fi
 
       - name: Archive benchmark data
         uses: actions/upload-artifact@v7
