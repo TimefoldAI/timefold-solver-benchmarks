@@ -305,7 +305,7 @@ jobs:
           FAMILY="${PROVIDER%%:*}"
           NAME="${PROVIDER#*:}"
           {
-            echo "forks=4"
+            echo "forks=8"
             echo "warmup_iterations=5"
             echo "measurement_iterations=5"
             echo "relative_score_error_threshold=0.02"
