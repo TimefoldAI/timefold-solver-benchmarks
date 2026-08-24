@@ -1,0 +1,405 @@
+# Both baseline and SUT (Software Under Test) are built from source first,
+# with their binaries uploaded as artifacts.
+# This is done on GitHub infrastructure, to achieve maximum parallelization.
+#
+# Unlike the ScoreDirector Perf Regression Test, a benchmark subjob produces no report of its own -
+# it only uploads its raw JMH results as an artifact. After every subjob finishes, one summarizing
+# job downloads all of them and aggregates them into a single table, which is the only report this
+# workflow produces.
+#
+# The benchmark subjobs run on GitHub-hosted ARM runners, to maximize parallelization. This trades
+# away the stable, dedicated machine the ScoreDirector workflow uses; if the resulting numbers turn
+# out too noisy, this can be revisited.
+#
+# Every job in this workflow checks out this very repository at the ref selected in the "Use
+# workflow from" dropdown - NOT a hardcoded branch. This is what lets the workflow be dispatched
+# from an unmerged feature branch and actually run that branch's code.
+#
+name: MoveProvider Perf Regression Test
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      jdk_baseline:
+        description: 'JDK version'
+        default: '25'
+        required: true
+      baseline:
+        description: 'Baseline branch or tag (branches need to use 999-SNAPSHOT)'
+        default: 'v2.5.0'
+        required: true
+      jdk_branch:
+        description: 'JDK version'
+        default: '25'
+        required: true
+      branch:
+        description: 'Branch to benchmark (needs to use 999-SNAPSHOT)'
+        default: 'main'
+        required: true
+      branch_owner:
+        description: 'User owning the branch'
+        default: 'TimefoldAI'
+        required: true
+
+run-name: "TimefoldAI's ${{ github.event.inputs.baseline }} vs. ${{ github.event.inputs.branch_owner }}'s ${{ github.event.inputs.branch }} (Java ${{ github.event.inputs.jdk_baseline }} vs. ${{ github.event.inputs.jdk_branch }})"
+
+jobs:
+  decisions:
+    runs-on: ubuntu-latest
+    outputs:
+      baseline_solver_version: ${{ steps.step1.outputs.version }}
+      needs_snapshot_built: ${{ steps.step1.outputs.needs_snapshot_built }}
+      providers: ${{ steps.step2.outputs.providers }}
+    env:
+      BASELINE: ${{ github.event.inputs.baseline }}
+    steps:
+      - name: Determine the baseline
+        id: step1
+        shell: bash
+        run: |
+          if [[ "$BASELINE" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            VERSION="${BASH_REMATCH[1]}"
+            NEEDS_SNAPSHOT_BUILT=false
+            echo "Baseline is a release tag ($VERSION)."
+          else
+            # We're testing against a tag.
+            VERSION="999-SNAPSHOT"
+            NEEDS_SNAPSHOT_BUILT=true
+            echo "Baseline is a random branch."
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "needs_snapshot_built=$NEEDS_SNAPSHOT_BUILT" >> "$GITHUB_OUTPUT"
+
+      # Single source of truth for the benchmark matrix and for the summarizing job.
+      # When updating this list, use find-and-replace in the entire file to keep it in sync.
+      - name: Enumerate move providers
+        id: step2
+        shell: bash
+        run: |
+          PROVIDERS='["basic:change","basic:mass_change","basic:swap","basic:pillar_change","basic:sub_pillar_change","basic:pillar_swap","basic:sub_pillar_swap","basic:assign","basic:unassign","basic:mass_assign","basic:mass_unassign","basic:pillar_unassign","basic:sub_pillar_unassign","list:list_change","list:list_swap","list:list_tail_swap","list:two_opt_list","list:mass_list_change","list:sub_list_change","list:sub_list_swap","list:list_assign","list:list_unassign","list:mass_list_assign","list:mass_list_unassign","list:sub_list_unassign"]'
+          echo "providers=$PROVIDERS" >> "$GITHUB_OUTPUT"
+
+  build_baseline:
+    needs: decisions
+    runs-on: ubuntu-latest # Leverage massive parallelization of Github-hosted runners.
+    steps:
+      - name: Checkout timefold-solver-benchmarks
+        uses: actions/checkout@v7
+        with:
+          path: ./timefold-solver-benchmarks
+
+      - name: Setup JDK and Maven
+        uses: actions/setup-java@v5.7.0
+        with:
+          java-version: 25 # Always build with the least recent supported JDK.
+          distribution: 'temurin'
+          cache: 'maven'
+
+      # Only build the snapshots if determined by the decisions job.
+      - name: Checkout timefold-solver
+        if: needs.decisions.outputs.needs_snapshot_built == 'true'
+        uses: actions/checkout@v7
+        with:
+          repository: TimefoldAI/timefold-solver
+          ref: ${{ github.event.inputs.baseline }}
+          path: ./timefold-solver
+      - name: Quickly build timefold-solver
+        if: needs.decisions.outputs.needs_snapshot_built == 'true'
+        working-directory: ./timefold-solver
+        shell: bash
+        run: ./mvnw -B -Dquickly clean install
+      - name: Checkout timefold-solver-enterprise
+        if: needs.decisions.outputs.needs_snapshot_built == 'true'
+        uses: actions/checkout@v7
+        with:
+          repository: TimefoldAI/timefold-solver-enterprise
+          ref: ${{ github.event.inputs.baseline }}
+          token: ${{ secrets.BENCHMARK_PUBLISH_TOKEN }}
+          path: ./timefold-solver-enterprise
+      - name: Quickly build timefold-solver-enterprise
+        if: needs.decisions.outputs.needs_snapshot_built == 'true'
+        working-directory: ./timefold-solver-enterprise
+        shell: bash
+        run: ./mvnw -B -Dquickly clean install
+
+      - name: Switch to correct Benchmarks branch if it exists
+        if: needs.decisions.outputs.needs_snapshot_built == 'true'
+        working-directory: ./timefold-solver-benchmarks
+        shell: bash
+        env:
+          TARGET_BRANCH: ${{ github.event.inputs.baseline }}
+        run: |
+          # Match a branch OR a tag named $TARGET_BRANCH (no --heads): baseline is often a tag
+          # (e.g. a release version). Falls back to the already-checked-out ref if no match exists.
+          if git ls-remote --exit-code origin "$TARGET_BRANCH" > /dev/null; then
+            git fetch --depth=1 origin "$TARGET_BRANCH"
+            git checkout -B "$TARGET_BRANCH" FETCH_HEAD
+          fi
+          git status
+      - name: Compile the benchmark
+        working-directory: ./timefold-solver-benchmarks
+        shell: bash
+        env:
+          VERSION: ${{ needs.decisions.outputs.baseline_solver_version }}
+        run: |
+          ./mvnw clean install -B -Dquickly -Dversion.ai.timefold.solver=$VERSION
+          mv target/benchmarks.jar ../benchmarks-baseline.jar
+
+      - name: Upload the binary
+        uses: actions/upload-artifact@v7
+        with:
+          name: benchmarks-baseline
+          path: |
+            ./benchmarks-baseline.jar
+          if-no-files-found: error
+
+  build_sut:
+    runs-on: ubuntu-latest # Leverage massive parallelization of Github-hosted runners.
+    steps:
+      - name: Checkout timefold-solver-benchmarks
+        uses: actions/checkout@v7
+        with:
+          path: ./timefold-solver-benchmarks
+
+      - name: Setup JDK and Maven
+        uses: actions/setup-java@v5.7.0
+        with:
+          java-version: 25 # Always build with the least recent supported JDK.
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Checkout timefold-solver
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ github.event.inputs.branch_owner }}/timefold-solver
+          ref: ${{ github.event.inputs.branch }}
+          path: ./timefold-solver
+      - name: Quickly build timefold-solver
+        working-directory: ./timefold-solver
+        shell: bash
+        run: ./mvnw -B -Dquickly clean install
+
+      # Clone timefold-solver-enterprise
+      - name: Checkout timefold-solver-enterprise
+        uses: actions/checkout@v7
+        with:
+          repository: TimefoldAI/timefold-solver-enterprise
+          ref: main
+          token: ${{ secrets.BENCHMARK_PUBLISH_TOKEN }}
+          path: ./timefold-solver-enterprise
+      - name: Switch to correct Enterprise branch if it exists
+        working-directory: ./timefold-solver-enterprise
+        shell: bash
+        env:
+          TARGET_BRANCH: ${{ github.event.inputs.branch }}
+        run: |
+          # Match a branch OR a tag named $TARGET_BRANCH (no --heads): the branch under test may
+          # also be a tag. Falls back to the already-checked-out `main` if no match exists.
+          if git ls-remote --exit-code origin "$TARGET_BRANCH" > /dev/null; then
+            git fetch --depth=1 origin "$TARGET_BRANCH"
+            git checkout -B "$TARGET_BRANCH" FETCH_HEAD
+          fi
+          git status
+      - name: Quickly build timefold-solver-enterprise
+        working-directory: ./timefold-solver-enterprise
+        shell: bash
+        run: ./mvnw -B -Dquickly clean install
+
+      # Sometimes changes may be incompatible with the tag.
+      # If the branch doesn't exist, we assume that the changes are compatible and move on.
+      - name: Switch to correct Benchmarks branch if it exists
+        working-directory: ./timefold-solver-benchmarks
+        shell: bash
+        env:
+          TARGET_BRANCH: ${{ github.event.inputs.branch }}
+        run: |
+          # Match a branch OR a tag named $TARGET_BRANCH (no --heads): the branch under test may
+          # also be a tag. Falls back to the already-checked-out ref if no match exists.
+          if git ls-remote --exit-code origin "$TARGET_BRANCH" > /dev/null; then
+            git fetch --depth=1 origin "$TARGET_BRANCH"
+            git checkout -B "$TARGET_BRANCH" FETCH_HEAD
+          fi
+          git status
+      - name: Compile the benchmarks
+        working-directory: ./timefold-solver-benchmarks
+        shell: bash
+        run: |
+          ./mvnw clean install -B -Dquickly
+          mv target/benchmarks.jar ../benchmarks-sut.jar
+
+      - name: Upload the binary
+        uses: actions/upload-artifact@v7
+        with:
+          name: benchmarks-sut
+          path: |
+            ./benchmarks-sut.jar
+          if-no-files-found: error
+
+  benchmark:
+    needs: [ decisions, build_baseline, build_sut ]
+    runs-on: ubuntu-24.04-arm # Github-hosted Arm runner; free and GA for this public repo.
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false # Jobs fail if the benchmark error is over predefined thresholds; other benchmarks continue.
+      matrix:
+        provider: ${{ fromJSON(needs.decisions.outputs.providers) }}
+    steps:
+      - name: Clean results of previous runs
+        shell: bash
+        env:
+          BASELINE: ${{ github.event.inputs.baseline }}
+          BRANCH: ${{ github.event.inputs.branch }}
+          PROVIDER: ${{ matrix.provider }}
+        run: |
+          rm -rf timefold-solver-benchmarks
+          # GitHub expressions can't do this, so we need to hack this in shell.
+          # DIRs are different, so that we can run "main" against "main" and have separate results.
+          # Strip CR/LF from inputs before writing to $GITHUB_ENV to prevent env-file injection.
+          SANITIZED_BASELINE=$(echo "$BASELINE" | tr -d '\r\n' | sed 's/\//\-/g')
+          SANITIZED_BRANCH=$(echo "$BRANCH" | tr -d '\r\n' | sed 's/\//\-/g')
+          {
+            echo "SANITIZED_BASELINE=$SANITIZED_BASELINE"
+            echo "BASELINE_DIR=baseline_$SANITIZED_BASELINE"
+            echo "SANITIZED_BRANCH=$SANITIZED_BRANCH"
+            echo "SUT_DIR=sut_$SANITIZED_BRANCH"
+            echo "PROVIDER_ID=${PROVIDER//:/-}"
+          } >> "$GITHUB_ENV"
+
+      - name: Checkout timefold-solver-benchmarks
+        uses: actions/checkout@v7
+        with:
+          path: ./timefold-solver-benchmarks
+
+      # Fine-tuned for stability, same as the ScoreDirector benchmark. Selects exactly the one
+      # provider family/name this subjob is responsible for; the other family is left blank so that
+      # AbstractConfiguration#parseExamples resolves it to "run nothing" rather than "run everything".
+      - name: Configure the benchmark
+        working-directory: ./timefold-solver-benchmarks
+        shell: bash
+        env:
+          PROVIDER: ${{ matrix.provider }}
+        run: |
+          FAMILY="${PROVIDER%%:*}"
+          NAME="${PROVIDER#*:}"
+          {
+            echo "forks=20"
+            echo "warmup_iterations=5"
+            echo "measurement_iterations=5"
+            echo "relative_score_error_threshold=0.02"
+            if [ "$FAMILY" = basic ]; then
+              echo "basic_move_provider=$NAME"
+              echo "list_move_provider="
+            else
+              echo "basic_move_provider="
+              echo "list_move_provider=$NAME"
+            fi
+          } > moveprovider-benchmark.properties
+          cat moveprovider-benchmark.properties
+          chmod +x run-moveprovider.sh
+
+      - name: Download the baseline binary
+        uses: actions/download-artifact@v8
+        with:
+          name: benchmarks-baseline
+          path: ./timefold-solver-benchmarks
+      - name: Download the SUT binary
+        uses: actions/download-artifact@v8
+        with:
+          name: benchmarks-sut
+          path: ./timefold-solver-benchmarks
+
+      - name: (Baseline) Setup JDK and Maven
+        uses: actions/setup-java@v5.7.0
+        with:
+          java-version: ${{ github.event.inputs.jdk_baseline }}
+          distribution: 'temurin'
+          check-latest: true
+
+      - name: (Baseline) Run the benchmark
+        working-directory: ./timefold-solver-benchmarks
+        shell: bash
+        env:
+          RUN_ID: ${{ env.BASELINE_DIR }}
+          TIMEFOLD_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
+        run: |
+          mkdir target
+          cp benchmarks-baseline.jar target/benchmarks.jar
+          ./run-moveprovider.sh
+          cp results/moveprovider/$RUN_ID/results.json baseline-results.json
+
+      - name: (SUT) Setup JDK and Maven
+        uses: actions/setup-java@v5.7.0
+        with:
+          java-version: ${{ github.event.inputs.jdk_branch }}
+          distribution: 'temurin'
+          check-latest: true
+
+      - name: (SUT) Run the benchmark
+        working-directory: ./timefold-solver-benchmarks
+        shell: bash
+        env:
+          RUN_ID: ${{ env.SUT_DIR }}
+          TIMEFOLD_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
+        run: |
+          rm target/benchmarks.jar
+          cp benchmarks-sut.jar target/benchmarks.jar
+          ./run-moveprovider.sh
+          cp results/moveprovider/$RUN_ID/results.json sut-results.json
+
+      - name: Archive benchmark data
+        uses: actions/upload-artifact@v7
+        with:
+          name: data-${{ env.PROVIDER_ID }}
+          path: |
+            ./timefold-solver-benchmarks/moveprovider-benchmark.properties
+            ./timefold-solver-benchmarks/baseline-results.json
+            ./timefold-solver-benchmarks/sut-results.json
+          if-no-files-found: error
+
+      - name: Archive benchmark assets
+        uses: actions/upload-artifact@v7
+        with:
+          name: assets-${{ env.PROVIDER_ID }}
+          path: |
+            ./timefold-solver-benchmarks/results/moveprovider/${{ env.BASELINE_DIR }}/**/*.jfr
+            ./timefold-solver-benchmarks/results/moveprovider/${{ env.BASELINE_DIR }}/**/*.html
+            ./timefold-solver-benchmarks/results/moveprovider/${{ env.SUT_DIR }}/**/*.jfr
+            ./timefold-solver-benchmarks/results/moveprovider/${{ env.SUT_DIR }}/**/*.html
+          if-no-files-found: warn
+
+  summarize:
+    needs: [ decisions, benchmark ]
+    if: always() && needs.decisions.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout timefold-solver-benchmarks
+        uses: actions/checkout@v7
+        with:
+          path: ./timefold-solver-benchmarks
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.x'
+
+      - name: Download the benchmark data
+        uses: actions/download-artifact@v8
+        with:
+          pattern: data-*
+          path: ./data
+
+      - name: Summarize the results
+        working-directory: ./timefold-solver-benchmarks
+        shell: bash
+        env:
+          PROVIDERS: ${{ needs.decisions.outputs.providers }}
+          BASELINE: ${{ github.event.inputs.baseline }}
+          BRANCH: ${{ github.event.inputs.branch }}
+          OWNER: ${{ github.event.inputs.branch_owner }}
+        run: |
+          python3 summarize-moveprovider.py ../data \
+            --expect "$PROVIDERS" --baseline "$BASELINE" --branch "$BRANCH" --owner "$OWNER" \
+            >> "$GITHUB_STEP_SUMMARY"
