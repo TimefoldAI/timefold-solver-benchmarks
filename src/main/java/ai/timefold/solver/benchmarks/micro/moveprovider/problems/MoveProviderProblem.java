@@ -1,5 +1,9 @@
 package ai.timefold.solver.benchmarks.micro.moveprovider.problems;
 
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+
 import ai.timefold.solver.benchmarks.micro.moveprovider.Example;
 import ai.timefold.solver.benchmarks.micro.moveprovider.MoveProviderCase;
 import ai.timefold.solver.benchmarks.micro.moveprovider.jmh.AbstractMoveProviderBenchmark;
@@ -21,11 +25,8 @@ import ai.timefold.solver.core.impl.solver.random.RandomSource;
 import ai.timefold.solver.core.impl.solver.scope.SolverScope;
 import ai.timefold.solver.core.preview.api.move.Move;
 import ai.timefold.solver.core.preview.api.neighborhood.MoveProvider;
-import org.openjdk.jmh.infra.Blackhole;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import org.openjdk.jmh.infra.Blackhole;
 
 /**
  * Runs one {@link MoveProviderCase} through the two scenarios described in
