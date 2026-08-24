@@ -99,11 +99,14 @@ jobs:
           cache: 'maven'
 
       # Only build the snapshots if determined by the decisions job.
+      # TEMPORARY: baseline solver source is read from triceo/timefold-solver instead of
+      # TimefoldAI/timefold-solver. To revert, change "repository" below back to
+      # TimefoldAI/timefold-solver.
       - name: Checkout timefold-solver
         if: needs.decisions.outputs.needs_snapshot_built == 'true'
         uses: actions/checkout@v7
         with:
-          repository: TimefoldAI/timefold-solver
+          repository: triceo/timefold-solver
           ref: ${{ github.event.inputs.baseline }}
           path: ./timefold-solver
       - name: Quickly build timefold-solver
