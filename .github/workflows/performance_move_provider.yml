@@ -119,9 +119,24 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: TimefoldAI/timefold-solver-enterprise
-          ref: ${{ github.event.inputs.baseline }}
+          ref: main
           token: ${{ secrets.BENCHMARK_PUBLISH_TOKEN }}
           path: ./timefold-solver-enterprise
+      - name: Switch to correct Enterprise branch if it exists
+        if: needs.decisions.outputs.needs_snapshot_built == 'true'
+        working-directory: ./timefold-solver-enterprise
+        shell: bash
+        env:
+          TARGET_BRANCH: ${{ github.event.inputs.baseline }}
+        run: |
+          # Match a branch OR a tag named $TARGET_BRANCH (no --heads): the baseline solver branch may
+          # not exist in enterprise at all (e.g. it needs no enterprise changes). Falls back to the
+          # already-checked-out `main` if no match exists.
+          if git ls-remote --exit-code origin "$TARGET_BRANCH" > /dev/null; then
+            git fetch --depth=1 origin "$TARGET_BRANCH"
+            git checkout -B "$TARGET_BRANCH" FETCH_HEAD
+          fi
+          git status
       - name: Quickly build timefold-solver-enterprise
         if: needs.decisions.outputs.needs_snapshot_built == 'true'
         working-directory: ./timefold-solver-enterprise
