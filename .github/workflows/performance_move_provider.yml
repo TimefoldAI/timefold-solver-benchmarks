@@ -383,17 +383,12 @@ jobs:
             exit 1
           fi
 
-      - name: Archive benchmark data
-        uses: actions/upload-artifact@v7
-        with:
-          name: data-${{ env.PROVIDER_ID }}
-          path: |
-            ./timefold-solver-benchmarks/moveprovider-benchmark.properties
-            ./timefold-solver-benchmarks/baseline-results.json
-            ./timefold-solver-benchmarks/sut-results.json
-          if-no-files-found: error
-
+      # Uploaded before "Archive benchmark data" (and given an id) so its artifact-url output can be
+      # recorded into a file and ride along inside the data-* artifact - that's the only artifact the
+      # summarize job downloads, so this is how a row in its table can link straight to these assets
+      # instead of making the reader hunt for the right assets-* artifact by hand.
       - name: Archive benchmark assets
+        id: archive_assets
         uses: actions/upload-artifact@v7
         with:
           name: assets-${{ env.PROVIDER_ID }}
@@ -403,6 +398,24 @@ jobs:
             ./timefold-solver-benchmarks/results/moveprovider/${{ env.SUT_DIR }}/**/*.jfr
             ./timefold-solver-benchmarks/results/moveprovider/${{ env.SUT_DIR }}/**/*.html
           if-no-files-found: warn
+
+      # Empty when the step above found no assets (if-no-files-found: warn uploads nothing, so
+      # artifact-url is unset); summarize-moveprovider.py treats an empty/missing file as "no link".
+      - name: Record the assets artifact URL
+        shell: bash
+        run: |
+          echo "${{ steps.archive_assets.outputs.artifact-url }}" > ./timefold-solver-benchmarks/assets-url.txt
+
+      - name: Archive benchmark data
+        uses: actions/upload-artifact@v7
+        with:
+          name: data-${{ env.PROVIDER_ID }}
+          path: |
+            ./timefold-solver-benchmarks/moveprovider-benchmark.properties
+            ./timefold-solver-benchmarks/baseline-results.json
+            ./timefold-solver-benchmarks/sut-results.json
+            ./timefold-solver-benchmarks/assets-url.txt
+          if-no-files-found: error
 
   summarize:
     needs: [ decisions, benchmark ]
