@@ -6,7 +6,6 @@ import java.util.Objects;
 
 import ai.timefold.solver.benchmarks.micro.moveprovider.Example;
 import ai.timefold.solver.benchmarks.micro.moveprovider.MoveProviderCase;
-import ai.timefold.solver.benchmarks.micro.moveprovider.jmh.AbstractMoveProviderBenchmark;
 import ai.timefold.solver.core.api.score.Score;
 import ai.timefold.solver.core.api.solver.SolverFactory;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
@@ -30,17 +29,26 @@ import org.openjdk.jmh.infra.Blackhole;
 
 /**
  * Runs one {@link MoveProviderCase} through the two scenarios described in
- * {@code /home/agent/.claude/plans/zany-drifting-ocean.md}: a fixed number of steps, each drawing a
- * fixed number of moves, only the last of which is committed.
+ * {@code /home/agent/.claude/plans/swift-pondering-fountain.md}: draw a fixed number of candidate
+ * moves, commit only the last, then undo it before the invocation returns.
  *
  * <p>
- * <b>Drift is bounded at the iteration, not the invocation.</b> {@link #setupIteration()} starts
- * over every time: a fresh clone of the original solution, a fresh {@link RandomSource#seeded(long)
- * seeded(0)}, and a fresh {@link NeighborhoodsBasedMoveRepository}. So every iteration replays the
- * same draws from the same starting point, and only machine noise varies between iterations.
- * Invocations inside one iteration do drift, because each one commits {@code movesPerStep} moves
- * that are never undone — that is accepted; JMH forks are independent JVMs regardless. Do not add a
- * per-invocation reset: a per-invocation clone would cost more than the thing being measured.
+ * Undoing every invocation, instead of letting committed moves accumulate across an iteration, is
+ * what keeps a directional move provider (one whose move only ever changes an entity's variable in
+ * one direction, e.g. an assign-only or unassign-only provider) from permanently draining whatever
+ * finite pool of null/non-null entities its dataset started with - which used to crash 11 of the 25
+ * move providers once a JMH iteration ran long enough. {@link #setupIteration()} still resets
+ * everything once per iteration (a fresh clone of the original solution, a fresh
+ * {@link RandomSource#seeded(long) seeded(0)}, and a fresh {@link NeighborhoodsBasedMoveRepository})
+ * - not because undo needs it, but as a cross-iteration reproducibility guarantee and a safety net.
+ * Only the random source used to draw candidates keeps running across invocations within one
+ * iteration, so consecutive invocations still draw different candidates, reproducibly.
+ *
+ * <p>
+ * Undo goes through {@code MoveDirector.executeTemporary}, the same mechanism local search itself
+ * uses for temporary/rejected moves - which forces one {@code calculateScore()} per invocation. That
+ * is a real, deliberately accepted cost: it no longer isolates the dataset-network signal from the
+ * constraint-stream cost the way this benchmark originally set out to.
  */
 public final class MoveProviderProblem<Solution_> {
 
@@ -55,7 +63,7 @@ public final class MoveProviderProblem<Solution_> {
     private InnerScoreDirector<Solution_, ?> scoreDirector;
     private NeighborhoodsBasedMoveRepository<Solution_> moveRepository;
     private LocalSearchPhaseScope<Solution_> phaseScope;
-    private long stepCounter;
+    private long invocationCounter;
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public MoveProviderProblem(MoveProviderCase moveProviderCase) {
@@ -101,7 +109,7 @@ public final class MoveProviderProblem<Solution_> {
         moveRepository.solvingStarted(solverScope);
         phaseScope = new LocalSearchPhaseScope<>(solverScope, 0);
         moveRepository.phaseStarted(phaseScope); // Also calls scoreDirector.setMoveRepository(moveRepository).
-        stepCounter = 0;
+        invocationCounter = 0;
     }
 
     public void setupInvocation() {
@@ -109,37 +117,37 @@ public final class MoveProviderProblem<Solution_> {
     }
 
     /**
-     * {@code calculateScore()} is deliberately never called here. The neighborhood dataset network
-     * (Bavet, behind {@code MoveStreamFactory}/{@code NeighborhoodsBasedMoveRepository}) and the
-     * constraint-stream scoring network are two fully independent Bavet sessions with no shared
-     * settle point: {@code AbstractScoreDirector.afterVariableChanged} fans out to both, but each
-     * session has its own root nodes, {@code tupleMap}, {@code settled} flag and propagation queue.
-     * Only layer-0 root-node bookkeeping happens eagerly on every {@code executeMove()}; everything
-     * past it — joins, {@code groupBy}, {@code ifExists}, score aggregation — happens only inside
-     * {@code settle()}. The dataset network is settled by {@code moveRepository.stepStarted}/
-     * {@code stepEnded} regardless of whether score is ever calculated; the constraint-stream
-     * network is settled only inside {@code calculateScore()}. So calling it here would trigger a
-     * network this benchmark is not measuring, and its cost — dominated by constraint-stream joins
-     * on the larger datasets — would swamp the dataset-network signal this benchmark exists to
-     * isolate.
+     * Draws {@code movesPerStep} candidates (only the last is committed), executes it, settles the
+     * dataset network, then undoes it before returning - so the working solution is exactly as it
+     * was before this invocation, regardless of which move got drawn. Undoing goes through
+     * {@code MoveDirector.executeTemporary}, the same "record while a move is applied, then replay
+     * in reverse" mechanism local search itself uses for temporary moves; it forces one
+     * {@code calculateScore()} per invocation, deliberately accepted as the cost of a cheap, exact,
+     * non-cloning undo.
+     * <p>
+     * The settle happens between execute and undo, not after both: the undo dirties the dataset
+     * network's tuples again on the way back, so settling only after the full round-trip would
+     * settle a net-zero delta, and the network's own coalescing collapses that into a degenerate
+     * update that skips exactly the terminal work (filter flips, list mutation, indexer
+     * re-bucketing) this benchmark exists to measure.
      *
-     * @return the last committed move, kept only so JMH cannot optimize the invocation away
+     * @return the committed move - already undone by the time this returns - kept only so JMH
+     *         cannot optimize the invocation away
      */
-    public Move<Solution_> runInvocation(int stepCount, int movesPerStep, int maxDrawAttemptsPerMove, Blackhole blackhole) {
+    public Move<Solution_> runInvocation(int movesPerStep, int maxDrawAttemptsPerMove, Blackhole blackhole) {
+        var stepScope = new LocalSearchStepScope<>(phaseScope, (int) invocationCounter++);
+        moveRepository.stepStarted(stepScope);
+        var moveIterator = moveRepository.iterator();
         Move<Solution_> lastMove = null;
-        for (var step = 0; step < stepCount; step++) {
-            var stepScope = new LocalSearchStepScope<>(phaseScope, step);
-            moveRepository.stepStarted(stepScope);
-            var moveIterator = moveRepository.iterator();
-            for (var i = 0; i < movesPerStep; i++) {
-                lastMove = drawMove(moveIterator, maxDrawAttemptsPerMove);
-                blackhole.consume(lastMove); // No move is ever thrown away.
-            }
-            // The step must happen; drawMove() has already guaranteed a non-null move.
-            scoreDirector.executeMove(lastMove);
-            moveRepository.stepEnded(stepScope); // Settles the dataset network; this is what scenario 2 measures.
-            stepCounter++;
+        for (var i = 0; i < movesPerStep; i++) {
+            lastMove = drawMove(moveIterator, maxDrawAttemptsPerMove);
+            blackhole.consume(lastMove); // No move is ever thrown away.
         }
+        // The step must happen; drawMove() has already guaranteed a non-null move.
+        scoreDirector.getMoveDirector().executeTemporary(lastMove, workingSolution -> {
+            moveRepository.stepEnded(stepScope); // Settles the dataset network; this is what scenario 2 measures.
+            return null;
+        }, false); // false: once undone, the pre-move score is already exactly right; no need to recompute it.
         return lastMove;
     }
 
@@ -161,25 +169,6 @@ public final class MoveProviderProblem<Solution_> {
         throw new IllegalStateException(
                 "The moveProvider (%s) of example (%s) produced no non-null move in (%d) attempts."
                         .formatted(moveProviderCase, example, maxDrawAttemptsPerMove));
-    }
-
-    public void tearDownInvocation() {
-        maybeFlushConstraintStreamSession();
-    }
-
-    /**
-     * Bounded periodic flush, not a measurement. Skipping {@code calculateScore()} forever lets the
-     * constraint-stream session's filtered root nodes (installed for any variable that allows
-     * unassigned) accumulate one queued tuple per filter flip with nothing draining it —
-     * {@code InnerScoreDirector.requiresFlushing()} exists precisely to flag this. Guard against it
-     * the same way the enterprise {@code MultiThreadedLocalSearchDecider} already does in production:
-     * every {@code FLUSH_EVERY_N_STEPS} steps, if flushing is required, calculate score once and
-     * discard the result.
-     */
-    private void maybeFlushConstraintStreamSession() {
-        if (stepCounter >= AbstractMoveProviderBenchmark.FLUSH_EVERY_N_STEPS && scoreDirector.requiresFlushing()) {
-            scoreDirector.calculateScore();
-        }
     }
 
     public void tearDownIteration() {

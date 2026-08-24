@@ -38,17 +38,15 @@ final class MoveProviderBenchmarkTest {
         var problem = new MoveProviderProblem<>(moveProviderCase);
         problem.setupTrial();
         problem.setupIteration();
-        var fewStepsManyMovesResult = problem.runInvocation(AbstractMoveProviderBenchmark.FEW_STEP_COUNT,
-                AbstractMoveProviderBenchmark.MANY_MOVES_PER_STEP, AbstractMoveProviderBenchmark.MAX_DRAW_ATTEMPTS_PER_MOVE,
-                blackhole);
-        assertThat(fewStepsManyMovesResult).isNotNull();
+        var singleDrawResult = problem.runInvocation(AbstractMoveProviderBenchmark.SINGLE_DRAW,
+                AbstractMoveProviderBenchmark.MAX_DRAW_ATTEMPTS_PER_MOVE, blackhole);
+        assertThat(singleDrawResult).isNotNull();
         problem.tearDownIteration();
 
         problem.setupIteration();
-        var manyStepsFewMovesResult = problem.runInvocation(AbstractMoveProviderBenchmark.MANY_STEP_COUNT,
-                AbstractMoveProviderBenchmark.FEW_MOVES_PER_STEP, AbstractMoveProviderBenchmark.MAX_DRAW_ATTEMPTS_PER_MOVE,
-                blackhole);
-        assertThat(manyStepsFewMovesResult).isNotNull();
+        var manyDrawsResult = problem.runInvocation(AbstractMoveProviderBenchmark.MANY_DRAWS,
+                AbstractMoveProviderBenchmark.MAX_DRAW_ATTEMPTS_PER_MOVE, blackhole);
+        assertThat(manyDrawsResult).isNotNull();
         problem.tearDownIteration();
 
         problem.teardownTrial();

@@ -21,7 +21,7 @@ import os
 import re
 import sys
 
-SCENARIOS = ("fewStepsManyMoves", "manyStepsFewMoves")
+SCENARIOS = ("singleDraw", "manyDraws")
 TOLERANCE_PCT = 3.0
 HIGH_ERROR_THRESHOLD = 0.02
 RUNNER_LABEL = "ubuntu-24.04-arm"
