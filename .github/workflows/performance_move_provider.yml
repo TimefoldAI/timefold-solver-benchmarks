@@ -306,8 +306,8 @@ jobs:
           NAME="${PROVIDER#*:}"
           {
             echo "forks=2"
-            echo "warmup_iterations=2"
-            echo "measurement_iterations=2"
+            echo "warmup_iterations=5"
+            echo "measurement_iterations=5"
             echo "relative_score_error_threshold=0.02"
             if [ "$FAMILY" = basic ]; then
               echo "basic_move_provider=$NAME"
