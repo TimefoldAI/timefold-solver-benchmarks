@@ -5,21 +5,17 @@ import java.io.File;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.MeetingAssignment;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.domain.MeetingSchedule;
 import ai.timefold.solver.benchmarks.examples.meetingscheduling.persistence.MeetingSchedulingSolutionFileIO;
-import ai.timefold.solver.benchmarks.examples.meetingscheduling.score.MeetingSchedulingConstraintProvider;
 import ai.timefold.solver.benchmarks.examples.pas.domain.BedDesignation;
 import ai.timefold.solver.benchmarks.examples.pas.domain.PatientAdmissionSchedule;
 import ai.timefold.solver.benchmarks.examples.pas.persistence.PatientAdmissionScheduleSolutionFileIO;
-import ai.timefold.solver.benchmarks.examples.pas.score.PatientAdmissionScheduleConstraintProvider;
 import ai.timefold.solver.benchmarks.examples.taskassigning.domain.Employee;
 import ai.timefold.solver.benchmarks.examples.taskassigning.domain.Task;
 import ai.timefold.solver.benchmarks.examples.taskassigning.domain.TaskAssigningSolution;
 import ai.timefold.solver.benchmarks.examples.taskassigning.persistence.TaskAssigningSolutionFileIO;
-import ai.timefold.solver.benchmarks.examples.taskassigning.score.TaskAssigningConstraintProvider;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Customer;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.Vehicle;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.domain.VehicleRoutingSolution;
 import ai.timefold.solver.benchmarks.examples.vehiclerouting.persistence.VehicleRoutingSolutionFileIO;
-import ai.timefold.solver.benchmarks.examples.vehiclerouting.score.VehicleRoutingConstraintProvider;
 import ai.timefold.solver.benchmarks.micro.moveprovider.jmh.AbstractMoveProviderBenchmark;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
 import ai.timefold.solver.core.config.solver.SolverConfig;
@@ -67,7 +63,7 @@ public enum Example {
                     .withSolutionClass(PatientAdmissionSchedule.class)
                     .withEntityClasses(BedDesignation.class)
                     .withScoreDirectorFactory(new ScoreDirectorFactoryConfig()
-                            .withConstraintProviderClass(PatientAdmissionScheduleConstraintProvider.class));
+                            .withConstraintProviderClass(NoOpPatientAdmissionScheduleConstraintProvider.class));
         }
 
         @Override
@@ -85,7 +81,7 @@ public enum Example {
                     .withSolutionClass(VehicleRoutingSolution.class)
                     .withEntityClasses(Vehicle.class, Customer.class)
                     .withScoreDirectorFactory(new ScoreDirectorFactoryConfig()
-                            .withConstraintProviderClass(VehicleRoutingConstraintProvider.class));
+                            .withConstraintProviderClass(NoOpVehicleRoutingConstraintProvider.class));
         }
 
         @Override
@@ -101,7 +97,7 @@ public enum Example {
                     .withSolutionClass(TaskAssigningSolution.class)
                     .withEntityClasses(Employee.class, Task.class)
                     .withScoreDirectorFactory(new ScoreDirectorFactoryConfig()
-                            .withConstraintProviderClass(TaskAssigningConstraintProvider.class));
+                            .withConstraintProviderClass(NoOpTaskAssigningConstraintProvider.class));
         }
 
         @Override
@@ -118,7 +114,7 @@ public enum Example {
                 .withSolutionClass(MeetingSchedule.class)
                 .withEntityClasses(MeetingAssignment.class)
                 .withScoreDirectorFactory(new ScoreDirectorFactoryConfig()
-                        .withConstraintProviderClass(MeetingSchedulingConstraintProvider.class));
+                        .withConstraintProviderClass(NoOpMeetingSchedulingConstraintProvider.class));
     }
 
     private static void partiallyUnassignBeds(PatientAdmissionSchedule solution) {
