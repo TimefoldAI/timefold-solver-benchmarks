@@ -182,7 +182,7 @@ public abstract class AbstractMain<C extends AbstractConfiguration> {
                 .forks(configuration.getForkCount())
                 .warmupIterations(configuration.getWarmupIterations())
                 .measurementIterations(configuration.getMeasurementIterations())
-                .jvmArgs("-XX:+UseParallelGC", "-Xms4g", "-Xmx4g") // Throughput-focused GC.
+                .jvmArgs("-XX:+UseParallelGC", "-Xms8g", "-Xmx8g") // Throughput-focused GC.
                 .result(resultsDirectory.resolve("results.json").toAbsolutePath().toString())
                 .resultFormat(ResultFormatType.JSON)
                 .shouldDoGC(true);
