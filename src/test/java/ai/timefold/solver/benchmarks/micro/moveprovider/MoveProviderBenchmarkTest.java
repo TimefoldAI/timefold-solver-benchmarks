@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.stream.Stream;
 
 import ai.timefold.solver.benchmarks.micro.moveprovider.jmh.AbstractMoveProviderBenchmark;
+import ai.timefold.solver.benchmarks.micro.moveprovider.jmh.MovedValueCounter;
 import ai.timefold.solver.benchmarks.micro.moveprovider.problems.MoveProviderProblem;
 
 import org.junit.jupiter.params.ParameterizedTest;
@@ -34,20 +35,25 @@ final class MoveProviderBenchmarkTest {
         LOGGER.info("Testing {}.", moveProviderCase);
         var blackhole =
                 new Blackhole("Today's password is swordfish. I understand instantiating Blackholes directly is dangerous.");
+        var counter = new MovedValueCounter();
 
         var problem = new MoveProviderProblem<>(moveProviderCase);
         problem.setupTrial();
         problem.setupIteration();
         var singleDrawResult = problem.runInvocation(AbstractMoveProviderBenchmark.SINGLE_DRAW,
-                AbstractMoveProviderBenchmark.MAX_DRAW_ATTEMPTS_PER_MOVE, blackhole);
+                AbstractMoveProviderBenchmark.MAX_DRAW_ATTEMPTS_PER_MOVE, blackhole, counter);
         assertThat(singleDrawResult).isNotNull();
         problem.tearDownIteration();
 
         problem.setupIteration();
         var manyDrawsResult = problem.runInvocation(AbstractMoveProviderBenchmark.MANY_DRAWS,
-                AbstractMoveProviderBenchmark.MAX_DRAW_ATTEMPTS_PER_MOVE, blackhole);
+                AbstractMoveProviderBenchmark.MAX_DRAW_ATTEMPTS_PER_MOVE, blackhole, counter);
         assertThat(manyDrawsResult).isNotNull();
         problem.tearDownIteration();
+
+        // One value per draw at the very least; a wrong cast in the enum throws before we get here.
+        assertThat(counter.movedValues)
+                .isGreaterThanOrEqualTo(AbstractMoveProviderBenchmark.SINGLE_DRAW + AbstractMoveProviderBenchmark.MANY_DRAWS);
 
         problem.teardownTrial();
     }
