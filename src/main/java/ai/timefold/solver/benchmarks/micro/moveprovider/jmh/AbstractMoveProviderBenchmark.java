@@ -70,13 +70,13 @@ public abstract class AbstractMoveProviderBenchmark {
     }
 
     @Benchmark
-    public Move<?> singleDraw(Blackhole blackhole) {
-        return problem.runInvocation(SINGLE_DRAW, MAX_DRAW_ATTEMPTS_PER_MOVE, blackhole);
+    public Move<?> singleDraw(Blackhole blackhole, MovedValueCounter counter) {
+        return problem.runInvocation(SINGLE_DRAW, MAX_DRAW_ATTEMPTS_PER_MOVE, blackhole, counter);
     }
 
     @Benchmark
-    public Move<?> manyDraws(Blackhole blackhole) {
-        return problem.runInvocation(MANY_DRAWS, MAX_DRAW_ATTEMPTS_PER_MOVE, blackhole);
+    public Move<?> manyDraws(Blackhole blackhole, MovedValueCounter counter) {
+        return problem.runInvocation(MANY_DRAWS, MAX_DRAW_ATTEMPTS_PER_MOVE, blackhole, counter);
     }
 
     @TearDown(Level.Invocation)

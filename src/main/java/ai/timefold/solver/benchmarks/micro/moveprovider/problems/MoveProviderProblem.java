@@ -7,6 +7,7 @@ import java.util.Objects;
 import ai.timefold.solver.benchmarks.micro.moveprovider.Example;
 import ai.timefold.solver.benchmarks.micro.moveprovider.MoveProviderCase;
 import ai.timefold.solver.benchmarks.micro.moveprovider.jmh.AbstractMoveProviderBenchmark;
+import ai.timefold.solver.benchmarks.micro.moveprovider.jmh.MovedValueCounter;
 import ai.timefold.solver.core.api.score.Score;
 import ai.timefold.solver.core.api.solver.SolverFactory;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
@@ -140,16 +141,22 @@ public final class MoveProviderProblem<Solution_> {
      * update that skips exactly the terminal work (filter flips, list mutation, indexer
      * re-bucketing) this benchmark exists to measure.
      *
+     * <p>
+     * Every drawn move is counted into {@code counter}, not only the committed one, because a step
+     * really does generate {@code movesPerStep} of them; see {@link MovedValueCounter}.
+     *
      * @return the committed move - already undone by the time this returns - kept only so JMH
      *         cannot optimize the invocation away
      */
-    public Move<Solution_> runInvocation(int movesPerStep, int maxDrawAttemptsPerMove, Blackhole blackhole) {
+    public Move<Solution_> runInvocation(int movesPerStep, int maxDrawAttemptsPerMove, Blackhole blackhole,
+            MovedValueCounter counter) {
         var stepScope = new LocalSearchStepScope<>(phaseScope, (int) invocationCounter++);
         moveRepository.stepStarted(stepScope);
         var moveIterator = moveRepository.iterator();
         Move<Solution_> lastMove = null;
         for (var i = 0; i < movesPerStep; i++) {
             lastMove = drawMove(moveIterator, maxDrawAttemptsPerMove);
+            counter.movedValues += moveProviderCase.countMovedValues(lastMove);
             blackhole.consume(lastMove); // No move is ever thrown away.
         }
         // The step must happen; drawMove() has already guaranteed a non-null move.
