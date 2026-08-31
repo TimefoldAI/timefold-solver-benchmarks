@@ -260,6 +260,27 @@ def worst_line(rows: list, scenario: str, label: str) -> "str | None":
     return f"{label}: " + " · ".join(shown)
 
 
+def error_notes(rows: list) -> list:
+    """One line for each cell the table marked with a high score error, naming both margins.
+
+    The cell has no room for the margin itself, so the reader cannot tell whether its delta is
+    bigger than the noise it sits in. high_error is only ever True when both sides are present.
+    """
+    def as_pct(side: dict) -> str:
+        value = relative_error(side)
+        return ABSENT if math.isnan(value) else f"± {value * 100:.1f} %"
+
+    lines = []
+    for provider_key, scenarios, _ in rows:
+        for scenario in SCENARIOS:
+            old, new, delta_pct, _, high_error = scenarios[scenario]
+            if high_error:
+                lines.append(f"{HIGH_ERROR} {provider_key.split(':', 1)[1].upper()} `{scenario}`: "
+                             f"{as_pct(old)} old · {as_pct(new)} new, against a "
+                             f"{delta_pct:+.1f} % delta")
+    return lines
+
+
 def render_table(rows: list) -> list:
     lines = [f"| Move provider | {COMMIT_MOVE} | {DRAW_ONLY} | Values/move | ns/value |",
              "|---|---:|---:|---:|---:|"]
@@ -366,6 +387,25 @@ def _selftest() -> None:
         assert f"| {column} |" in report, column
     assert str(DRAW_ONLY_DRAWS) in report
 
+    # A ⚠️ cell names both its margins below the table; a clean table prints no such line.
+    assert error_notes(rows) == []
+    assert f"{HIGH_ERROR} CHANGE" not in report
+    noisy_sut = dict(sut)
+    noisy_sut[("basic:change", COMMIT_MOVE)] = high_err_side
+    noisy_rows = build_rows(expect, baseline, noisy_sut, {})
+    notes = error_notes(noisy_rows)
+    assert len(notes) == 1, notes
+    assert notes[0] == f"{HIGH_ERROR} CHANGE `{COMMIT_MOVE}`: ± 1.0 % old · ± 5.0 % new, against a +0.0 % delta", notes[0]
+    noisy_report, _ = render_report(noisy_rows, "v1.0.0", "main", "TimefoldAI")
+    assert notes[0] in noisy_report
+    # A margin on a zero score is no percentage at all; it prints as absent rather than crashing.
+    zero = {"score": 0.0, "score_error": 1.0, "conf_lo": math.nan, "conf_hi": math.nan, "moved_values": 2.0}
+    zero_rows = build_rows(["basic:change"],
+                           {("basic:change", COMMIT_MOVE): high_err_side, ("basic:change", DRAW_ONLY): fast},
+                           {("basic:change", COMMIT_MOVE): zero, ("basic:change", DRAW_ONLY): fast}, {})
+    assert error_notes(zero_rows) == [
+        f"{HIGH_ERROR} CHANGE `{COMMIT_MOVE}`: ± 5.0 % old · {ABSENT} new, against a -100.0 % delta"]
+
     # An old baseline jar still reports singleDraw; the alias joins it to commitMove.
     assert SCENARIO_ALIASES.get("singleDraw") == COMMIT_MOVE
     assert "manyDraws" not in SCENARIO_ALIASES, "manyDraws has no counterpart and must drop out"
@@ -446,6 +486,11 @@ def render_report(rows: list, baseline_ref: str, branch_ref: str, owner: str) ->
             lines.extend(f"{line}  " for line in ranking)
             lines.append("")
         lines.extend(render_table(family_rows))
+        notes = error_notes(family_rows)
+        if notes:
+            lines.append("")
+            # Two spaces end a markdown line without ending the paragraph.
+            lines.extend(f"{note}  " for note in notes)
 
     lines.extend(render_legend())
 
