@@ -28,8 +28,7 @@ import ai.timefold.solver.core.preview.api.neighborhood.MoveProvider;
 import ai.timefold.solver.core.preview.api.neighborhood.stream.dataset.sample.Samplers;
 
 /**
- * The 12 built-in list-variable move providers, per
- * {@code /home/agent/.claude/plans/zany-drifting-ocean.md}. {@code SUB_LIST_UNASSIGN} uses a
+ * The 12 built-in list-variable move providers. {@code SUB_LIST_UNASSIGN} uses a
  * task-assigning-specific bound ({@code MIN_SAMPLE_SIZE}..{@code TASK_ASSIGNING_MAX_SUB_LIST_SIZE})
  * rather than the shared {@code MAX_SAMPLE_SIZE}: task lists run 14-39 long, comfortably above 15,
  * so the bound draws noticeably larger sub-lists than its {@link #SUB_LIST_CHANGE} /

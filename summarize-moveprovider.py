@@ -3,10 +3,17 @@
 
 Each CI subjob (one per move provider) uploads a "data-<provider>" artifact holding
 "baseline-results.json" and "sut-results.json" - the raw JMH JSON output for that one provider,
-both scenarios (singleDraw, manyDraws). This script joins every such pair on (provider, scenario),
-computes the speed difference, marks each row that regresses or improves, and prints one markdown
-table per variable family plus a legend. Its exit code is the CI verdict: 0 only if every expected
-row is present and either within tolerance or an improvement.
+both scenarios. This script joins every such pair on (provider, scenario), computes the speed
+difference, marks each row that regresses or improves, and prints one markdown table per variable
+family plus a legend. Its exit code is the CI verdict: 0 only if every expected row is present and
+either within tolerance or an improvement.
+
+The two scenarios split the two costs a move provider carries:
+
+  commitMove - draw one move, execute it, settle the neighborhood network, then undo it. Its speed
+               is the cost to APPLY a move. It calculates no score, so it is not a whole step.
+  drawOnly   - draw many moves from one settled solution and commit none. Its speed is the cost to
+               MAKE a move, with no commit in it at all.
 
 Absolute throughput is not comparable between two move providers, because one move of a mass
 provider does the work of ten moves of a single-value provider. So each row also carries the mean
@@ -27,12 +34,24 @@ import os
 import re
 import sys
 
-SCENARIOS = ("singleDraw", "manyDraws")
+COMMIT_MOVE = "commitMove"
+DRAW_ONLY = "drawOnly"
+SCENARIOS = (COMMIT_MOVE, DRAW_ONLY)
+
+# The baseline jar is built from whatever benchmarks ref matches the baseline solver ref, so it may
+# still carry the old scenario name. "singleDraw" and "commitMove" are the same measurement; the
+# rename only dropped an unused draw-count parameter. "manyDraws" needs no entry: it has no
+# counterpart, and an unknown scenario key is never looked up, so it drops out on its own.
+SCENARIO_ALIASES = {"singleDraw": COMMIT_MOVE}
+
 TOLERANCE_PCT = 3.0
 HIGH_ERROR_THRESHOLD = 0.02
 WORKLOAD_TOLERANCE_PCT = 3.0
 WORST_COUNT = 3
 RUNNER_LABEL = "ubuntu-24.04-arm"
+# Mirrors AbstractMoveProviderBenchmark.DRAW_ONLY_DRAWS. Only ever printed, in the legend; the
+# metrics need no divisor, because @OperationsPerInvocation already makes the reported unit one draw.
+DRAW_ONLY_DRAWS = 500
 
 HIGH_ERROR = "⚠️"
 WORKLOAD_CHANGED = "⚖️"
@@ -84,6 +103,7 @@ def load_side(path: str) -> dict:
     result = {}
     for entry in entries:
         scenario = entry["benchmark"].rsplit(".", 1)[-1]
+        scenario = SCENARIO_ALIASES.get(scenario, scenario)
         params = entry["params"]
         if "basicMoveProvider" in params:
             provider_key = "basic:" + params["basicMoveProvider"].lower()
@@ -177,7 +197,11 @@ def format_scenario(old: "dict | None", new: "dict | None", delta_pct: "float | 
 
 
 def format_values_per_move(old: "dict | None", new: "dict | None") -> str:
-    """The singleDraw count, which draws exactly one move and so is already per move."""
+    """The commitMove count, which draws exactly one move and so is already per move.
+
+    drawOnly reports the same quantity, because @OperationsPerInvocation makes its unit one drawn
+    move too; the column reads only one of the two.
+    """
     old_values = old.get("moved_values") if old else None
     new_values = new.get("moved_values") if new else None
     if workload_changed(old, new):
@@ -217,11 +241,15 @@ def build_rows(expect: list, baseline_data: dict, sut_data: dict, asset_urls: di
     return rows
 
 
-def worst_line(rows: list) -> "str | None":
-    """The providers most expensive for each value they move - the ones worth investigating."""
+def worst_line(rows: list, scenario: str, label: str) -> "str | None":
+    """The providers most expensive for each value they move - the ones worth investigating.
+
+    One line for each scenario: from drawOnly it ranks the cost to generate a value, from commitMove
+    the cost to commit one.
+    """
     ranked = []
     for provider_key, scenarios, _ in rows:
-        value = ns_per_value(scenarios["manyDraws"][1])
+        value = ns_per_value(scenarios[scenario][1])
         if value is not None:
             ranked.append((value, provider_key))
     if not ranked:
@@ -229,20 +257,20 @@ def worst_line(rows: list) -> "str | None":
     ranked.sort(reverse=True)
     shown = [f"{provider_key.split(':', 1)[1].upper()} {format_count(value)}"
              for value, provider_key in ranked[:WORST_COUNT]]
-    return "Highest ns/value: " + " · ".join(shown)
+    return f"{label}: " + " · ".join(shown)
 
 
 def render_table(rows: list) -> list:
-    lines = ["| Move provider | singleDraw | manyDraws | Values/move | ns/value |",
+    lines = [f"| Move provider | {COMMIT_MOVE} | {DRAW_ONLY} | Values/move | ns/value |",
              "|---|---:|---:|---:|---:|"]
     for provider_key, scenarios, url in rows:
-        single, many = scenarios["singleDraw"], scenarios["manyDraws"]
+        commit, draw = scenarios[COMMIT_MOVE], scenarios[DRAW_ONLY]
         lines.append("| {} | {} | {} | {} | {} |".format(
             format_provider(provider_key, url),
-            format_scenario(*single),
-            format_scenario(*many),
-            format_values_per_move(single[0], single[1]),
-            format_ns_per_value(many[1])))
+            format_scenario(*commit),
+            format_scenario(*draw),
+            format_values_per_move(commit[0], commit[1]),
+            format_ns_per_value(draw[1])))
     return lines
 
 
@@ -314,22 +342,81 @@ def _selftest() -> None:
     assert WORKLOAD_CHANGED not in {v.emoji for v in _FAILING_VERDICTS}
 
     # One row for each provider, split into the two families, and either scenario can fail the build.
-    baseline = {("basic:change", "singleDraw"): fast, ("basic:change", "manyDraws"): fast,
-                ("list:list_change", "singleDraw"): fast, ("list:list_change", "manyDraws"): fast}
+    baseline = {("basic:change", COMMIT_MOVE): fast, ("basic:change", DRAW_ONLY): fast,
+                ("list:list_change", COMMIT_MOVE): fast, ("list:list_change", DRAW_ONLY): fast}
     sut = dict(baseline)
-    sut[("list:list_change", "manyDraws")] = slow
+    sut[("list:list_change", DRAW_ONLY)] = slow
     expect = ["basic:change", "list:list_change"]
     rows = build_rows(expect, baseline, sut, {})
     assert len(rows) == len(expect)
     assert [r[0] for r in rows] == expect
     assert set(rows[0][1]) == set(SCENARIOS)
     report, exit_code = render_report(rows, "v1.0.0", "main", "TimefoldAI")
-    assert exit_code == 1, "a regression in manyDraws alone must still fail"
+    assert exit_code == 1, "a regression in drawOnly alone must still fail"
     assert "#### Basic variable" in report and "#### List variable" in report
     assert report.count("| Move provider |") == 2
-    assert "Highest ns/value:" in report
+
+    # Both ranking lines, for both families.
+    assert report.count("Highest generation ns/value:") == 2
+    assert report.count("Highest commit ns/value:") == 2
+
+    # The column explainer, with one row for each of the four columns.
+    assert "#### What the columns mean" in report
+    for column in (f"`{COMMIT_MOVE}`", f"`{DRAW_ONLY}`", "`Values/move`", "`ns/value`"):
+        assert f"| {column} |" in report, column
+    assert str(DRAW_ONLY_DRAWS) in report
+
+    # An old baseline jar still reports singleDraw; the alias joins it to commitMove.
+    assert SCENARIO_ALIASES.get("singleDraw") == COMMIT_MOVE
+    assert "manyDraws" not in SCENARIO_ALIASES, "manyDraws has no counterpart and must drop out"
 
     print("summarize-moveprovider.py: selftest OK")
+
+
+def render_legend() -> list:
+    """Everything after the last table: the emoji key, then an explainer for the four columns."""
+    lines = ["",
+             " · ".join(f"{v.emoji} {v.label}" for v in _ALL_VERDICTS)
+             + f" · {HIGH_ERROR} score error above ± {HIGH_ERROR_THRESHOLD * 100:.0f} %"
+             + f" · {WORKLOAD_CHANGED} workload changed",
+             f"A speed is ops/s, old → new, with (new / old - 1) × 100 in brackets. Positive is "
+             f"faster. Within ± {TOLERANCE_PCT:.0f} % is treated as noise.",
+             "",
+             "#### What the columns mean",
+             "",
+             "| Column | Unit | Measures | Rank it? |",
+             "|---|---|---|---|"]
+    columns = [
+        (f"`{COMMIT_MOVE}`", "moves/s",
+         "Draw one move, execute it, settle the neighborhood network, then undo it. Calculates no "
+         "score, so it is not a whole step.",
+         "No - mixes the move's own execute with shared settle machinery"),
+        (f"`{DRAW_ONLY}`", "draws/s",
+         f"Draw {DRAW_ONLY_DRAWS} moves from one settled solution with one iterator, and commit none.",
+         "No - one move can name many values"),
+        ("`Values/move`", "count",
+         "Mean variable writes in one move. Explains why the two speeds differ between providers.",
+         "—"),
+        ("`ns/value`", "ns",
+         f"`{DRAW_ONLY}` divided by `Values/move`: the cost to generate one moved value.",
+         "**Yes** - this is the triage column"),
+    ]
+    lines.extend("| {} | {} | {} | {} |".format(*column) for column in columns)
+    lines.append("")
+    lines.append(f"The lines above each table rank both costs: generation from `{DRAW_ONLY}`, commit "
+                 f"from `{COMMIT_MOVE}` divided by `Values/move`. Commit is the larger of the two.")
+    lines.append("Do not compare `ns/value` between the two tables. They run on different data sets.")
+    lines.append(f"`{DRAW_ONLY}` reuses one iterator for the whole invocation, as a production step "
+                 "does. That iterator retires candidates that keep coming back empty, so its data "
+                 "sets stay warm and its pool gets smaller as the invocation runs. Real generation "
+                 "can be a little slower.")
+    lines.append(f"{WORKLOAD_CHANGED} marks a provider whose quantity of work is not the same on both "
+                 "sides. Its delta compares two different workloads, and is not reliable.")
+    lines.append("A move provider name links to the one GitHub Actions artifact holding the JFR "
+                 "recordings and CPU/alloc flamegraphs and heatmaps for both of its scenarios, old "
+                 "and new alike.")
+    lines.append(f"Measured on `{RUNNER_LABEL}` runners.")
+    return lines
 
 
 def render_report(rows: list, baseline_ref: str, branch_ref: str, owner: str) -> tuple[str, int]:
@@ -351,29 +438,16 @@ def render_report(rows: list, baseline_ref: str, branch_ref: str, owner: str) ->
         lines.append("")
         lines.append(f"#### {title}")
         lines.append("")
-        worst = worst_line(family_rows)
-        if worst:
-            lines.append(worst)
+        ranking = [worst_line(family_rows, DRAW_ONLY, "Highest generation ns/value"),
+                   worst_line(family_rows, COMMIT_MOVE, "Highest commit ns/value")]
+        ranking = [line for line in ranking if line]
+        if ranking:
+            # Two spaces end a markdown line without ending the paragraph.
+            lines.extend(f"{line}  " for line in ranking)
             lines.append("")
         lines.extend(render_table(family_rows))
 
-    lines.append("")
-    lines.append(" · ".join(f"{v.emoji} {v.label}" for v in _ALL_VERDICTS)
-                  + f" · {HIGH_ERROR} score error above ± {HIGH_ERROR_THRESHOLD * 100:.0f} %"
-                  + f" · {WORKLOAD_CHANGED} workload changed")
-    lines.append(f"A speed is ops/s, old → new, with (new / old - 1) × 100 in brackets. Positive is "
-                  f"faster. Within ± {TOLERANCE_PCT:.0f} % is treated as noise.")
-    lines.append("`ns/value` is the cost of one moved value. Rank this column, not the speed columns: "
-                  "a provider that moves 6 values in one move is correctly 6 times slower. Do not "
-                  "compare it between the two tables; they run on different data sets. It comes from "
-                  "`manyDraws`, which draws ten moves for each operation, so it is not `Values/move` "
-                  "divided into the `manyDraws` speed.")
-    lines.append(f"{WORKLOAD_CHANGED} marks a provider whose quantity of work is not the same on both "
-                  "sides. Its delta compares two different workloads, and is not reliable.")
-    lines.append("A move provider name links to the one GitHub Actions artifact holding the JFR "
-                  "recordings and CPU/alloc flamegraphs and heatmaps for both of its scenarios, old "
-                  "and new alike.")
-    lines.append(f"Measured on `{RUNNER_LABEL}` runners.")
+    lines.extend(render_legend())
 
     failing = any(verdict in _FAILING_VERDICTS
                   for _, scenarios, _ in rows
