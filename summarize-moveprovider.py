@@ -387,6 +387,9 @@ def _selftest() -> None:
         assert f"| {column} |" in report, column
     assert str(DRAW_ONLY_DRAWS) in report
 
+    # The one verdict a label cannot explain by itself gets a sentence of its own.
+    assert f"{UNDETERMINED.emoji} {UNDETERMINED.label} means" in report
+
     # A ⚠️ cell names both its margins below the table; a clean table prints no such line.
     assert error_notes(rows) == []
     assert f"{HIGH_ERROR} CHANGE" not in report
@@ -421,6 +424,11 @@ def render_legend() -> list:
              + f" · {WORKLOAD_CHANGED} workload changed",
              f"A speed is ops/s, old → new, with (new / old - 1) × 100 in brackets. Positive is "
              f"faster. Within ± {TOLERANCE_PCT:.0f} % is treated as noise.",
+             f"{UNDETERMINED.emoji} {UNDETERMINED.label} means the delta is more than "
+             f"± {TOLERANCE_PCT:.0f} % but the two confidence intervals overlap, so this run cannot "
+             f"say which side is really faster. It fails the build, the same as "
+             f"{REGRESSION.emoji} {REGRESSION.label}: read the margins below the table, then run it "
+             f"again with more iterations, or on a quieter machine.",
              "",
              "#### What the columns mean",
              "",
