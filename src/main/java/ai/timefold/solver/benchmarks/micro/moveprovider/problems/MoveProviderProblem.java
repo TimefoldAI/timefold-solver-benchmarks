@@ -30,9 +30,10 @@ import ai.timefold.solver.core.preview.api.neighborhood.MoveProvider;
 import org.openjdk.jmh.infra.Blackhole;
 
 /**
- * Runs one {@link MoveProviderCase} through the two scenarios described in
- * {@code /home/agent/.claude/plans/swift-pondering-fountain.md}: draw a fixed number of candidate
- * moves, commit only the last, then undo it before the invocation returns.
+ * Runs one {@link MoveProviderCase} through the two scenarios the benchmark measures.
+ * {@link #runCommitMove} draws one candidate move, commits it, settles the dataset network, then
+ * undoes it before the invocation returns; its speed is the cost to apply a move.
+ * {@link #runDrawOnly} draws many candidates and commits none; its speed is the cost to make one.
  *
  * <p>
  * Undoing every invocation, instead of letting committed moves accumulate across an iteration, is
@@ -124,16 +125,13 @@ public final class MoveProviderProblem<Solution_> {
         invocationCounter = 0;
     }
 
-    public void setupInvocation() {
-
-    }
-
     /**
-     * Draws {@code movesPerStep} candidates (only the last is committed), executes it, settles the
-     * dataset network, then undoes it before returning - so the working solution is exactly as it
-     * was before this invocation, regardless of which move got drawn. Undoing goes through
+     * Draws one candidate, executes it, settles the dataset network, then undoes it before
+     * returning - so the working solution is exactly as it was before this invocation, regardless of
+     * which move got drawn. Undoing goes through
      * {@code MoveDirector.executeTemporaryWithoutScoring}, so no {@code calculateScore()} is ever
-     * called - not by this method, not by anything it calls.
+     * called - not by this method, not by anything it calls. No score is calculated at all, so this
+     * is not a whole local-search step; it is the cost to apply one move and settle after it.
      * <p>
      * The settle happens between execute and undo, not after both: the undo dirties the dataset
      * network's tuples again on the way back, so settling only after the full round-trip would
@@ -142,28 +140,59 @@ public final class MoveProviderProblem<Solution_> {
      * re-bucketing) this benchmark exists to measure.
      *
      * <p>
-     * Every drawn move is counted into {@code counter}, not only the committed one, because a step
-     * really does generate {@code movesPerStep} of them; see {@link MovedValueCounter}.
+     * Exactly one draw, and the count is not a parameter. The CI report reads its
+     * {@code Values/move} column from this scenario, which is only correct while the count is one;
+     * and a second draw would only dilute what this scenario measures.
      *
      * @return the committed move - already undone by the time this returns - kept only so JMH
      *         cannot optimize the invocation away
      */
-    public Move<Solution_> runInvocation(int movesPerStep, int maxDrawAttemptsPerMove, Blackhole blackhole,
-            MovedValueCounter counter) {
+    public Move<Solution_> runCommitMove(int maxDrawAttemptsPerMove, Blackhole blackhole, MovedValueCounter counter) {
         var stepScope = new LocalSearchStepScope<>(phaseScope, (int) invocationCounter++);
         moveRepository.stepStarted(stepScope);
-        var moveIterator = moveRepository.iterator();
+        var lastMove = drawMoves(moveRepository.iterator(), 1, maxDrawAttemptsPerMove, blackhole, counter);
+        // The step must happen; drawMove() has already guaranteed a non-null move.
+        scoreDirector.getMoveDirector().executeTemporaryWithoutScoring(lastMove, workingSolution -> {
+            moveRepository.stepEnded(stepScope); // Settles the dataset network; this is what this scenario measures.
+            return null;
+        });
+        return lastMove;
+    }
+
+    /**
+     * Draws {@code drawCount} candidates and commits none, so the working solution stays as it is
+     * and the dataset network stays settled: this measures move generation alone, with no execute,
+     * no variable listeners, no settle and no undo in it. Nothing changes, so no pool of null or
+     * non-null entities can drain, {@code requiresFlushing()} stays false, and {@code stepStarted}
+     * and {@code stepEnded} have nothing to settle - hence no step scope here at all.
+     *
+     * <p>
+     * One iterator for the whole invocation, because one production step also builds one iterator
+     * and then draws from it many times. A bi (joined) move iterator retires a left tuple that keeps
+     * probing empty, so a later draw in the same invocation picks from a pruned pool and costs less;
+     * this is why the draw count is frozen, see
+     * {@link AbstractMoveProviderBenchmark#DRAW_ONLY_DRAWS}. Nothing invalidates the data sets
+     * either, so they stay warm and real generation can be a little slower than this.
+     *
+     * @return the last drawn move, kept only so JMH cannot optimize the invocation away
+     */
+    public Move<Solution_> runDrawOnly(int drawCount, int maxDrawAttemptsPerMove, Blackhole blackhole,
+            MovedValueCounter counter) {
+        return drawMoves(moveRepository.iterator(), drawCount, maxDrawAttemptsPerMove, blackhole, counter);
+    }
+
+    /**
+     * Every drawn move is counted into {@code counter}, not only the one a caller goes on to commit,
+     * because a step really does generate all of them; see {@link MovedValueCounter}.
+     */
+    private Move<Solution_> drawMoves(Iterator<Move<Solution_>> moveIterator, int drawCount,
+            int maxDrawAttemptsPerMove, Blackhole blackhole, MovedValueCounter counter) {
         Move<Solution_> lastMove = null;
-        for (var i = 0; i < movesPerStep; i++) {
+        for (var i = 0; i < drawCount; i++) {
             lastMove = drawMove(moveIterator, maxDrawAttemptsPerMove);
             counter.movedValues += moveProviderCase.countMovedValues(lastMove);
             blackhole.consume(lastMove); // No move is ever thrown away.
         }
-        // The step must happen; drawMove() has already guaranteed a non-null move.
-        scoreDirector.getMoveDirector().executeTemporaryWithoutScoring(lastMove, workingSolution -> {
-            moveRepository.stepEnded(stepScope); // Settles the dataset network; this is what scenario 2 measures.
-            return null;
-        });
         return lastMove;
     }
 

@@ -21,8 +21,7 @@ import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
 import ai.timefold.solver.core.config.solver.SolverConfig;
 
 /**
- * The five datasets the move-provider benchmark suite reads, per
- * {@code /home/agent/.claude/plans/zany-drifting-ocean.md}. {@code MEETING_SCHEDULING_DENSE} is
+ * The five datasets the move-provider benchmark suite reads. {@code MEETING_SCHEDULING_DENSE} is
  * deliberately 22.9x over-subscribed so that composite (room, startingTimeGrain) pillars average 4
  * members instead of the singletons every feasible meeting-scheduling shape produces; only
  * {@code PILLAR_SWAP} and {@code SUB_PILLAR_SWAP} (in {@code BasicMoveProviderCase}) use it.

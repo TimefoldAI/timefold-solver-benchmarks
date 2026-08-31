@@ -15,10 +15,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The runnable check for every one of the 25 built-in move providers, per
- * {@code /home/agent/.claude/plans/zany-drifting-ocean.md}: run the whole lifecycle once for both
- * scenarios and assert that a move was actually committed. Catches a provider that rejects its
- * metamodel, a provider that only produces null moves, and any lifecycle mistake, without JMH.
+ * The runnable check for every one of the 25 built-in move providers: run the whole lifecycle once
+ * for both scenarios and assert that each produced a move. Catches a provider that rejects its
+ * metamodel, a provider that only produces null moves, a case whose {@code countMovedValues} cast no
+ * longer matches its provider's move, and any lifecycle mistake, without JMH.
  *
  * <p>
  * Reads exactly the datasets the benchmarks read, through the same {@link MoveProviderCase}
@@ -40,20 +40,23 @@ final class MoveProviderBenchmarkTest {
         var problem = new MoveProviderProblem<>(moveProviderCase);
         problem.setupTrial();
         problem.setupIteration();
-        var singleDrawResult = problem.runInvocation(AbstractMoveProviderBenchmark.SINGLE_DRAW,
-                AbstractMoveProviderBenchmark.MAX_DRAW_ATTEMPTS_PER_MOVE, blackhole, counter);
-        assertThat(singleDrawResult).isNotNull();
+        var commitMoveResult = problem.runCommitMove(AbstractMoveProviderBenchmark.MAX_DRAW_ATTEMPTS_PER_MOVE,
+                blackhole, counter);
+        assertThat(commitMoveResult).isNotNull();
         problem.tearDownIteration();
 
         problem.setupIteration();
-        var manyDrawsResult = problem.runInvocation(AbstractMoveProviderBenchmark.MANY_DRAWS,
+        var drawOnlyResult = problem.runDrawOnly(AbstractMoveProviderBenchmark.DRAW_ONLY_DRAWS,
                 AbstractMoveProviderBenchmark.MAX_DRAW_ATTEMPTS_PER_MOVE, blackhole, counter);
-        assertThat(manyDrawsResult).isNotNull();
+        assertThat(drawOnlyResult).isNotNull();
         problem.tearDownIteration();
 
         // One value per draw at the very least; a wrong cast in the enum throws before we get here.
+        // The drawOnly leg is also the only check that a provider can produce DRAW_ONLY_DRAWS moves
+        // from one static solution: a bi move iterator retires dead lefts as the invocation runs, so
+        // a provider that runs dry throws out of drawMove() rather than failing this assert.
         assertThat(counter.movedValues)
-                .isGreaterThanOrEqualTo(AbstractMoveProviderBenchmark.SINGLE_DRAW + AbstractMoveProviderBenchmark.MANY_DRAWS);
+                .isGreaterThanOrEqualTo(1 + AbstractMoveProviderBenchmark.DRAW_ONLY_DRAWS);
 
         problem.teardownTrial();
     }

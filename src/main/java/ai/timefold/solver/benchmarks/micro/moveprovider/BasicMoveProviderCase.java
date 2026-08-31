@@ -28,8 +28,7 @@ import ai.timefold.solver.core.preview.api.neighborhood.MoveProvider;
 import ai.timefold.solver.core.preview.api.neighborhood.stream.dataset.sample.Samplers;
 
 /**
- * The 13 built-in basic-variable move providers, per
- * {@code /home/agent/.claude/plans/zany-drifting-ocean.md}. {@code PILLAR_CHANGE} and
+ * The 13 built-in basic-variable move providers. {@code PILLAR_CHANGE} and
  * {@code SUB_PILLAR_CHANGE} key on {@code room} rather than {@code startingTimeGrain}: 400 meetings
  * over 1280 grains means grain-keyed pillars are singletons, and {@link Samplers#between(int, int)}
  * drains then discards any slice below its minimum. {@code PILLAR_SWAP} and {@code SUB_PILLAR_SWAP}
