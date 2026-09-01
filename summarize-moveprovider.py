@@ -44,9 +44,38 @@ SCENARIOS = (COMMIT_MOVE, DRAW_ONLY)
 # counterpart, and an unknown scenario key is never looked up, so it drops out on its own.
 SCENARIO_ALIASES = {"singleDraw": COMMIT_MOVE}
 
-TOLERANCE_PCT = 3.0
-HIGH_ERROR_THRESHOLD = 0.02
-WORKLOAD_TOLERANCE_PCT = 3.0
+# The band inside which a delta counts as noise, for each scenario. Two sides run in different JVMs,
+# so the noise of their difference is about sqrt(2) times one side's own error; these two values are
+# the smallest round numbers that cover all 25 providers of run 33421093825 at 40 forks.
+#
+# The two differ by a lot, and the reason is the measurement, not the code. A JVM compiles the move
+# generation loop into one of a few shapes, holds that shape for its whole life, and the shapes can
+# be 40 % apart; every fork is one draw from that lottery. drawOnly measures only that loop, so it
+# inherits the whole spread. In commitMove the loop is about 2 % of the work, so the same lottery
+# moves it by a fraction of a percent. A tighter drawOnly band would report noise as a regression;
+# see the "Configure the benchmark" step of .github/workflows/performance_move_provider.yml.
+TOLERANCE_PCT = {COMMIT_MOVE: 4.0, DRAW_ONLY: 11.0}
+# A row is marked with HIGH_ERROR when one side's own error is more than its band divided by
+# sqrt(2) - that is, when the band above no longer covers this provider. The bands are hard-coded
+# from one run, so they go stale when the runner, the JDK or a provider changes; this marker is what
+# says so. On run 33421093825 it fires on none of the 50 sides, by construction. A flat threshold
+# was tried instead and does not work: at 2 % it fires on half of the drawOnly rows, which is noise
+# in the report rather than information about the benchmark.
+HIGH_ERROR_BAND_FRACTION = math.sqrt(2)
+
+# The two sides must change the same number of values, or their speeds compare different work. This
+# is not a noise threshold: the random seed is the same on both sides, so the two agree to about
+# 0.004 % in practice, and anything above 0.5 % means the moves themselves changed.
+WORKLOAD_TOLERANCE_PCT = 0.5
+# Row order, the same shape in both tables: plain moves first, then the pillar and sub-list variants
+# that group several entities, then the mass moves. Within a group the operation decides. Without
+# this the rows arrive in whatever order the CI matrix passed to --expect, which puts MASS_CHANGE
+# between CHANGE and PILLAR_CHANGE and makes the two tables impossible to read side by side.
+# A name that matches nothing here sorts last, alphabetically, so a new provider is visible rather
+# than silently placed in the middle.
+MOVE_GROUP_PREFIXES = (("mass_", 3), ("sub_pillar_", 2), ("sub_list_", 2), ("pillar_", 1))
+OPERATION_ORDER = ("change", "swap", "tail_swap", "two_opt", "assign", "unassign")
+
 WORST_COUNT = 3
 RUNNER_LABEL = "ubuntu-24.04-arm"
 # Mirrors AbstractMoveProviderBenchmark.DRAW_ONLY_DRAWS. Only ever printed, in the legend; the
@@ -148,13 +177,17 @@ def relative_error(side: dict) -> float:
     return abs(side["score_error"] / side["score"])
 
 
-def evaluate_row(old: "dict | None", new: "dict | None") -> tuple["float | None", Verdict, bool]:
-    """Returns (delta_pct, verdict, high_error). delta_pct is None only for MISSING."""
+def evaluate_row(old: "dict | None", new: "dict | None", tolerance_pct: float) -> tuple["float | None", Verdict, bool]:
+    """Returns (delta_pct, verdict, high_error). delta_pct is None only for MISSING.
+
+    tolerance_pct belongs to the scenario, not to the report; see TOLERANCE_PCT.
+    """
     if old is None or new is None:
         return None, MISSING, False
     delta_pct = (new["score"] / old["score"] - 1) * 100
-    high_error = relative_error(old) > HIGH_ERROR_THRESHOLD or relative_error(new) > HIGH_ERROR_THRESHOLD
-    if abs(delta_pct) <= TOLERANCE_PCT:
+    error_limit = tolerance_pct / 100 / HIGH_ERROR_BAND_FRACTION
+    high_error = relative_error(old) > error_limit or relative_error(new) > error_limit
+    if abs(delta_pct) <= tolerance_pct:
         verdict = TOLERANCE
     elif new["conf_lo"] > old["conf_hi"]:
         verdict = IMPROVEMENT
@@ -227,15 +260,33 @@ def ref_url(repo_owner: str, ref: str) -> str:
     return f"https://github.com/{repo_owner}/timefold-solver/tree/{ref}"
 
 
+def provider_sort_key(provider_key: str) -> tuple:
+    """(group, operation, name), so both tables read change → swap → assign → unassign in each group.
+
+    The group prefix is stripped before the operation is read, so MASS_LIST_CHANGE is a mass move of
+    the change operation rather than a name of its own. See MOVE_GROUP_PREFIXES.
+    """
+    name = provider_key.split(":", 1)[1]
+    group = 0
+    for prefix, rank in MOVE_GROUP_PREFIXES:
+        if name.startswith(prefix):
+            group, name = rank, name[len(prefix):]
+            break
+    # What is left is the operation, wrapped in the list-variable spelling: "list_change", "two_opt_list".
+    name = name.removeprefix("list_").removesuffix("_list")
+    operation = OPERATION_ORDER.index(name) if name in OPERATION_ORDER else len(OPERATION_ORDER)
+    return group, operation, provider_key
+
+
 def build_rows(expect: list, baseline_data: dict, sut_data: dict, asset_urls: dict) -> list:
     """One row for each provider, holding both scenarios; the scenarios are columns, not rows."""
     rows = []
-    for provider_key in expect:
+    for provider_key in sorted(expect, key=provider_sort_key):
         scenarios = {}
         for scenario in SCENARIOS:
             key = (provider_key, scenario)
             old, new = baseline_data.get(key), sut_data.get(key)
-            delta_pct, verdict, high_error = evaluate_row(old, new)
+            delta_pct, verdict, high_error = evaluate_row(old, new, TOLERANCE_PCT[scenario])
             scenarios[scenario] = (old, new, delta_pct, verdict, high_error)
         rows.append((provider_key, scenarios, asset_urls.get(provider_key)))
     return rows
@@ -305,33 +356,41 @@ def _selftest() -> None:
     fast = {"score": 100.0, "score_error": 1.0, "conf_lo": 99.0, "conf_hi": 101.0, "moved_values": 2.0}
     slow = {"score": 80.0, "score_error": 1.0, "conf_lo": 79.0, "conf_hi": 81.0, "moved_values": 2.0}
     same = {"score": 100.5, "score_error": 1.0, "conf_lo": 99.5, "conf_hi": 101.5, "moved_values": 2.0}
+    COMMIT_BAND = TOLERANCE_PCT[COMMIT_MOVE]
     noisy = {"score": 90.0, "score_error": 0.0, "conf_lo": math.nan, "conf_hi": math.nan, "moved_values": 2.0}
 
     # Regression: new (slow) is strictly below old (fast).
-    delta, verdict, _ = evaluate_row(fast, slow)
+    delta, verdict, _ = evaluate_row(fast, slow, COMMIT_BAND)
     assert verdict == REGRESSION, verdict
     assert delta < 0
 
     # Improvement: new (fast) is strictly above old (slow).
-    delta, verdict, _ = evaluate_row(slow, fast)
+    delta, verdict, _ = evaluate_row(slow, fast, COMMIT_BAND)
     assert verdict == IMPROVEMENT, verdict
     assert delta > 0
 
-    # Within tolerance: old vs. a slightly higher score, well inside +/-3%.
-    delta, verdict, _ = evaluate_row(fast, same)
+    # Within tolerance: old vs. a slightly higher score, well inside either band.
+    delta, verdict, _ = evaluate_row(fast, same, COMMIT_BAND)
     assert verdict == TOLERANCE, verdict
 
     # NaN confidence interval outside tolerance: can't prove improvement or regression.
-    delta, verdict, _ = evaluate_row(fast, noisy)
+    delta, verdict, _ = evaluate_row(fast, noisy, COMMIT_BAND)
     assert verdict == UNDETERMINED, verdict
 
+    # The band belongs to the scenario. A -10 % delta is a failure for commitMove and noise for
+    # drawOnly, because a drawOnly fork is one draw from the JIT's compilation lottery.
+    assert TOLERANCE_PCT[DRAW_ONLY] > TOLERANCE_PCT[COMMIT_MOVE]
+    assert evaluate_row(fast, noisy, TOLERANCE_PCT[COMMIT_MOVE])[1] == UNDETERMINED
+    assert evaluate_row(fast, noisy, TOLERANCE_PCT[DRAW_ONLY])[1] == TOLERANCE
+    assert set(TOLERANCE_PCT) == set(SCENARIOS), "every scenario needs a band"
+
     # Missing side never crashes and is reported distinctly.
-    delta, verdict, high_error = evaluate_row(None, fast)
+    delta, verdict, high_error = evaluate_row(None, fast, COMMIT_BAND)
     assert verdict == MISSING and delta is None and high_error is False
 
     # High relative error only annotates; it must not override a tolerance/regression verdict.
     high_err_side = {"score": 100.0, "score_error": 5.0, "conf_lo": 90.0, "conf_hi": 110.0, "moved_values": 2.0}
-    delta, verdict, high_error = evaluate_row(fast, high_err_side)
+    delta, verdict, high_error = evaluate_row(fast, high_err_side, COMMIT_BAND)
     assert verdict == TOLERANCE and high_error is True
 
     # The counter is a rate in the primary unit, so values/op is the quotient of the two scores.
@@ -349,7 +408,8 @@ def _selftest() -> None:
 
     # The workload guard needs both sides, and ignores a difference within tolerance.
     heavier = dict(fast, moved_values=4.0)
-    barely = dict(fast, moved_values=2.04)
+    # 0.2 % apart: the two sides never agree to the last bit, and that must not raise the flag.
+    barely = dict(fast, moved_values=2.004)
     assert workload_changed(fast, heavier) is True
     assert workload_changed(fast, barely) is False
     assert workload_changed(fast, fast) is False
@@ -361,6 +421,27 @@ def _selftest() -> None:
 
     # A workload change annotates only; it must never fail the build.
     assert WORKLOAD_CHANGED not in {v.emoji for v in _FAILING_VERDICTS}
+
+    # Row order, over every provider the benchmark has, from a deliberately scrambled input.
+    basic = ["change", "swap", "assign", "unassign",
+             "pillar_change", "pillar_swap", "pillar_unassign",
+             "sub_pillar_change", "sub_pillar_swap", "sub_pillar_unassign",
+             "mass_change", "mass_assign", "mass_unassign"]
+    listvar = ["list_change", "list_swap", "list_tail_swap", "two_opt_list", "list_assign",
+               "list_unassign",
+               "sub_list_change", "sub_list_swap", "sub_list_unassign",
+               "mass_list_change", "mass_list_assign", "mass_list_unassign"]
+    # Sorted for each family on its own, which is how render_report splits them before rendering.
+    for prefix, names in (("basic:", basic), ("list:", listvar)):
+        wanted_family = [prefix + n for n in names]
+        assert sorted(sorted(wanted_family), key=provider_sort_key) == wanted_family, \
+            sorted(sorted(wanted_family), key=provider_sort_key)
+    wanted = ["basic:" + n for n in basic] + ["list:" + n for n in listvar]
+    # Every known provider must resolve to a real operation, or it silently lands in the tail.
+    for provider_key in wanted:
+        assert provider_sort_key(provider_key)[1] < len(OPERATION_ORDER), provider_key
+    # An unknown name sorts last rather than into the middle of a group.
+    assert provider_sort_key("basic:brand_new")[1] == len(OPERATION_ORDER)
 
     # One row for each provider, split into the two families, and either scenario can fail the build.
     baseline = {("basic:change", COMMIT_MOVE): fast, ("basic:change", DRAW_ONLY): fast,
@@ -387,8 +468,12 @@ def _selftest() -> None:
         assert f"| {column} |" in report, column
     assert str(DRAW_ONLY_DRAWS) in report
 
-    # The one verdict a label cannot explain by itself gets a sentence of its own.
-    assert f"{UNDETERMINED.emoji} {UNDETERMINED.label} means" in report
+    # The legend is sectioned, and every mark a label cannot explain by itself gets its own bullet.
+    for heading in ("#### What the columns mean", "#### Noise bands", "#### What the marks mean",
+                    "#### Notes"):
+        assert heading in report, heading
+    for mark in (f"{UNDETERMINED.emoji} {UNDETERMINED.label}:", f"{HIGH_ERROR}:", f"{WORKLOAD_CHANGED}:"):
+        assert f"- {mark}" in report, mark
 
     # A ⚠️ cell names both its margins below the table; a clean table prints no such line.
     assert error_notes(rows) == []
@@ -417,27 +502,11 @@ def _selftest() -> None:
 
 
 def render_legend() -> list:
-    """Everything after the last table: the emoji key, then an explainer for the four columns."""
-    lines = ["",
-             " · ".join(f"{v.emoji} {v.label}" for v in _ALL_VERDICTS)
-             + f" · {HIGH_ERROR} score error above ± {HIGH_ERROR_THRESHOLD * 100:.0f} %"
-             + f" · {WORKLOAD_CHANGED} workload changed",
-             f"A speed is ops/s, old → new, with (new / old - 1) × 100 in brackets. Positive is "
-             f"faster. Within ± {TOLERANCE_PCT:.0f} % is treated as noise.",
-             f"{UNDETERMINED.emoji} {UNDETERMINED.label} means the delta is more than "
-             f"± {TOLERANCE_PCT:.0f} % but the two confidence intervals overlap, so this run cannot "
-             f"say which side is really faster. It fails the build, the same as "
-             f"{REGRESSION.emoji} {REGRESSION.label}: read the margins below the table, then run it "
-             f"again with more iterations, or on a quieter machine.",
-             "",
-             "#### What the columns mean",
-             "",
-             "| Column | Unit | Measures | Rank it? |",
-             "|---|---|---|---|"]
+    """Everything after the last table, in four short sections rather than one block of prose."""
     columns = [
         (f"`{COMMIT_MOVE}`", "moves/s",
-         "Draw one move, execute it, settle the neighborhood network, then undo it. Calculates no "
-         "score, so it is not a whole step.",
+         "Draw one move, execute it, settle the neighborhood network, then undo it. "
+         "Calculates no score, so it is not a whole step.",
          "No - mixes the move's own execute with shared settle machinery"),
         (f"`{DRAW_ONLY}`", "draws/s",
          f"Draw {DRAW_ONLY_DRAWS} moves from one settled solution with one iterator, and commit none.",
@@ -449,21 +518,55 @@ def render_legend() -> list:
          f"`{DRAW_ONLY}` divided by `Values/move`: the cost to generate one moved value.",
          "**Yes** - this is the triage column"),
     ]
+    lines = ["",
+             " · ".join(f"{v.emoji} {v.label}" for v in _ALL_VERDICTS)
+             + f" · {HIGH_ERROR} score error too big for its band"
+             + f" · {WORKLOAD_CHANGED} workload changed",
+             "",
+             "#### What the columns mean",
+             "",
+             "| Column | Unit | Measures | Rank it? |",
+             "|---|---|---|---|"]
     lines.extend("| {} | {} | {} | {} |".format(*column) for column in columns)
-    lines.append("")
-    lines.append(f"The lines above each table rank both costs: generation from `{DRAW_ONLY}`, commit "
-                 f"from `{COMMIT_MOVE}` divided by `Values/move`. Commit is the larger of the two.")
-    lines.append("Do not compare `ns/value` between the two tables. They run on different data sets.")
-    lines.append(f"`{DRAW_ONLY}` reuses one iterator for the whole invocation, as a production step "
-                 "does. That iterator retires candidates that keep coming back empty, so its data "
-                 "sets stay warm and its pool gets smaller as the invocation runs. Real generation "
-                 "can be a little slower.")
-    lines.append(f"{WORKLOAD_CHANGED} marks a provider whose quantity of work is not the same on both "
-                 "sides. Its delta compares two different workloads, and is not reliable.")
-    lines.append("A move provider name links to the one GitHub Actions artifact holding the JFR "
-                 "recordings and CPU/alloc flamegraphs and heatmaps for both of its scenarios, old "
-                 "and new alike.")
-    lines.append(f"Measured on `{RUNNER_LABEL}` runners.")
+
+    lines += ["",
+              "#### Noise bands",
+              "",
+              "- A speed is ops/s, old → new, with (new / old - 1) × 100 in brackets. "
+              "Positive is faster.",
+              f"- A delta inside its band counts as noise: "
+              f"± {TOLERANCE_PCT[COMMIT_MOVE]:.0f} % for  `{COMMIT_MOVE}`, "
+              f"± {TOLERANCE_PCT[DRAW_ONLY]:.0f} % for `{DRAW_ONLY}`.",
+              f"- **A `{DRAW_ONLY}` regression under ± {TOLERANCE_PCT[DRAW_ONLY]:.0f} % cannot be seen by this benchmark.**",
+              "",
+              "#### What the marks mean",
+              "",
+              f"- {UNDETERMINED.emoji} {UNDETERMINED.label}: the delta is outside its band, "
+              f"but the two confidence intervals overlap, so this run cannot say which side is faster. "
+              f"It fails the build, the same as {REGRESSION.emoji} {REGRESSION.label}. "
+              f"Read the margins under the table, then run it again with more forks.",
+              f"- {HIGH_ERROR}: one side's own error is more than its band allows for. "
+              f"The bands are fixed numbers from an earlier run, "
+              f"so this says that run no longer describes this provider. "
+              f"Every marked side is listed under its table.",
+              f"- {WORKLOAD_CHANGED}: the two sides do not change the same number of values, "
+              f"by more than {WORKLOAD_TOLERANCE_PCT} %. "
+              f"Both draw from the same seed and usually agree to about 0.004 %, "
+              f"so a bigger difference means the moves themselves changed, "
+              f"and the delta then compares two different workloads.",
+              "",
+              "#### Notes",
+              "",
+              "- Do not compare `ns/value` between the two tables. They run on different data sets.",
+              f"- `{DRAW_ONLY}` reuses one iterator for the whole invocation, "
+              f"as a production step does. "
+              f"That iterator retires candidates that keep coming back empty, "
+              f"so its data sets stay warm and its pool gets smaller as the invocation runs. "
+              f"Real generation can be a little slower.",
+              "- A move provider name links to the one GitHub Actions artifact holding the JFR "
+              "recordings and CPU/alloc flamegraphs and heatmaps, for both of its scenarios and both "
+              "sides.",
+              f"- Measured on `{RUNNER_LABEL}` runners."]
     return lines
 
 
@@ -475,9 +578,8 @@ def render_report(rows: list, baseline_ref: str, branch_ref: str, owner: str) ->
             counts[verdict] = counts.get(verdict, 0) + 1
     header = " · ".join(f"{v.emoji} {v.label} {counts[v]}" for v in _ALL_VERDICTS if v in counts)
 
-    lines = [f"### {header}", ""]
-    lines.append(f"_Old_: [TimefoldAI's {baseline_ref}]({ref_url('TimefoldAI', baseline_ref)})  ")
-    lines.append(f"_New_: [{owner}'s {branch_ref}]({ref_url(owner, branch_ref)})")
+    lines = [f"### {header}", "", f"_Old_: [TimefoldAI's {baseline_ref}]({ref_url('TimefoldAI', baseline_ref)})  ",
+             f"_New_: [{owner}'s {branch_ref}]({ref_url(owner, branch_ref)})"]
 
     for title, prefix in (("Basic variable", "basic:"), ("List variable", "list:")):
         family_rows = [row for row in rows if row[0].startswith(prefix)]

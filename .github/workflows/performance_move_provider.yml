@@ -1,20 +1,16 @@
 # Both baseline and SUT (Software Under Test) are built from source first,
 # with their binaries uploaded as artifacts.
-# This is done on GitHub infrastructure, to achieve maximum parallelization.
+# This is done on GitHub ARM-based infrastructure, to achieve maximum parallelization.
 #
-# Unlike the ScoreDirector Perf Regression Test, a benchmark subjob produces no report of its own -
-# it only uploads its raw JMH results as an artifact. After every subjob finishes, one summarizing
-# job downloads all of them and aggregates them into a single table, which is the only report this
-# workflow produces.
+# A benchmark subjob produces no report of its own -
+# it only uploads its raw JMH results as an artifact.
+# After every subjob finishes, one summarizing job downloads all of them and aggregates them into a single table,
+# which is the only report this workflow produces.
 #
-# The benchmark subjobs run on GitHub-hosted ARM runners, to maximize parallelization. This trades
-# away the stable, dedicated machine the ScoreDirector workflow uses; if the resulting numbers turn
-# out too noisy, this can be revisited.
-#
-# Every job in this workflow checks out this very repository at the ref selected in the "Use
-# workflow from" dropdown - NOT a hardcoded branch. This is what lets the workflow be dispatched
-# from an unmerged feature branch and actually run that branch's code.
-#
+# Every job in this workflow checks out this very repository at the ref
+# selected in the "Use workflow from" dropdown - NOT a hardcoded branch.
+# This is what lets the workflow be dispatched from an unmerged feature branch
+# and actually run that branch's code.
 name: MoveProvider Perf Regression Test
 permissions:
   contents: read
@@ -291,11 +287,20 @@ jobs:
         with:
           path: ./timefold-solver-benchmarks
 
-      # Fine-tuned for stability, same as the ScoreDirector benchmark. Selects exactly the one
-      # provider family/name this subjob is responsible for; the other family is left blank so that
-      # AbstractConfiguration#parseExamples resolves it to "run nothing" rather than "run everything".
-      # TEMPORARY: forks/warmup/measurement cut to 2/2/2 to debug the CI faster; results are not
-      # statistically reliable at this setting. To revert, change all three back to 20/5/5.
+      # - Fine-tuned for stability, same as the ScoreDirector benchmark.
+      #  Selects exactly the one provider family/name this subjob is responsible for;
+      #  the other family is left blank so that AbstractConfiguration#parseExamples resolves it to "run nothing"
+      #  rather than "run everything".
+      # - One measurement iteration for each fork, on purpose.
+      #  A JVM compiles the move-generation loop into one of a few shapes,
+      #  keeps that shape for its whole life,
+      #  and the shapes differ by up to 40 % -
+      #  so the five iterations inside a fork were five copies of one sample.
+      #  JMH divides the spread of all of them by the square root of their count,
+      #  which made the reported error about 2.6x too small.
+      #  With one iteration for each fork, every sample is its own JVM,
+      #  and JMH's own number is right with no post-processing.
+      # - Four warmup iterations; established experimentally.
       - name: Configure the benchmark
         working-directory: ./timefold-solver-benchmarks
         shell: bash
@@ -305,9 +310,9 @@ jobs:
           FAMILY="${PROVIDER%%:*}"
           NAME="${PROVIDER#*:}"
           {
-            echo "forks=20"
-            echo "warmup_iterations=5"
-            echo "measurement_iterations=5"
+            echo "forks=40"
+            echo "warmup_iterations=4"
+            echo "measurement_iterations=1"
             echo "relative_score_error_threshold=0.02"
             if [ "$FAMILY" = basic ]; then
               echo "basic_move_provider=$NAME"
@@ -383,10 +388,11 @@ jobs:
             exit 1
           fi
 
-      # Uploaded before "Archive benchmark data" (and given an id) so its artifact-url output can be
-      # recorded into a file and ride along inside the data-* artifact - that's the only artifact the
-      # summarize job downloads, so this is how a row in its table can link straight to these assets
-      # instead of making the reader hunt for the right assets-* artifact by hand.
+      # Uploaded before "Archive benchmark data" (and given an id)
+      # so its artifact-url output can be recorded into a file
+      # and ride along inside the data-* artifact -
+      # that's the only artifact the summarize job downloads,
+      # so this is how a row in its table can link straight to these assets.
       - name: Archive benchmark assets
         id: archive_assets
         uses: actions/upload-artifact@v7
