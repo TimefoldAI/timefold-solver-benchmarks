@@ -45,16 +45,15 @@ SCENARIOS = (COMMIT_MOVE, DRAW_ONLY)
 SCENARIO_ALIASES = {"singleDraw": COMMIT_MOVE}
 
 # The band inside which a delta counts as noise, for each scenario. Two sides run in different JVMs,
-# so the noise of their difference is about sqrt(2) times one side's own error; these two values are
-# the smallest round numbers that cover all 25 providers of run 33421093825 at 40 forks.
-#
-# The two differ by a lot, and the reason is the measurement, not the code. A JVM compiles the move
-# generation loop into one of a few shapes, holds that shape for its whole life, and the shapes can
-# be 40 % apart; every fork is one draw from that lottery. drawOnly measures only that loop, so it
-# inherits the whole spread. In commitMove the loop is about 2 % of the work, so the same lottery
-# moves it by a fraction of a percent. A tighter drawOnly band would report noise as a regression;
+# so the noise of their difference is about sqrt(2) times one side's own error.
+# The two differ by a lot, and the reason is the measurement, not the code.
+# A JVM compiles the move generation loop into one of a few shapes, holds that shape for its whole life,
+# and the shapes can be 40 % apart; every fork is one draw from that lottery.
+# drawOnly measures only that loop, so it inherits the whole spread.
+# In commitMove the loop is about 2 % of the work, so the same lottery moves it by a fraction of a percent.
+# A tighter drawOnly band would report noise as a regression;
 # see the "Configure the benchmark" step of .github/workflows/performance_move_provider.yml.
-TOLERANCE_PCT = {COMMIT_MOVE: 4.0, DRAW_ONLY: 11.0}
+TOLERANCE_PCT = {COMMIT_MOVE: 4.0, DRAW_ONLY: 10.0}
 # A row is marked with HIGH_ERROR when one side's own error is more than its band divided by
 # sqrt(2) - that is, when the band above no longer covers this provider. The bands are hard-coded
 # from one run, so they go stale when the runner, the JDK or a provider changes; this marker is what
@@ -535,7 +534,7 @@ def render_legend() -> list:
               "- A speed is ops/s, old → new, with (new / old - 1) × 100 in brackets. "
               "Positive is faster.",
               f"- A delta inside its band counts as noise: "
-              f"± {TOLERANCE_PCT[COMMIT_MOVE]:.0f} % for  `{COMMIT_MOVE}`, "
+              f"± {TOLERANCE_PCT[COMMIT_MOVE]:.0f} % for `{COMMIT_MOVE}`, "
               f"± {TOLERANCE_PCT[DRAW_ONLY]:.0f} % for `{DRAW_ONLY}`.",
               f"- **A `{DRAW_ONLY}` regression under ± {TOLERANCE_PCT[DRAW_ONLY]:.0f} % cannot be seen by this benchmark.**",
               "",
