@@ -46,20 +46,11 @@ SCENARIO_ALIASES = {"singleDraw": COMMIT_MOVE}
 
 # The band inside which a delta counts as noise, for each scenario. Two sides run in different JVMs,
 # so the noise of their difference is about sqrt(2) times one side's own error.
-# The two differ by a lot, and the reason is the measurement, not the code.
-# A JVM compiles the move generation loop into one of a few shapes, holds that shape for its whole life,
-# and the shapes can be 40 % apart; every fork is one draw from that lottery.
-# drawOnly measures only that loop, so it inherits the whole spread.
-# In commitMove the loop is about 2 % of the work, so the same lottery moves it by a fraction of a percent.
-# A tighter drawOnly band would report noise as a regression;
-# see the "Configure the benchmark" step of .github/workflows/performance_move_provider.yml.
-TOLERANCE_PCT = {COMMIT_MOVE: 4.0, DRAW_ONLY: 10.0}
-# A row is marked with HIGH_ERROR when one side's own error is more than its band divided by
-# sqrt(2) - that is, when the band above no longer covers this provider. The bands are hard-coded
-# from one run, so they go stale when the runner, the JDK or a provider changes; this marker is what
-# says so. On run 33421093825 it fires on none of the 50 sides, by construction. A flat threshold
-# was tried instead and does not work: at 2 % it fires on half of the drawOnly rows, which is noise
-# in the report rather than information about the benchmark.
+TOLERANCE_PCT = {COMMIT_MOVE: 4.0, DRAW_ONLY: 4.0}
+# A row is marked with HIGH_ERROR when one side's own error is more than its band divided by sqrt(2) -
+# that is, when the band above no longer covers this provider.
+# The bands are hard-coded from one run, so they go stale when the runner,
+# the JDK or a provider changes; this marker is what says so.
 HIGH_ERROR_BAND_FRACTION = math.sqrt(2)
 
 # The two sides must change the same number of values, or their speeds compare different work. This
@@ -376,12 +367,15 @@ def _selftest() -> None:
     delta, verdict, _ = evaluate_row(fast, noisy, COMMIT_BAND)
     assert verdict == UNDETERMINED, verdict
 
-    # The band belongs to the scenario. A -10 % delta is a failure for commitMove and noise for
-    # drawOnly, because a drawOnly fork is one draw from the JIT's compilation lottery.
-    assert TOLERANCE_PCT[DRAW_ONLY] > TOLERANCE_PCT[COMMIT_MOVE]
+    # The band belongs to the scenario, and a band is only ever a noise floor: a delta inside it is
+    # not reported, whatever the confidence intervals say. drawOnly used to be looser than commitMove
+    # to absorb the JIT compilation lottery; it no longer is, so the only thing to pin here is that
+    # the band, not the confidence interval, decides the small-delta case.
     assert evaluate_row(fast, noisy, TOLERANCE_PCT[COMMIT_MOVE])[1] == UNDETERMINED
-    assert evaluate_row(fast, noisy, TOLERANCE_PCT[DRAW_ONLY])[1] == TOLERANCE
+    assert evaluate_row(fast, noisy, 20.0)[1] == TOLERANCE, "a wide enough band swallows any delta"
     assert set(TOLERANCE_PCT) == set(SCENARIOS), "every scenario needs a band"
+    for scenario, band in TOLERANCE_PCT.items():
+        assert band > 0, f"{scenario} needs a positive band"
 
     # Missing side never crashes and is reported distinctly.
     delta, verdict, high_error = evaluate_row(None, fast, COMMIT_BAND)
