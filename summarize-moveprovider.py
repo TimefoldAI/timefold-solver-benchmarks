@@ -46,7 +46,10 @@ SCENARIO_ALIASES = {"singleDraw": COMMIT_MOVE}
 
 # The band inside which a delta counts as noise, for each scenario. Two sides run in different JVMs,
 # so the noise of their difference is about sqrt(2) times one side's own error.
-TOLERANCE_PCT = {COMMIT_MOVE: 4.0, DRAW_ONLY: 4.0}
+# drawOnly keeps the wider band while its per-fork means are still bimodal: a tight band on a
+# bimodal series fails more reliably, not more truthfully. Run 33599612547 showed the modes
+# survive a huge inline budget, so the 4.0 derived from within-mode spread does not hold yet.
+TOLERANCE_PCT = {COMMIT_MOVE: 4.0, DRAW_ONLY: 10.0}
 # A row is marked with HIGH_ERROR when one side's own error is more than its band divided by sqrt(2) -
 # that is, when the band above no longer covers this provider.
 # The bands are hard-coded from one run, so they go stale when the runner,
