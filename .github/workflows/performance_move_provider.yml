@@ -76,7 +76,7 @@ jobs:
         shell: bash
         run: |
           # TEMP experiment: only the three bimodal series.
-          PROVIDERS='["basic:pillar_change","basic:pillar_swap","list:sub_list_swap"]'
+          PROVIDERS='["list:sub_list_swap"]'
           echo "providers=$PROVIDERS" >> "$GITHUB_OUTPUT"
 
   build_baseline:

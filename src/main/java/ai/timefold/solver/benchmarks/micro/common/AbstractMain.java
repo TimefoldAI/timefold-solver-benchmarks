@@ -183,8 +183,8 @@ public abstract class AbstractMain<C extends AbstractConfiguration> {
                 .warmupIterations(configuration.getWarmupIterations())
                 .measurementIterations(configuration.getMeasurementIterations())
                 .jvmArgs("-XX:+UseParallelGC", "-Xms4g", "-Xmx4g", // Throughput-focused GC.
-                        // TEMP experiment: does a huge inline budget collapse the per-fork bimodality?
-                        "-XX:MaxInlineSize=100", "-XX:FreqInlineSize=1000")
+                        // TEMP experiment: does synchronous compilation collapse the per-fork bimodality?
+                        "-Xbatch")
                 .result(resultsDirectory.resolve("results.json").toAbsolutePath().toString())
                 .resultFormat(ResultFormatType.JSON)
                 .shouldDoGC(true);
