@@ -31,6 +31,15 @@
 
 package ai.timefold.solver.benchmarks.micro.common;
 
+import one.convert.Arguments;
+import one.profiler.AsyncProfilerLoader;
+import org.openjdk.jmh.profile.AsyncProfiler;
+import org.openjdk.jmh.results.format.ResultFormatType;
+import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
+import org.openjdk.jmh.runner.options.OptionsBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -41,16 +50,6 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
-
-import org.openjdk.jmh.profile.AsyncProfiler;
-import org.openjdk.jmh.results.format.ResultFormatType;
-import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
-import org.openjdk.jmh.runner.options.OptionsBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import one.convert.Arguments;
-import one.profiler.AsyncProfilerLoader;
 
 public abstract class AbstractMain<C extends AbstractConfiguration> {
 
@@ -183,7 +182,12 @@ public abstract class AbstractMain<C extends AbstractConfiguration> {
                 .warmupIterations(configuration.getWarmupIterations())
                 .measurementIterations(configuration.getMeasurementIterations())
                 .jvmArgs("-XX:+UseParallelGC", "-Xms4g", "-Xmx4g", // Throughput-focused GC.
-                        // TEMP experiment: does synchronous compilation collapse the per-fork bimodality?
+                        // Compile synchronously.
+                        // With background compilation,
+                        // the thread keeps running in the interpreter or C1 while C2 compiles,
+                        // so which profile the final code is built from is a race.
+                        // Each JVM lost or won it once and kept that shape for its whole life,
+                        // which would split the forks of one benchmark into two speeds 10-30 % apart.
                         "-Xbatch")
                 .result(resultsDirectory.resolve("results.json").toAbsolutePath().toString())
                 .resultFormat(ResultFormatType.JSON)
