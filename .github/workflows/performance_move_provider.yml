@@ -75,8 +75,7 @@ jobs:
         id: step2
         shell: bash
         run: |
-          # TEMP experiment: only the three bimodal series.
-          PROVIDERS='["list:sub_list_swap"]'
+          PROVIDERS='["basic:change","basic:mass_change","basic:swap","basic:pillar_change","basic:sub_pillar_change","basic:pillar_swap","basic:sub_pillar_swap","basic:assign","basic:unassign","basic:mass_assign","basic:mass_unassign","basic:pillar_unassign","basic:sub_pillar_unassign","list:list_change","list:list_swap","list:list_tail_swap","list:two_opt_list","list:mass_list_change","list:sub_list_change","list:sub_list_swap","list:list_assign","list:list_unassign","list:mass_list_assign","list:mass_list_unassign","list:sub_list_unassign"]'
           echo "providers=$PROVIDERS" >> "$GITHUB_OUTPUT"
 
   build_baseline:
@@ -311,7 +310,7 @@ jobs:
           FAMILY="${PROVIDER%%:*}"
           NAME="${PROVIDER#*:}"
           {
-            echo "forks=20" # TEMP experiment: half the forks, enough to see a mode split.
+            echo "forks=20"
             echo "warmup_iterations=4"
             echo "measurement_iterations=1"
             echo "relative_score_error_threshold=0.02"
