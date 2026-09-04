@@ -6,11 +6,6 @@
 # it only uploads its raw JMH results as an artifact.
 # After every subjob finishes, one summarizing job downloads all of them and aggregates them into a single table,
 # which is the only report this workflow produces.
-#
-# Every job in this workflow checks out this very repository at the ref
-# selected in the "Use workflow from" dropdown - NOT a hardcoded branch.
-# This is what lets the workflow be dispatched from an unmerged feature branch
-# and actually run that branch's code.
 name: MoveProvider Perf Regression Test
 permissions:
   contents: read
@@ -95,14 +90,11 @@ jobs:
           cache: 'maven'
 
       # Only build the snapshots if determined by the decisions job.
-      # TEMPORARY: baseline solver source is read from triceo/timefold-solver instead of
-      # TimefoldAI/timefold-solver. To revert, change "repository" below back to
-      # TimefoldAI/timefold-solver.
       - name: Checkout timefold-solver
         if: needs.decisions.outputs.needs_snapshot_built == 'true'
         uses: actions/checkout@v7
         with:
-          repository: triceo/timefold-solver
+          repository: TimefoldAI/timefold-solver
           ref: ${{ github.event.inputs.baseline }}
           path: ./timefold-solver
       - name: Quickly build timefold-solver
