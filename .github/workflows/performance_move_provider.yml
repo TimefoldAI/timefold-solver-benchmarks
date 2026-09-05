@@ -1,20 +1,11 @@
 # Both baseline and SUT (Software Under Test) are built from source first,
 # with their binaries uploaded as artifacts.
-# This is done on GitHub infrastructure, to achieve maximum parallelization.
+# This is done on GitHub ARM-based infrastructure, to achieve maximum parallelization.
 #
-# Unlike the ScoreDirector Perf Regression Test, a benchmark subjob produces no report of its own -
-# it only uploads its raw JMH results as an artifact. After every subjob finishes, one summarizing
-# job downloads all of them and aggregates them into a single table, which is the only report this
-# workflow produces.
-#
-# The benchmark subjobs run on GitHub-hosted ARM runners, to maximize parallelization. This trades
-# away the stable, dedicated machine the ScoreDirector workflow uses; if the resulting numbers turn
-# out too noisy, this can be revisited.
-#
-# Every job in this workflow checks out this very repository at the ref selected in the "Use
-# workflow from" dropdown - NOT a hardcoded branch. This is what lets the workflow be dispatched
-# from an unmerged feature branch and actually run that branch's code.
-#
+# A benchmark subjob produces no report of its own -
+# it only uploads its raw JMH results as an artifact.
+# After every subjob finishes, one summarizing job downloads all of them and aggregates them into a single table,
+# which is the only report this workflow produces.
 name: MoveProvider Perf Regression Test
 permissions:
   contents: read
@@ -28,7 +19,7 @@ on:
         required: true
       baseline:
         description: 'Baseline branch or tag (branches need to use 999-SNAPSHOT)'
-        default: 'v2.5.0'
+        default: 'v2.6.0'
         required: true
       jdk_branch:
         description: 'JDK version'
@@ -116,9 +107,24 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: TimefoldAI/timefold-solver-enterprise
-          ref: ${{ github.event.inputs.baseline }}
+          ref: main
           token: ${{ secrets.BENCHMARK_PUBLISH_TOKEN }}
           path: ./timefold-solver-enterprise
+      - name: Switch to correct Enterprise branch if it exists
+        if: needs.decisions.outputs.needs_snapshot_built == 'true'
+        working-directory: ./timefold-solver-enterprise
+        shell: bash
+        env:
+          TARGET_BRANCH: ${{ github.event.inputs.baseline }}
+        run: |
+          # Match a branch OR a tag named $TARGET_BRANCH (no --heads): the baseline solver branch may
+          # not exist in enterprise at all (e.g. it needs no enterprise changes). Falls back to the
+          # already-checked-out `main` if no match exists.
+          if git ls-remote --exit-code origin "$TARGET_BRANCH" > /dev/null; then
+            git fetch --depth=1 origin "$TARGET_BRANCH"
+            git checkout -B "$TARGET_BRANCH" FETCH_HEAD
+          fi
+          git status
       - name: Quickly build timefold-solver-enterprise
         if: needs.decisions.outputs.needs_snapshot_built == 'true'
         working-directory: ./timefold-solver-enterprise
@@ -273,9 +279,20 @@ jobs:
         with:
           path: ./timefold-solver-benchmarks
 
-      # Fine-tuned for stability, same as the ScoreDirector benchmark. Selects exactly the one
-      # provider family/name this subjob is responsible for; the other family is left blank so that
-      # AbstractConfiguration#parseExamples resolves it to "run nothing" rather than "run everything".
+      # - Fine-tuned for stability, same as the ScoreDirector benchmark.
+      #  Selects exactly the one provider family/name this subjob is responsible for;
+      #  the other family is left blank so that AbstractConfiguration#parseExamples resolves it to "run nothing"
+      #  rather than "run everything".
+      # - One measurement iteration for each fork, on purpose.
+      #  A JVM compiles the move-generation loop into one of a few shapes,
+      #  keeps that shape for its whole life,
+      #  and the shapes differ by up to 40 % -
+      #  so the five iterations inside a fork were five copies of one sample.
+      #  JMH divides the spread of all of them by the square root of their count,
+      #  which made the reported error about 2.6x too small.
+      #  With one iteration for each fork, every sample is its own JVM,
+      #  and JMH's own number is right with no post-processing.
+      # - Four warmup iterations; established experimentally.
       - name: Configure the benchmark
         working-directory: ./timefold-solver-benchmarks
         shell: bash
@@ -286,8 +303,8 @@ jobs:
           NAME="${PROVIDER#*:}"
           {
             echo "forks=20"
-            echo "warmup_iterations=5"
-            echo "measurement_iterations=5"
+            echo "warmup_iterations=4"
+            echo "measurement_iterations=1"
             echo "relative_score_error_threshold=0.02"
             if [ "$FAMILY" = basic ]; then
               echo "basic_move_provider=$NAME"
@@ -329,6 +346,13 @@ jobs:
           cp benchmarks-baseline.jar target/benchmarks.jar
           ./run-moveprovider.sh
           cp results/moveprovider/$RUN_ID/results.json baseline-results.json
+          # JMH does not fail the process when one benchmark trial errors out - it just omits it
+          # from the results, so a crashed run can still exit 0. Both scenarios must be present.
+          COUNT=$(jq 'length' baseline-results.json)
+          if [ "$COUNT" -ne 2 ]; then
+            echo "::error::Baseline run produced $COUNT/2 benchmark results - it did not produce metrics."
+            exit 1
+          fi
 
       - name: (SUT) Setup JDK and Maven
         uses: actions/setup-java@v6.0.0
@@ -348,18 +372,21 @@ jobs:
           cp benchmarks-sut.jar target/benchmarks.jar
           ./run-moveprovider.sh
           cp results/moveprovider/$RUN_ID/results.json sut-results.json
+          # JMH does not fail the process when one benchmark trial errors out - it just omits it
+          # from the results, so a crashed run can still exit 0. Both scenarios must be present.
+          COUNT=$(jq 'length' sut-results.json)
+          if [ "$COUNT" -ne 2 ]; then
+            echo "::error::SUT run produced $COUNT/2 benchmark results - it did not produce metrics."
+            exit 1
+          fi
 
-      - name: Archive benchmark data
-        uses: actions/upload-artifact@v7
-        with:
-          name: data-${{ env.PROVIDER_ID }}
-          path: |
-            ./timefold-solver-benchmarks/moveprovider-benchmark.properties
-            ./timefold-solver-benchmarks/baseline-results.json
-            ./timefold-solver-benchmarks/sut-results.json
-          if-no-files-found: error
-
+      # Uploaded before "Archive benchmark data" (and given an id)
+      # so its artifact-url output can be recorded into a file
+      # and ride along inside the data-* artifact -
+      # that's the only artifact the summarize job downloads,
+      # so this is how a row in its table can link straight to these assets.
       - name: Archive benchmark assets
+        id: archive_assets
         uses: actions/upload-artifact@v7
         with:
           name: assets-${{ env.PROVIDER_ID }}
@@ -369,6 +396,24 @@ jobs:
             ./timefold-solver-benchmarks/results/moveprovider/${{ env.SUT_DIR }}/**/*.jfr
             ./timefold-solver-benchmarks/results/moveprovider/${{ env.SUT_DIR }}/**/*.html
           if-no-files-found: warn
+
+      # Empty when the step above found no assets (if-no-files-found: warn uploads nothing, so
+      # artifact-url is unset); summarize-moveprovider.py treats an empty/missing file as "no link".
+      - name: Record the assets artifact URL
+        shell: bash
+        run: |
+          echo "${{ steps.archive_assets.outputs.artifact-url }}" > ./timefold-solver-benchmarks/assets-url.txt
+
+      - name: Archive benchmark data
+        uses: actions/upload-artifact@v7
+        with:
+          name: data-${{ env.PROVIDER_ID }}
+          path: |
+            ./timefold-solver-benchmarks/moveprovider-benchmark.properties
+            ./timefold-solver-benchmarks/baseline-results.json
+            ./timefold-solver-benchmarks/sut-results.json
+            ./timefold-solver-benchmarks/assets-url.txt
+          if-no-files-found: error
 
   summarize:
     needs: [ decisions, benchmark ]
