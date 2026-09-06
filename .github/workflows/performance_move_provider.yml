@@ -94,7 +94,7 @@ jobs:
         if: needs.decisions.outputs.needs_snapshot_built == 'true'
         uses: actions/checkout@v7
         with:
-          repository: TimefoldAI/timefold-solver
+          repository: triceo/timefold-solver
           ref: ${{ github.event.inputs.baseline }}
           path: ./timefold-solver
       - name: Quickly build timefold-solver
