@@ -140,22 +140,40 @@ public final class MoveProviderProblem<Solution_> {
      * re-bucketing) this benchmark exists to measure.
      *
      * <p>
-     * Exactly one draw, and the count is not a parameter. The CI report reads its
-     * {@code Values/move} column from this scenario, which is only correct while the count is one;
-     * and a second draw would only dilute what this scenario measures.
+     * Exactly one draw per commit, and that inner count is not a parameter.
+     * The CI report reads its {@code Values/move} column from this scenario, which is only correct while it is one;
+     * and a second draw would only dilute what one commit measures.
+     * <p>
+     * {@code commitCount} is a different axis: it batches this many independent,
+     * fully-undone commit-settle-undo cycles into one JMH invocation,
+     * the same way {@link #runDrawOnly} batches many draws -
+     * purely to amortize JMH's per-invocation overhead, never to change what one commit does or measures.
+     * Each cycle still draws exactly one move and undoes it before the next cycle starts,
+     * so the working solution returns to its pre-invocation state after every one of them,
+     * not just at the end -
+     * the same undo-every-commit invariant this class's own javadoc explains is what keeps a
+     * directional provider's finite entity pool from draining.
+     * The only observable side effect of batching is that {@link #tearDownInvocation()}'s flush check now runs
+     * once per {@code commitCount} real commits instead of once per one;
+     * since callers bind {@code commitCount} to {@link AbstractMoveProviderBenchmark#FLUSH_EVERY_N_STEPS},
+     * that is the same cadence the flush already only acted on.
      *
-     * @return the committed move - already undone by the time this returns - kept only so JMH
+     * @return the last committed move - already undone by the time this returns - kept only so JMH
      *         cannot optimize the invocation away
      */
-    public Move<Solution_> runCommitMove(int maxDrawAttemptsPerMove, Blackhole blackhole, MovedValueCounter counter) {
-        var stepScope = new LocalSearchStepScope<>(phaseScope, (int) invocationCounter++);
-        moveRepository.stepStarted(stepScope);
-        var lastMove = drawMoves(moveRepository.iterator(), 1, maxDrawAttemptsPerMove, blackhole, counter);
-        // The step must happen; drawMove() has already guaranteed a non-null move.
-        scoreDirector.getMoveDirector().executeTemporaryWithoutScoring(lastMove, workingSolution -> {
-            moveRepository.stepEnded(stepScope); // Settles the dataset network; this is what this scenario measures.
-            return null;
-        });
+    public Move<Solution_> runCommitMove(int commitCount, int maxDrawAttemptsPerMove, Blackhole blackhole,
+            MovedValueCounter counter) {
+        Move<Solution_> lastMove = null;
+        for (var i = 0; i < commitCount; i++) {
+            var stepScope = new LocalSearchStepScope<>(phaseScope, (int) invocationCounter++);
+            moveRepository.stepStarted(stepScope);
+            lastMove = drawMoves(moveRepository.iterator(), 1, maxDrawAttemptsPerMove, blackhole, counter);
+            // The step must happen; drawMove() has already guaranteed a non-null move.
+            scoreDirector.getMoveDirector().executeTemporaryWithoutScoring(lastMove, workingSolution -> {
+                moveRepository.stepEnded(stepScope); // Settles the dataset network; this is what this scenario measures.
+                return null;
+            });
+        }
         return lastMove;
     }
 

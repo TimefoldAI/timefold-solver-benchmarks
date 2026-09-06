@@ -16,8 +16,11 @@ import org.openjdk.jmh.infra.Blackhole;
 
 /**
  * Two scenarios per move provider, one for each of the two costs a move provider carries.
- * {@link #commitMove(Blackhole, MovedValueCounter)} draws one candidate move, commits it, settles the
- * dataset network and undoes it, so its speed is the cost to <em>apply</em> a move.
+ * {@link #commitMove(Blackhole, MovedValueCounter)} draws one candidate move, commits it,
+ * settles the dataset network and undoes it, so its speed is the cost to <em>apply</em> a move -
+ * {@link #COMMIT_MOVE_BATCH} independent draw-commit-undo cycles per JMH invocation,
+ * purely to amortize JMH's own per-invocation overhead,
+ * the same reason {@link #drawOnly(Blackhole, MovedValueCounter)} batches {@link #DRAW_ONLY_DRAWS} draws.
  * {@link #drawOnly(Blackhole, MovedValueCounter)} draws {@link #DRAW_ONLY_DRAWS} candidates and
  * commits none, so its speed is the cost to <em>make</em> one. Every generated move is fed to the
  * {@link Blackhole}, committed or not, so none is ever thrown away.
@@ -64,6 +67,17 @@ public abstract class AbstractMoveProviderBenchmark {
     public static final int TASK_ASSIGNING_MAX_SUB_LIST_SIZE = 15;
     // Memory bound only, not a measurement; see MoveProviderProblem's maybeFlushConstraintStreamSession().
     public static final int FLUSH_EVERY_N_STEPS = 100;
+    /**
+     * Batches this many independent commit+undo cycles into one JMH invocation,
+     * the same way {@link #DRAW_ONLY_DRAWS} batches drawOnly draws.
+     * Without it, JMH's own per-invocation bookkeeping
+     * (forced by {@link #teardownInvocation()}'s {@code Level.Invocation} hook)
+     * lands on a single cheap operation instead of being amortized,
+     * and shows up in CPU profiles as kernel/vDSO timer-interrupt noise disproportionate to the real solver cost -
+     * worst on the cheapest move types.
+     * Bound to {@link #FLUSH_EVERY_N_STEPS} so the periodic flush's existing memory bound stays unchanged.
+     */
+    public static final int COMMIT_MOVE_BATCH = FLUSH_EVERY_N_STEPS;
 
     public MoveProviderProblem<?> problem;
 
@@ -81,8 +95,9 @@ public abstract class AbstractMoveProviderBenchmark {
     }
 
     @Benchmark
+    @OperationsPerInvocation(COMMIT_MOVE_BATCH)
     public Move<?> commitMove(Blackhole blackhole, MovedValueCounter counter) {
-        return problem.runCommitMove(MAX_DRAW_ATTEMPTS_PER_MOVE, blackhole, counter);
+        return problem.runCommitMove(COMMIT_MOVE_BATCH, MAX_DRAW_ATTEMPTS_PER_MOVE, blackhole, counter);
     }
 
     /**

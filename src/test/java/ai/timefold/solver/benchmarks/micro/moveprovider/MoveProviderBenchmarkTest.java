@@ -40,7 +40,7 @@ final class MoveProviderBenchmarkTest {
         var problem = new MoveProviderProblem<>(moveProviderCase);
         problem.setupTrial();
         problem.setupIteration();
-        var commitMoveResult = problem.runCommitMove(AbstractMoveProviderBenchmark.MAX_DRAW_ATTEMPTS_PER_MOVE,
+        var commitMoveResult = problem.runCommitMove(1, AbstractMoveProviderBenchmark.MAX_DRAW_ATTEMPTS_PER_MOVE,
                 blackhole, counter);
         assertThat(commitMoveResult).isNotNull();
         problem.tearDownIteration();
