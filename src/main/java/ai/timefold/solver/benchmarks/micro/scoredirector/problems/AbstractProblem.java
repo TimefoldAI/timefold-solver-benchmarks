@@ -1,18 +1,10 @@
 package ai.timefold.solver.benchmarks.micro.scoredirector.problems;
 
-import java.io.File;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Stream;
-
 import ai.timefold.solver.benchmarks.micro.scoredirector.Example;
 import ai.timefold.solver.benchmarks.micro.scoredirector.ScoreDirectorType;
 import ai.timefold.solver.core.api.domain.solution.SolutionFileIO;
 import ai.timefold.solver.core.api.solver.SolverFactory;
 import ai.timefold.solver.core.config.localsearch.LocalSearchPhaseConfig;
-import ai.timefold.solver.core.config.phase.PhaseConfig;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
 import ai.timefold.solver.core.config.solver.EnvironmentMode;
 import ai.timefold.solver.core.config.solver.SolverConfig;
@@ -37,9 +29,15 @@ import ai.timefold.solver.core.impl.solver.termination.BasicPlumbingTermination;
 import ai.timefold.solver.core.impl.solver.termination.SolverTermination;
 import ai.timefold.solver.core.impl.solver.termination.TerminationFactory;
 import ai.timefold.solver.core.preview.api.move.Move;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Stream;
 
 abstract class AbstractProblem<Solution_> implements Problem {
 
@@ -114,7 +112,6 @@ abstract class AbstractProblem<Solution_> implements Problem {
         var configPolicyBuilder = new HeuristicConfigPolicy.Builder<Solution_>()
                 .withPreviewFeatureSet(Set.of())
                 .withEnvironmentMode(EnvironmentMode.PHASE_ASSERT)
-                .withRandom(RandomSource.seeded(0))
                 .withInitializingScoreTrend(scoreDirectorFactory.getInitializingScoreTrend())
                 .withSolutionDescriptor(solutionDescriptor)
                 .withClassInstanceCache(ClassInstanceCache.create());
@@ -127,7 +124,7 @@ abstract class AbstractProblem<Solution_> implements Problem {
         var bestSolutionRecaller =
                 BestSolutionRecallerFactory.create().<Solution_> buildBestSolutionRecaller(EnvironmentMode.PHASE_ASSERT);
 
-        var phaseList = PhaseFactory.<Solution_> buildPhases(List.<PhaseConfig> of(new LocalSearchPhaseConfig()),
+        var phaseList = PhaseFactory.buildPhases(List.of(new LocalSearchPhaseConfig()),
                 configPolicy, bestSolutionRecaller, termination);
         var localSearchPhase = (DefaultLocalSearchPhase<Solution_>) phaseList.getLast();
         try { // Decider is not accessible. Hack our way in.
