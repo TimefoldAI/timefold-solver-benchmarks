@@ -75,7 +75,7 @@ jobs:
 
   build_baseline:
     needs: decisions
-    runs-on: ubuntu-latest # Leverage massive parallelization of Github-hosted runners.
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout timefold-solver-benchmarks
         uses: actions/checkout@v7
@@ -94,7 +94,7 @@ jobs:
         if: needs.decisions.outputs.needs_snapshot_built == 'true'
         uses: actions/checkout@v7
         with:
-          repository: triceo/timefold-solver
+          repository: TimefoldAI/timefold-solver
           ref: ${{ github.event.inputs.baseline }}
           path: ./timefold-solver
       - name: Quickly build timefold-solver
@@ -163,7 +163,7 @@ jobs:
           if-no-files-found: error
 
   build_sut:
-    runs-on: ubuntu-latest # Leverage massive parallelization of Github-hosted runners.
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout timefold-solver-benchmarks
         uses: actions/checkout@v7
@@ -415,7 +415,7 @@ jobs:
             ./timefold-solver-benchmarks/assets-url.txt
           if-no-files-found: error
 
-  summarize:
+  report:
     needs: [ decisions, benchmark ]
     if: always() && needs.decisions.result == 'success'
     runs-on: ubuntu-latest

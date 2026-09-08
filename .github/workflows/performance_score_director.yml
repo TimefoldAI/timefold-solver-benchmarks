@@ -387,7 +387,7 @@ jobs:
             ./timefold-solver-benchmarks/assets-url.txt
           if-no-files-found: error
 
-  summarize:
+  report:
     needs: [ decisions, benchmark ]
     if: always() && needs.decisions.result == 'success'
     runs-on: ubuntu-latest
