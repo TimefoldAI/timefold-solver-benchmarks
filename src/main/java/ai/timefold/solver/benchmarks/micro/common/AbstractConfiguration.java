@@ -38,6 +38,8 @@ public abstract class AbstractConfiguration {
     protected static <E> List<E> parseExamples(String examples, E... values) {
         if (examples == null) {
             return Arrays.asList(values);
+        } else if (examples.isBlank()) {
+            return List.of();
         } else {
             return Arrays.stream(examples.split("\\Q,\\E"))
                     .map(e -> Arrays.stream(values)

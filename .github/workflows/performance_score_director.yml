@@ -2,11 +2,10 @@
 # with their binaries uploaded as artifacts.
 # This is done on GitHub infrastructure, to achieve maximum parallelization.
 #
-# The benchmark job downloads the binaries and runs them.
-# The baseline is established first, then the SUT is measured.
-# They both run in the same job,
-# to guarantee they run on the same machine with the same performance characteristics.
-# This is done on a self-hosted runner which we completely control.
+# A benchmark subjob produces no report of its own -
+# it only uploads its raw JMH results as an artifact.
+# After every subjob finishes, one summarizing job downloads all of them and aggregates them into a single table,
+# which is the only report this workflow produces.
 #
 # Each benchmark gives a 99.9 % confidence interval.
 # The confidence intervals are compared to determine if the branch under test is a regression or an improvement.
@@ -27,7 +26,7 @@ on:
         required: true
       baseline:
         description: 'Baseline branch or tag (branches need to use 999-SNAPSHOT)'
-        default: 'v2.5.0'
+        default: 'v2.6.0'
         required: true
       jdk_branch:
         description: 'JDK version'
@@ -50,6 +49,7 @@ jobs:
     outputs:
       baseline_solver_version: ${{ steps.step1.outputs.version }}
       needs_snapshot_built: ${{ steps.step1.outputs.needs_snapshot_built }}
+      examples: ${{ steps.step2.outputs.examples }}
     env:
       BASELINE: ${{ github.event.inputs.baseline }}
     steps:
@@ -67,18 +67,21 @@ jobs:
             NEEDS_SNAPSHOT_BUILT=true
             echo "Baseline is a random branch."
           fi
-            
+
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "needs_snapshot_built=$NEEDS_SNAPSHOT_BUILT" >> "$GITHUB_OUTPUT"
 
+      # Single source of truth for the benchmark matrix and for the summarizing job.
+      - name: Enumerate examples
+        id: step2
+        shell: bash
+        run: |
+          EXAMPLES='["cloud_balancing","conference_scheduling","curriculum_course","examination","flow_shop","machine_reassignment","meeting_scheduling","nurse_rostering","patient_admission_scheduling","task_assigning","traveling_tournament","vehicle_routing"]'
+          echo "examples=$EXAMPLES" >> "$GITHUB_OUTPUT"
+
   build_baseline:
     needs: decisions
-    runs-on: ubuntu-latest # Leverage massive parallelization of Github-hosted runners.
-    strategy:
-      fail-fast: true # If one compilation fails, abort everything.
-      matrix:
-        # When updating this list, use find-and-replace in the entire file to keep all such lists identical.
-        example: [cloud_balancing, conference_scheduling, curriculum_course, examination, flow_shop, machine_reassignment, meeting_scheduling, nurse_rostering, patient_admission_scheduling, task_assigning, traveling_tournament, vehicle_routing]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout timefold-solver-benchmarks
         uses: actions/checkout@v7
@@ -144,28 +147,23 @@ jobs:
           ./mvnw clean install -B -Dquickly -Dversion.ai.timefold.solver=$VERSION
           mv target/benchmarks.jar ../benchmarks-baseline.jar
 
-      - name: Upload the binaries
+      - name: Upload the binary
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ matrix.example }}-sut
+          name: benchmarks-baseline
           path: |
             ./benchmarks-baseline.jar
           if-no-files-found: error
 
   build_sut:
-    runs-on: ubuntu-latest # Leverage massive parallelization of Github-hosted runners.
-    strategy:
-      fail-fast: true # If one compilation fails, abort everything.
-      matrix:
-        # When updating this list, use find-and-replace in the entire file to keep all such lists identical.
-        example: [cloud_balancing, conference_scheduling, curriculum_course, examination, flow_shop, machine_reassignment, meeting_scheduling, nurse_rostering, patient_admission_scheduling, task_assigning, traveling_tournament, vehicle_routing]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout timefold-solver-benchmarks
         uses: actions/checkout@v7
         with:
           repository: TimefoldAI/timefold-solver-benchmarks
           path: ./timefold-solver-benchmarks
-          ref: main # Assume the ref is compatible with both baseline and SUIT
+          ref: main # Assume the ref is compatible with both baseline and SUT
 
       - name: Setup JDK and Maven
         uses: actions/setup-java@v6.0.0
@@ -233,10 +231,10 @@ jobs:
           ./mvnw clean install -B -Dquickly
           mv target/benchmarks.jar ../benchmarks-sut.jar
 
-      - name: Upload the binaries
+      - name: Upload the binary
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ matrix.example }}-baseline
+          name: benchmarks-sut
           path: |
             ./benchmarks-sut.jar
           if-no-files-found: error
@@ -245,13 +243,12 @@ jobs:
     concurrency:
       group: perf-score_director-${{ matrix.example }}
       cancel-in-progress: true
-    needs: [ build_baseline, build_sut ]
-    runs-on: self-hosted # We need a stable machine to actually run the benchmarks.
+    needs: [ decisions, build_baseline, build_sut ]
+    runs-on: ubuntu-24.04-arm # Github-hosted Arm runner; free and GA for this public repo.
     strategy:
       fail-fast: false # Jobs fail if the benchmark error is over predefined thresholds; other benchmarks continue.
       matrix:
-        # When updating this list, use find-and-replace in the entire file to keep all such lists identical.
-        example: [cloud_balancing, conference_scheduling, curriculum_course, examination, flow_shop, machine_reassignment, meeting_scheduling, nurse_rostering, patient_admission_scheduling, task_assigning, traveling_tournament, vehicle_routing]
+        example: ${{ fromJSON(needs.decisions.outputs.examples) }}
     steps:
       - name: Clean results of previous runs
         shell: bash
@@ -266,9 +263,7 @@ jobs:
           SANITIZED_BASELINE=$(echo "$BASELINE" | tr -d '\r\n' | sed 's/\//\-/g')
           SANITIZED_BRANCH=$(echo "$BRANCH" | tr -d '\r\n' | sed 's/\//\-/g')
           {
-            echo "SANITIZED_BASELINE=$SANITIZED_BASELINE"
             echo "BASELINE_DIR=baseline_$SANITIZED_BASELINE"
-            echo "SANITIZED_BRANCH=$SANITIZED_BRANCH"
             echo "SUT_DIR=sut_$SANITIZED_BRANCH"
           } >> "$GITHUB_ENV"
 
@@ -297,12 +292,12 @@ jobs:
       - name: Download the baseline binary
         uses: actions/download-artifact@v8
         with:
-          name: ${{ matrix.example }}-baseline
+          name: benchmarks-baseline
           path: ./timefold-solver-benchmarks
       - name: Download the SUT binary
         uses: actions/download-artifact@v8
         with:
-          name: ${{ matrix.example }}-sut
+          name: benchmarks-sut
           path: ./timefold-solver-benchmarks
 
       - name: (Baseline) Setup JDK and Maven
@@ -314,7 +309,6 @@ jobs:
 
       - name: (Baseline) Run the benchmark
         working-directory: ./timefold-solver-benchmarks
-        id: benchmark_baseline
         shell: bash
         env:
           RUN_ID: ${{ env.BASELINE_DIR }}
@@ -323,9 +317,14 @@ jobs:
           mkdir target
           cp benchmarks-baseline.jar target/benchmarks.jar
           ./run-scoredirector.sh
-          echo "RANGE_START=$(jq '.[0].primaryMetric.scoreConfidence[0]|round' results/scoredirector/$RUN_ID/results.json)" >> "$GITHUB_OUTPUT"
-          echo "RANGE_END=$(jq '.[0].primaryMetric.scoreConfidence[1]|round' results/scoredirector/$RUN_ID/results.json)" >> "$GITHUB_OUTPUT"
-          echo "RANGE_MID=$(jq '.[0].primaryMetric.score|round' results/scoredirector/$RUN_ID/results.json)" >> "$GITHUB_OUTPUT"
+          cp results/scoredirector/$RUN_ID/results.json baseline-results.json
+          # JMH does not fail the process when one benchmark trial errors out - it just omits it
+          # from the results, so a crashed run can still exit 0. One example must be present.
+          COUNT=$(jq 'length' baseline-results.json)
+          if [ "$COUNT" -ne 1 ]; then
+            echo "::error::Baseline run produced $COUNT/1 benchmark results - it did not produce metrics."
+            exit 1
+          fi
 
       - name: (SUT) Setup JDK and Maven
         uses: actions/setup-java@v6.0.0
@@ -335,7 +334,6 @@ jobs:
           check-latest: true
 
       - name: (SUT) Run the benchmark
-        id: benchmark_sut
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         env:
@@ -345,91 +343,80 @@ jobs:
           rm target/benchmarks.jar
           cp benchmarks-sut.jar target/benchmarks.jar
           ./run-scoredirector.sh
-          echo "RANGE_START=$(jq '.[0].primaryMetric.scoreConfidence[0]|round' results/scoredirector/$RUN_ID/results.json)" >> "$GITHUB_OUTPUT"
-          echo "RANGE_END=$(jq '.[0].primaryMetric.scoreConfidence[1]|round' results/scoredirector/$RUN_ID/results.json)" >> "$GITHUB_OUTPUT"
-          echo "RANGE_MID=$(jq '.[0].primaryMetric.score|round' results/scoredirector/$RUN_ID/results.json)" >> "$GITHUB_OUTPUT"
+          cp results/scoredirector/$RUN_ID/results.json sut-results.json
+          # JMH does not fail the process when one benchmark trial errors out - it just omits it
+          # from the results, so a crashed run can still exit 0. One example must be present.
+          COUNT=$(jq 'length' sut-results.json)
+          if [ "$COUNT" -ne 1 ]; then
+            echo "::error::SUT run produced $COUNT/1 benchmark results - it did not produce metrics."
+            exit 1
+          fi
 
-      - name: Clean up the data
-        working-directory: ./timefold-solver-benchmarks
+      # Uploaded before "Archive benchmark data" (and given an id)
+      # so its artifact-url output can be recorded into a file
+      # and ride along inside the data-* artifact -
+      # that's the only artifact the summarize job downloads,
+      # so this is how a row in its table can link straight to these assets.
+      - name: Archive benchmark assets
+        id: archive_assets
+        uses: actions/upload-artifact@v7
+        with:
+          name: assets-${{ matrix.example }}
+          path: |
+            ./timefold-solver-benchmarks/results/scoredirector/${{ env.BASELINE_DIR }}/**/*.jfr
+            ./timefold-solver-benchmarks/results/scoredirector/${{ env.BASELINE_DIR }}/**/*.html
+            ./timefold-solver-benchmarks/results/scoredirector/${{ env.SUT_DIR }}/**/*.jfr
+            ./timefold-solver-benchmarks/results/scoredirector/${{ env.SUT_DIR }}/**/*.html
+          if-no-files-found: warn
+
+      # Empty when the step above found no assets (if-no-files-found: warn uploads nothing, so
+      # artifact-url is unset); summarize-scoredirector.py treats an empty/missing file as "no link".
+      - name: Record the assets artifact URL
         shell: bash
-        env:
-          BASELINE_DIR: ${{ env.BASELINE_DIR }}
-          SUT_DIR: ${{ env.SUT_DIR }}
-          EXAMPLE: ${{ matrix.example }}
         run: |
-          cd results/scoredirector/$BASELINE_DIR
-          mv $(find . -maxdepth 1 -mindepth 1 -type d -print -quit) ../../../$BASELINE_DIR
-          cd ../../../
-          mv $BASELINE_DIR/jfr-cpu.jfr $BASELINE_DIR/$EXAMPLE-$BASELINE_DIR.jfr
-
-          cd results/scoredirector/$SUT_DIR
-          mv $(find . -maxdepth 1 -mindepth 1 -type d -print -quit) ../../../$SUT_DIR
-          cd ../../../
-          mv $SUT_DIR/jfr-cpu.jfr $SUT_DIR/$EXAMPLE-$SUT_DIR.jfr
+          echo "${{ steps.archive_assets.outputs.artifact-url }}" > ./timefold-solver-benchmarks/assets-url.txt
 
       - name: Archive benchmark data
         uses: actions/upload-artifact@v7
         with:
-          name: assets-${{ matrix.example }}-${{ env.SANITIZED_BASELINE }}-vs-${{ env.SANITIZED_BRANCH }}
+          name: data-${{ matrix.example }}
           path: |
             ./timefold-solver-benchmarks/scoredirector-benchmark.properties
-            ./timefold-solver-benchmarks/${{ env.BASELINE_DIR }}/*.jfr
-            ./timefold-solver-benchmarks/${{ env.BASELINE_DIR }}/*.html
-            ./timefold-solver-benchmarks/${{ env.BASELINE_DIR }}/*.json
-            ./timefold-solver-benchmarks/${{ env.SUT_DIR }}/*.jfr
-            ./timefold-solver-benchmarks/${{ env.SUT_DIR }}/*.html
-            ./timefold-solver-benchmarks/${{ env.SUT_DIR }}/*.json
+            ./timefold-solver-benchmarks/baseline-results.json
+            ./timefold-solver-benchmarks/sut-results.json
+            ./timefold-solver-benchmarks/assets-url.txt
+          if-no-files-found: error
 
-      - name: Report results
+  report:
+    needs: [ decisions, benchmark ]
+    if: always() && needs.decisions.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout timefold-solver-benchmarks
+        uses: actions/checkout@v7
+        with:
+          path: ./timefold-solver-benchmarks
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.x'
+
+      - name: Download the benchmark data
+        uses: actions/download-artifact@v8
+        with:
+          pattern: data-*
+          path: ./data
+
+      - name: Summarize the results
         working-directory: ./timefold-solver-benchmarks
+        shell: bash
         env:
+          EXAMPLES: ${{ needs.decisions.outputs.examples }}
           BASELINE: ${{ github.event.inputs.baseline }}
           BRANCH: ${{ github.event.inputs.branch }}
           OWNER: ${{ github.event.inputs.branch_owner }}
-          BASELINE_RANGE_START: ${{ steps.benchmark_baseline.outputs.RANGE_START }}
-          BASELINE_RANGE_MID:   ${{ steps.benchmark_baseline.outputs.RANGE_MID }}
-          BASELINE_RANGE_END:   ${{ steps.benchmark_baseline.outputs.RANGE_END }}
-          SUT_RANGE_START: ${{ steps.benchmark_sut.outputs.RANGE_START }}
-          SUT_RANGE_MID:   ${{ steps.benchmark_sut.outputs.RANGE_MID }}
-          SUT_RANGE_END:   ${{ steps.benchmark_sut.outputs.RANGE_END }}
-        shell: bash
         run: |
-          BASELINE_DEV=$(echo "scale=2; ($BASELINE_RANGE_MID / $BASELINE_RANGE_START) * 100 - 100" | bc)
-          SUT_DEV=$(echo "scale=2; ($SUT_RANGE_MID / $SUT_RANGE_START) * 100 - 100" | bc)
-          DIFF_MID=$(echo "scale=2; ($BASELINE_RANGE_MID / $SUT_RANGE_MID) * 100" | bc)
-          FAIL=false
-          
-          if (( $(echo "$DIFF_MID >= 97.00" | bc -l) && $(echo "$DIFF_MID <= 103.00"|bc -l) )); then
-            # Ignore differences of up to 3 %; we can't expect that level of precision anyway.
-            echo "### ✅ Within tolerance" >> $GITHUB_STEP_SUMMARY
-          elif [ "$SUT_RANGE_START" -gt "$BASELINE_RANGE_END" ]; then
-            echo "### 🚀 Statistically significant improvement" >> $GITHUB_STEP_SUMMARY
-          elif [ "$BASELINE_RANGE_START" -gt "$SUT_RANGE_END" ]; then
-            echo "### ‼️ Statistically significant regression ‼️" >> $GITHUB_STEP_SUMMARY
-            FAIL=true
-          else
-            echo "### ⁉️ Undetermined result ⁉️" >> $GITHUB_STEP_SUMMARY
-            FAIL=true
-          fi          
-          
-          if [[ "$BASELINE" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            BASELINE_URL="https://github.com/TimefoldAI/timefold-solver/releases/tag/$BASELINE"
-          else
-            BASELINE_URL="https://github.com/TimefoldAI/timefold-solver/tree/$BASELINE"
-          fi
-          SUT_URL="https://github.com/$OWNER/timefold-solver/tree/$BRANCH"
-          
-          echo "|        |   **Ref**   |      **Mean**     |" >> $GITHUB_STEP_SUMMARY
-          echo "|:------:|:-----------:|:-----------------:|" >> $GITHUB_STEP_SUMMARY
-          echo "|  _Old_ | [TimefoldAI's $BASELINE]($BASELINE_URL) | $BASELINE_RANGE_MID ± $BASELINE_DEV % |" >> $GITHUB_STEP_SUMMARY
-          echo "|  _New_ | [$OWNER's $BRANCH]($SUT_URL) | $SUT_RANGE_MID ± $SUT_DEV % |" >> $GITHUB_STEP_SUMMARY
-          echo "| _Diff_ |             |   $DIFF_MID %   |" >> $GITHUB_STEP_SUMMARY
-          
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Mean is in operations per second. Higher is better." >> $GITHUB_STEP_SUMMARY
-          echo "Mean ± X % describes a 99.9 % confidence interval." >> $GITHUB_STEP_SUMMARY
-          echo "Diff under 100 % represents an improvement, over 100 % a regression." >> $GITHUB_STEP_SUMMARY
-          
-          if [ "$FAIL" = true ]; then
-              exit 1
-          fi
+          python3 summarize-scoredirector.py ../data \
+            --expect "$EXAMPLES" --baseline "$BASELINE" --branch "$BRANCH" --owner "$OWNER" \
+            >> "$GITHUB_STEP_SUMMARY"
