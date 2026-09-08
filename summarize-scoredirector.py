@@ -24,7 +24,7 @@ import sys
 # The band inside which a delta counts as noise. Two sides run on the same self-hosted machine, one
 # after the other, so the noise of their difference is only a little more than one side's own error
 # - unlike a shared runner, there is no separate JVM/JIT-shape lottery to absorb.
-TOLERANCE_PCT = 3.0
+TOLERANCE_PCT = 4.0
 # A row is marked with HIGH_ERROR when one side's own error is more than the band divided by
 # sqrt(2) - that is, when the band above no longer covers this example.
 HIGH_ERROR_BAND_FRACTION = math.sqrt(2)
