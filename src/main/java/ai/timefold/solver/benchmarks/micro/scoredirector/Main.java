@@ -62,7 +62,12 @@ public final class Main extends AbstractMain<Configuration> {
 
     public void run(String[] args) throws RunnerException, IOException {
         var configuration = readConfiguration();
-        var options = getBaseJmhConfig(configuration);
+        var options = getBaseJmhConfig(configuration)
+                // -Xbatch alone still leaves the C1->C2 promotion point timing-dependent, so forks
+                // still land 6-18 % apart here. Unlike coldstart, this benchmark only cares about
+                // steady-state throughput, so skipping tiering removes that remaining lottery:
+                // every fork goes straight to C2.
+                .jvmArgsAppend("-XX:-TieredCompilation");
         options = processBenchmark(options, configuration, ScoreDirectorType.CONSTRAINT_STREAMS);
         options = processBenchmark(options, configuration, ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED);
         options = initAsyncProfiler(options);
