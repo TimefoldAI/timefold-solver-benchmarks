@@ -67,7 +67,11 @@ public final class Main extends AbstractMain<Configuration> {
                 // still land 6-18 % apart here. Unlike coldstart, this benchmark only cares about
                 // steady-state throughput, so skipping tiering removes that remaining lottery:
                 // every fork goes straight to C2.
-                .jvmArgsAppend("-XX:-TieredCompilation");
+                // With a fixed heap (-Xms == -Xmx), pages can still be lazily committed and
+                // first-touched mid-run, so an allocation can stall on a page fault right when GC
+                // also runs - JFR showed CPU dips lining up with a subset of GC events. Pre-touching
+                // commits and zeroes every heap page at startup instead, once, before measurement.
+                .jvmArgsAppend("-XX:-TieredCompilation", "-XX:+AlwaysPreTouch");
         options = processBenchmark(options, configuration, ScoreDirectorType.CONSTRAINT_STREAMS);
         options = processBenchmark(options, configuration, ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED);
         options = initAsyncProfiler(options);
