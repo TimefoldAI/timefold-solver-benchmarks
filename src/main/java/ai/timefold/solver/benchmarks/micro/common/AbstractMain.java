@@ -189,7 +189,11 @@ public abstract class AbstractMain<C extends AbstractConfiguration> {
                         // so which profile the final code is built from is a race.
                         // Each JVM lost or won it once and kept that shape for its whole life,
                         // which would split the forks of one benchmark into two speeds 10-30 % apart.
-                        "-Xbatch")
+                        "-Xbatch",
+                        // -Xbatch alone still leaves the C1->C2 promotion point timing-dependent,
+                        // so forks still landed 6-18 % apart. Skipping tiering removes that
+                        // remaining lottery: every fork goes straight to C2.
+                        "-XX:-TieredCompilation")
                 .result(resultsDirectory.resolve("results.json").toAbsolutePath().toString())
                 .resultFormat(ResultFormatType.JSON)
                 .shouldDoGC(true);
