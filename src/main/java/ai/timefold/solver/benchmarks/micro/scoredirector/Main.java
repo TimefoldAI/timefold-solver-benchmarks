@@ -36,6 +36,7 @@ import java.io.InputStream;
 
 import ai.timefold.solver.benchmarks.micro.common.AbstractMain;
 
+import org.openjdk.jmh.profile.GCProfiler;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
@@ -71,7 +72,15 @@ public final class Main extends AbstractMain<Configuration> {
                 // first-touched mid-run, so an allocation can stall on a page fault right when GC
                 // also runs - JFR showed CPU dips lining up with a subset of GC events. Pre-touching
                 // commits and zeroes every heap page at startup instead, once, before measurement.
-                .jvmArgsAppend("-XX:-TieredCompilation", "-XX:+AlwaysPreTouch");
+                .jvmArgsAppend("-XX:-TieredCompilation", "-XX:+AlwaysPreTouch")
+                // Diagnostic only: none of forkCount/warmup/GC page-faults/JMH-invocation-overhead/
+                // JIT-inlining explains why some examples' forks spread far more than others (see the
+                // score-director stability investigation). GCProfiler reads GC MXBean deltas around
+                // each iteration - negligible overhead, no effect on the primary throughput metric -
+                // and reports per-fork GC pause count/time as secondary metrics in the same
+                // results.json, to test whether the noisy examples' slow forks are the ones paying
+                // for more/longer GC pauses.
+                .addProfiler(GCProfiler.class);
         options = processBenchmark(options, configuration, ScoreDirectorType.CONSTRAINT_STREAMS);
         options = processBenchmark(options, configuration, ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED);
         options = initAsyncProfiler(options);
