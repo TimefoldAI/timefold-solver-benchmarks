@@ -293,13 +293,17 @@ jobs:
       # forks/warmup/measurement below are not arbitrary -
       # they're sized against this job's actual "ubuntu-24.04-arm" runner,
       # measured from real CI logs:
-      #  - warmup=4/measurement=3 (7 iterations) was chosen because
-      #    warmup throughput plateaus by iteration 2-3 on every example checked (incl. the biggest).
-      #  - forks=27 selected as the max value to fit within the time budget of ~1h:
-      #    Between-fork variance (JIT/scheduling noise that differs per JVM process)
-      #    turned out to be as large as within-fork variance here,
-      #    and only fork count - not iteration count - shrinks that term,
-      #    so this reallocation nets tighter confidence intervals for the same CI time.
+      #  - warmup=4 because warmup throughput plateaus by iteration 2-3
+      #    on every example checked (incl. the biggest).
+      #  - measurement=1, matching moveprovider. A fork's measurement iterations are near-duplicates
+      #    of each other here (a slow fork measured slow in every one of its iterations), so they are
+      #    not independent samples. JMH nonetheless pools all fork x iteration samples when computing
+      #    scoreError, which inflates N and reports a confidence interval ~1.4x tighter than the data
+      #    supports. One iteration per fork makes that pooling a no-op: fork x iteration == fork.
+      #  - forks=36 spends everything the shorter forks free up, at ~58 s/fork
+      #    (5 iterations x 10 s + ~8 s JVM startup, both measured on this runner).
+      #    The fork is the real unit of replication, so this is the only lever that buys
+      #    genuine precision - extra iterations per fork mostly buy the appearance of it.
       # If the runner type/hardware changes, re-measure rather than assume these still hold.
       - name: Configure the benchmark
         working-directory: ./timefold-solver-benchmarks
@@ -307,9 +311,9 @@ jobs:
         env:
           EXAMPLE: ${{ matrix.example }}
         run: |
-          echo "forks=27" > scoredirector-benchmark.properties
+          echo "forks=36" > scoredirector-benchmark.properties
           echo "warmup_iterations=4" >> scoredirector-benchmark.properties
-          echo "measurement_iterations=3" >> scoredirector-benchmark.properties
+          echo "measurement_iterations=1" >> scoredirector-benchmark.properties
           echo "relative_score_error_threshold=0.02" >> scoredirector-benchmark.properties
           echo "score_director_type=cs" >> scoredirector-benchmark.properties
           echo "example=$EXAMPLE" >> scoredirector-benchmark.properties
