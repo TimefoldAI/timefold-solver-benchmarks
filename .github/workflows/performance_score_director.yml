@@ -290,15 +290,26 @@ jobs:
           path: ./timefold-solver-benchmarks
 
       # Fine-tuned for stability on GHA.
+      # forks/warmup/measurement below are not arbitrary -
+      # they're sized against this job's actual "ubuntu-24.04-arm" runner,
+      # measured from real CI logs:
+      #  - warmup=4/measurement=3 (7 iterations) was chosen because
+      #    warmup throughput plateaus by iteration 2-3 on every example checked (incl. the biggest).
+      #  - forks=27 selected as the max value to fit within the time budget of ~1h:
+      #    Between-fork variance (JIT/scheduling noise that differs per JVM process)
+      #    turned out to be as large as within-fork variance here,
+      #    and only fork count - not iteration count - shrinks that term,
+      #    so this reallocation nets tighter confidence intervals for the same CI time.
+      # If the runner type/hardware changes, re-measure rather than assume these still hold.
       - name: Configure the benchmark
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         env:
           EXAMPLE: ${{ matrix.example }}
         run: |
-          echo "forks=20" > scoredirector-benchmark.properties
-          echo "warmup_iterations=5" >> scoredirector-benchmark.properties
-          echo "measurement_iterations=5" >> scoredirector-benchmark.properties
+          echo "forks=27" > scoredirector-benchmark.properties
+          echo "warmup_iterations=4" >> scoredirector-benchmark.properties
+          echo "measurement_iterations=3" >> scoredirector-benchmark.properties
           echo "relative_score_error_threshold=0.02" >> scoredirector-benchmark.properties
           echo "score_director_type=cs" >> scoredirector-benchmark.properties
           echo "example=$EXAMPLE" >> scoredirector-benchmark.properties
