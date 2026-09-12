@@ -67,7 +67,17 @@ public final class Main extends AbstractMain<Configuration> {
                 // still land 6-18 % apart here. Unlike coldstart, this benchmark only cares about
                 // steady-state throughput, so skipping tiering removes that remaining lottery:
                 // every fork goes straight to C2.
-                .jvmArgsAppend("-XX:-TieredCompilation");
+                //
+                // EXPERIMENT, not an established fix: forks here still split into a "normal" and a
+                // ~10-15 % slower mode, with every iteration inside one fork agreeing - so whatever
+                // decides it is fixed at JVM startup, not transient. moveprovider, on the same
+                // runners, spreads only 1.4-2.8 %, so it is not the hardware; the one large
+                // difference is that this benchmark allocates ~28 KB/op at ~480 MB/s, which makes
+                // it far more exposed to how the heap is backed by physical pages. Huge pages are
+                // decided per process, once, and last for its whole life - the exact shape of the
+                // observed modes. AlwaysPreTouch is required alongside, so that backing is settled
+                // up front instead of being materialized piecemeal mid-measurement.
+                .jvmArgsAppend("-XX:-TieredCompilation", "-XX:+AlwaysPreTouch", "-XX:+UseTransparentHugePages");
         options = processBenchmark(options, configuration, ScoreDirectorType.CONSTRAINT_STREAMS);
         options = processBenchmark(options, configuration, ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED);
         options = initAsyncProfiler(options);
