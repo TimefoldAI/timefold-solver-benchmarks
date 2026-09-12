@@ -88,7 +88,11 @@ jobs:
         with:
           repository: TimefoldAI/timefold-solver-benchmarks
           path: ./timefold-solver-benchmarks
-          ref: main # Assume the ref is compatible with both baseline and SUT
+          # Same commit for both baseline and SUT builds, so a harness-only change never confounds
+          # the solver comparison. Pinning this to a fixed branch name meant a harness fix on any
+          # other branch (incl. this one) was silently never exercised by this workflow; use the
+          # commit that dispatched this run instead, whichever branch that happens to be.
+          ref: ${{ github.sha }}
 
       - name: Setup JDK and Maven
         uses: actions/setup-java@v6.0.0
@@ -163,7 +167,11 @@ jobs:
         with:
           repository: TimefoldAI/timefold-solver-benchmarks
           path: ./timefold-solver-benchmarks
-          ref: main # Assume the ref is compatible with both baseline and SUT
+          # Same commit for both baseline and SUT builds, so a harness-only change never confounds
+          # the solver comparison. Pinning this to a fixed branch name meant a harness fix on any
+          # other branch (incl. this one) was silently never exercised by this workflow; use the
+          # commit that dispatched this run instead, whichever branch that happens to be.
+          ref: ${{ github.sha }}
 
       - name: Setup JDK and Maven
         uses: actions/setup-java@v6.0.0
