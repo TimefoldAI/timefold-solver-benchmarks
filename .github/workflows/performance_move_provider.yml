@@ -83,7 +83,7 @@ jobs:
           path: ./timefold-solver-benchmarks
 
       - name: Setup JDK and Maven
-        uses: actions/setup-java@v6.0.0
+        uses: actions/setup-java@v6.0.1
         with:
           java-version: 25 # Always build with the least recent supported JDK.
           distribution: 'temurin'
@@ -171,7 +171,7 @@ jobs:
           path: ./timefold-solver-benchmarks
 
       - name: Setup JDK and Maven
-        uses: actions/setup-java@v6.0.0
+        uses: actions/setup-java@v6.0.1
         with:
           java-version: 25 # Always build with the least recent supported JDK.
           distribution: 'temurin'
@@ -329,7 +329,7 @@ jobs:
           path: ./timefold-solver-benchmarks
 
       - name: (Baseline) Setup JDK and Maven
-        uses: actions/setup-java@v6.0.0
+        uses: actions/setup-java@v6.0.1
         with:
           java-version: ${{ github.event.inputs.jdk_baseline }}
           distribution: 'temurin'
@@ -355,7 +355,7 @@ jobs:
           fi
 
       - name: (SUT) Setup JDK and Maven
-        uses: actions/setup-java@v6.0.0
+        uses: actions/setup-java@v6.0.1
         with:
           java-version: ${{ github.event.inputs.jdk_branch }}
           distribution: 'temurin'
