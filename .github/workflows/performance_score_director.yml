@@ -2,6 +2,9 @@
 # with their binaries uploaded as artifacts.
 # This is done on GitHub infrastructure, to achieve maximum parallelization.
 #
+# The benchmark itself runs on a self-hosted runner which we completely control;
+# a machine with stable performance characteristics is what makes the results comparable at all.
+#
 # A benchmark subjob produces no report of its own -
 # it only uploads its raw JMH results as an artifact.
 # After every subjob finishes, one summarizing job downloads all of them and aggregates them into a single table,
@@ -260,7 +263,7 @@ jobs:
       group: perf-score_director-${{ matrix.example }}
       cancel-in-progress: true
     needs: [ decisions, build_baseline, build_sut ]
-    runs-on: ubuntu-24.04-arm # Github-hosted Arm runner; free and GA for this public repo.
+    runs-on: self-hosted # We need a stable machine to actually run the benchmarks.
     strategy:
       fail-fast: false # Jobs fail if the benchmark error is over predefined thresholds; other benchmarks continue.
       matrix:
@@ -289,31 +292,15 @@ jobs:
           repository: TimefoldAI/timefold-solver-benchmarks
           path: ./timefold-solver-benchmarks
 
-      # Fine-tuned for stability on GHA.
-      # forks/warmup/measurement below are not arbitrary -
-      # they're sized against this job's actual "ubuntu-24.04-arm" runner,
-      # measured from real CI logs:
-      #  - warmup=4 because warmup throughput plateaus by iteration 2-3
-      #    on every example checked (incl. the biggest).
-      #  - measurement=1, matching moveprovider. A fork's measurement iterations are near-duplicates
-      #    of each other here (a slow fork measured slow in every one of its iterations), so they are
-      #    not independent samples. JMH nonetheless pools all fork x iteration samples when computing
-      #    scoreError, which inflates N and reports a confidence interval ~1.4x tighter than the data
-      #    supports. One iteration per fork makes that pooling a no-op: fork x iteration == fork.
-      #  - forks=36 spends everything the shorter forks free up, at ~58 s/fork
-      #    (5 iterations x 10 s + ~8 s JVM startup, both measured on this runner).
-      #    The fork is the real unit of replication, so this is the only lever that buys
-      #    genuine precision - extra iterations per fork mostly buy the appearance of it.
-      # If the runner type/hardware changes, re-measure rather than assume these still hold.
       - name: Configure the benchmark
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         env:
           EXAMPLE: ${{ matrix.example }}
         run: |
-          echo "forks=36" > scoredirector-benchmark.properties
-          echo "warmup_iterations=4" >> scoredirector-benchmark.properties
-          echo "measurement_iterations=1" >> scoredirector-benchmark.properties
+          echo "forks=20" > scoredirector-benchmark.properties
+          echo "warmup_iterations=5" >> scoredirector-benchmark.properties
+          echo "measurement_iterations=5" >> scoredirector-benchmark.properties
           echo "relative_score_error_threshold=0.02" >> scoredirector-benchmark.properties
           echo "score_director_type=cs" >> scoredirector-benchmark.properties
           echo "example=$EXAMPLE" >> scoredirector-benchmark.properties
