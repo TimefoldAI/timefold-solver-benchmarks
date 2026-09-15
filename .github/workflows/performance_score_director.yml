@@ -2,6 +2,9 @@
 # with their binaries uploaded as artifacts.
 # This is done on GitHub infrastructure, to achieve maximum parallelization.
 #
+# The benchmark itself runs on a self-hosted runner which we completely control;
+# a machine with stable performance characteristics is what makes the results comparable at all.
+#
 # A benchmark subjob produces no report of its own -
 # it only uploads its raw JMH results as an artifact.
 # After every subjob finishes, one summarizing job downloads all of them and aggregates them into a single table,
@@ -88,7 +91,11 @@ jobs:
         with:
           repository: TimefoldAI/timefold-solver-benchmarks
           path: ./timefold-solver-benchmarks
-          ref: main # Assume the ref is compatible with both baseline and SUT
+          # Same commit for both baseline and SUT builds, so a harness-only change never confounds
+          # the solver comparison. Pinning this to a fixed branch name meant a harness fix on any
+          # other branch (incl. this one) was silently never exercised by this workflow; use the
+          # commit that dispatched this run instead, whichever branch that happens to be.
+          ref: ${{ github.sha }}
 
       - name: Setup JDK and Maven
         uses: actions/setup-java@v6.0.1
@@ -133,7 +140,11 @@ jobs:
         run: |
           # Match a branch OR a tag named $TARGET_BRANCH (no --heads): baseline is often a tag
           # (e.g. a release version). Falls back to the already-checked-out default if no match exists.
-          if git ls-remote --exit-code origin "$TARGET_BRANCH" > /dev/null; then
+          # Skip for "main": that's the common default solver ref, not a deliberate companion
+          # harness branch, and timefold-solver-benchmarks always has its own "main" too - matching
+          # on it would silently discard the commit checked out above (the one dispatching this
+          # run) and revert to origin/main, undoing that checkout for every ordinary run.
+          if [ "$TARGET_BRANCH" != "main" ] && git ls-remote --exit-code origin "$TARGET_BRANCH" > /dev/null; then
             git fetch --depth=1 origin "$TARGET_BRANCH"
             git checkout -B "$TARGET_BRANCH" FETCH_HEAD
           fi
@@ -163,7 +174,11 @@ jobs:
         with:
           repository: TimefoldAI/timefold-solver-benchmarks
           path: ./timefold-solver-benchmarks
-          ref: main # Assume the ref is compatible with both baseline and SUT
+          # Same commit for both baseline and SUT builds, so a harness-only change never confounds
+          # the solver comparison. Pinning this to a fixed branch name meant a harness fix on any
+          # other branch (incl. this one) was silently never exercised by this workflow; use the
+          # commit that dispatched this run instead, whichever branch that happens to be.
+          ref: ${{ github.sha }}
 
       - name: Setup JDK and Maven
         uses: actions/setup-java@v6.0.1
@@ -219,7 +234,11 @@ jobs:
         run: |
           # Match a branch OR a tag named $TARGET_BRANCH (no --heads): the branch under test may
           # also be a tag. Falls back to the already-checked-out default if no match exists.
-          if git ls-remote --exit-code origin "$TARGET_BRANCH" > /dev/null; then
+          # Skip for "main": that's the common default solver ref, not a deliberate companion
+          # harness branch, and timefold-solver-benchmarks always has its own "main" too - matching
+          # on it would silently discard the commit checked out above (the one dispatching this
+          # run) and revert to origin/main, undoing that checkout for every ordinary run.
+          if [ "$TARGET_BRANCH" != "main" ] && git ls-remote --exit-code origin "$TARGET_BRANCH" > /dev/null; then
             git fetch --depth=1 origin "$TARGET_BRANCH"
             git checkout -B "$TARGET_BRANCH" FETCH_HEAD
           fi
@@ -244,7 +263,7 @@ jobs:
       group: perf-score_director-${{ matrix.example }}
       cancel-in-progress: true
     needs: [ decisions, build_baseline, build_sut ]
-    runs-on: ubuntu-24.04-arm # Github-hosted Arm runner; free and GA for this public repo.
+    runs-on: self-hosted # We need a stable machine to actually run the benchmarks.
     strategy:
       fail-fast: false # Jobs fail if the benchmark error is over predefined thresholds; other benchmarks continue.
       matrix:
@@ -273,7 +292,6 @@ jobs:
           repository: TimefoldAI/timefold-solver-benchmarks
           path: ./timefold-solver-benchmarks
 
-      # Fine-tuned for stability on GHA.
       - name: Configure the benchmark
         working-directory: ./timefold-solver-benchmarks
         shell: bash

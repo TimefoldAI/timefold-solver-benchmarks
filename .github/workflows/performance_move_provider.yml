@@ -140,7 +140,11 @@ jobs:
         run: |
           # Match a branch OR a tag named $TARGET_BRANCH (no --heads): baseline is often a tag
           # (e.g. a release version). Falls back to the already-checked-out ref if no match exists.
-          if git ls-remote --exit-code origin "$TARGET_BRANCH" > /dev/null; then
+          # Skip for "main": that's the common default solver ref, not a deliberate companion
+          # harness branch, and timefold-solver-benchmarks always has its own "main" too - matching
+          # on it would silently discard the commit checked out above (the one dispatching this
+          # run) and revert to origin/main, undoing that checkout for every ordinary run.
+          if [ "$TARGET_BRANCH" != "main" ] && git ls-remote --exit-code origin "$TARGET_BRANCH" > /dev/null; then
             git fetch --depth=1 origin "$TARGET_BRANCH"
             git checkout -B "$TARGET_BRANCH" FETCH_HEAD
           fi
@@ -224,7 +228,11 @@ jobs:
         run: |
           # Match a branch OR a tag named $TARGET_BRANCH (no --heads): the branch under test may
           # also be a tag. Falls back to the already-checked-out ref if no match exists.
-          if git ls-remote --exit-code origin "$TARGET_BRANCH" > /dev/null; then
+          # Skip for "main": that's the common default solver ref, not a deliberate companion
+          # harness branch, and timefold-solver-benchmarks always has its own "main" too - matching
+          # on it would silently discard the commit checked out above (the one dispatching this
+          # run) and revert to origin/main, undoing that checkout for every ordinary run.
+          if [ "$TARGET_BRANCH" != "main" ] && git ls-remote --exit-code origin "$TARGET_BRANCH" > /dev/null; then
             git fetch --depth=1 origin "$TARGET_BRANCH"
             git checkout -B "$TARGET_BRANCH" FETCH_HEAD
           fi
