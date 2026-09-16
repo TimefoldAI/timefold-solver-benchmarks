@@ -399,22 +399,31 @@ jobs:
       - name: Prepare the machine for profiling
         shell: bash
         run: |
-          # Done once, here, rather than once for every fork inside run-scoredirector.sh.
-          # These have never applied on this runner: the recordings it produced carry
-          # engine="ctimer" and kernelSymbols="false", so every profile so far was sampled by
-          # signal with no kernel frames. The runner needs either passwordless sudo for sysctl,
-          # or both values written into /etc/sysctl.d on the image, which is the better fix
-          # because it needs no sudo at benchmark time at all.
-          for SETTING in kernel.perf_event_paranoid=1 kernel.kptr_restrict=0; do
-            KEY=${SETTING%=*}
-            sudo -n sysctl -q "$SETTING" 2>/dev/null || true
-            ACTUAL=$(cat "/proc/sys/${KEY//.//}" 2>/dev/null || echo unknown)
-            if [ "$ACTUAL" != "${SETTING#*=}" ]; then
-              echo "::warning::$KEY is $ACTUAL, not ${SETTING#*=}; the profiler will fall back to its ctimer engine."
+          # The async profiler needs perf_event_paranoid at 1 or less to open perf events, and
+          # kptr_restrict at 0 to resolve kernel symbols. Done once, here, rather than once for
+          # every fork inside run-scoredirector.sh.
+          # Neither has ever applied here. This is the only benchmark on self-hosted hardware, and
+          # sudo on that image asks for a password no job can type. The recordings show both sides
+          # of it: score-director JFRs carry engine="ctimer" and kernelSymbols="false", while
+          # move-provider, which runs the same two commands on a Github-hosted runner, gets
+          # engine="perf_events" and kernelSymbols="true".
+          # The real fix is to write both values into /etc/sysctl.d on the runner image, so no sudo
+          # is needed at benchmark time at all. Until then "sudo -n" at least fails immediately
+          # rather than waiting on a prompt, and the warning below carries the reason.
+          ensure_sysctl() { # key, wanted value, comparison
+            # Try to set it, then report what the kernel actually holds - the attempt succeeding
+            # is not the same as the value being right. Carry sudo's own complaint into the
+            # warning, flattened to one line, because that names the reason.
+            REASON=$(sudo -n sysctl -q "$1=$2" 2>&1 | tr '\n' ' ') || true
+            ACTUAL=$(cat "/proc/sys/${1//.//}" 2>/dev/null || echo unknown)
+            if [ "$ACTUAL" != unknown ] && [ "$ACTUAL" -"$3" "$2" ] 2>/dev/null; then
+              echo "$1 = $ACTUAL"
             else
-              echo "$KEY = $ACTUAL"
+              echo "::warning::$1 is $ACTUAL, not $2; the profiler falls back to its ctimer engine and records no kernel symbols. $REASON"
             fi
-          done
+          }
+          ensure_sysctl kernel.perf_event_paranoid 1 le
+          ensure_sysctl kernel.kptr_restrict 0 eq
 
       - name: Run the benchmark
         working-directory: ./timefold-solver-benchmarks
@@ -424,22 +433,33 @@ jobs:
         run: |
           # RUN_ID may hold a slash, so each fork writes its own results.json and its own JFR
           # instead of overwriting the one before it.
+          mkdir -p logs
           run_fork() { # side, fork id
             case $1 in
               baseline) HOME_DIR=$JAVA_HOME_BASELINE; RESULT_DIR=$BASELINE_DIR ;;
               sut) HOME_DIR=$JAVA_HOME_SUT; RESULT_DIR=$SUT_DIR ;;
             esac
+            RESULT_FILE="results/scoredirector/$RESULT_DIR/fork-$2/results.json"
+            LOG="logs/$1-fork-$2.log"
             for ATTEMPT in 1 2; do
+              STARTED=$SECONDS
+              # Every one of these invocations is a single fork, which JMH announces as
+              # "Fork: 1 of 1", so its output cannot say how far along the run is.
+              # Keep it in a file and print one line for each fork instead.
               JAVA_HOME="$HOME_DIR" BENCHMARK_JAR="benchmarks-$1.jar" RUN_ID="$RESULT_DIR/fork-$2" \
-                  ./run-scoredirector.sh --skip-flamegraphs || true
+                  ./run-scoredirector.sh --skip-flamegraphs > "$LOG" 2>&1 || true
               # JMH does not fail the process when a benchmark trial errors out - it just omits it
               # from the results, so a crashed run can still exit 0.
-              if [ -s "results/scoredirector/$RESULT_DIR/fork-$2/results.json" ]; then
+              if [ -s "$RESULT_FILE" ]; then
+                printf '%s fork %s/%s: %.0f ops/s in %s s\n' "$1" "$2" "$FORK_COUNT" \
+                    "$(jq -r '.[0].primaryMetric.score' "$RESULT_FILE")" "$((SECONDS - STARTED))"
                 return 0
               fi
               # A retried fork runs later than its partner on the other side, which weakens the
-              # pairing that the alternation exists to create. Say so loudly.
+              # pairing that the alternation exists to create. Say so loudly, with the evidence:
+              # this is the only place that log is ever read.
               echo "::warning::The $1 fork-$2 produced no results on attempt $ATTEMPT."
+              tail -n 30 "$LOG"
             done
             echo "::error::The $1 fork-$2 produced no results, even after a retry."
             exit 1
