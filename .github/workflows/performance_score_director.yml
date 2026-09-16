@@ -505,7 +505,8 @@ jobs:
             # One fork holds too few samples to draw a useful flame graph, so the graphs are made
             # here, once, from the merge. The per-fork recordings are gone, so the conversion
             # finds exactly this one file.
-            JAVA_HOME="$5" RUN_ID="$2" ./run-scoredirector.sh --flamegraphs-only
+            JAVA_HOME="$5" BENCHMARK_JAR="benchmarks-$1.jar" RUN_ID="$2" \
+                ./run-scoredirector.sh --flamegraphs-only
           }
           merge_side baseline "$BASELINE_DIR" baseline-results.json "$JDK_BASELINE" "$JAVA_HOME_BASELINE"
           merge_side sut "$SUT_DIR" sut-results.json "$JDK_BRANCH" "$JAVA_HOME_SUT"
