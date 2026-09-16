@@ -396,6 +396,26 @@ jobs:
             exit 1
           fi
 
+      - name: Prepare the machine for profiling
+        shell: bash
+        run: |
+          # Done once, here, rather than once for every fork inside run-scoredirector.sh.
+          # These have never applied on this runner: the recordings it produced carry
+          # engine="ctimer" and kernelSymbols="false", so every profile so far was sampled by
+          # signal with no kernel frames. The runner needs either passwordless sudo for sysctl,
+          # or both values written into /etc/sysctl.d on the image, which is the better fix
+          # because it needs no sudo at benchmark time at all.
+          for SETTING in kernel.perf_event_paranoid=1 kernel.kptr_restrict=0; do
+            KEY=${SETTING%=*}
+            sudo -n sysctl -q "$SETTING" 2>/dev/null || true
+            ACTUAL=$(cat "/proc/sys/${KEY//.//}" 2>/dev/null || echo unknown)
+            if [ "$ACTUAL" != "${SETTING#*=}" ]; then
+              echo "::warning::$KEY is $ACTUAL, not ${SETTING#*=}; the profiler will fall back to its ctimer engine."
+            else
+              echo "$KEY = $ACTUAL"
+            fi
+          done
+
       - name: Run the benchmark
         working-directory: ./timefold-solver-benchmarks
         shell: bash
