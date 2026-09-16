@@ -50,6 +50,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import one.convert.Arguments;
+import one.convert.JfrToFlame;
+import one.convert.JfrToHeatmap;
 import one.profiler.AsyncProfilerLoader;
 
 public abstract class AbstractMain<C extends AbstractConfiguration> {
@@ -146,9 +148,9 @@ public abstract class AbstractMain<C extends AbstractConfiguration> {
         var args = argStream.toArray(String[]::new);
         try {
             if (visualizationType == VisualizationType.FLAME_GRAPH) {
-                one.convert.JfrToFlame.convert(inputPath.toString(), output.toString(), new Arguments(args));
+                JfrToFlame.convert(inputPath.toString(), output.toString(), new Arguments(args));
             } else if (visualizationType == VisualizationType.HEAT_MAP) {
-                one.convert.JfrToHeatmap.convert(inputPath.toString(), output.toString(), new Arguments(args));
+                JfrToHeatmap.convert(inputPath.toString(), output.toString(), new Arguments(args));
             } else {
                 throw new IllegalArgumentException("Unsupported visualization: " + visualizationType);
             }

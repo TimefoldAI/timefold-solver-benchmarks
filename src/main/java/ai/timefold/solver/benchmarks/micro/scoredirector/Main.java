@@ -33,6 +33,7 @@ package ai.timefold.solver.benchmarks.micro.scoredirector;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Set;
 
 import ai.timefold.solver.benchmarks.micro.common.AbstractMain;
 
@@ -41,6 +42,19 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
 
 public final class Main extends AbstractMain<Configuration> {
+
+    /**
+     * Convert the JFR recordings already in the results directory and do nothing else.
+     * CI runs one fork for each invocation, so the flame graphs are made once, at the end,
+     * from the concatenation of every fork's recording.
+     */
+    private static final String FLAME_GRAPHS_ONLY = "--flamegraphs-only";
+    /**
+     * Run the benchmark, but leave the JFR recording alone.
+     * One fork does not have enough samples to draw a useful flame graph,
+     * and converting each of them would multiply the size of the archived assets.
+     */
+    private static final String SKIP_FLAME_GRAPHS = "--skip-flamegraphs";
 
     public Main() {
         super("scoredirector");
@@ -61,6 +75,11 @@ public final class Main extends AbstractMain<Configuration> {
     }
 
     public void run(String[] args) throws RunnerException, IOException {
+        var arguments = Set.of(args);
+        if (arguments.contains(FLAME_GRAPHS_ONLY)) {
+            convertJfrToFlameGraphs();
+            return;
+        }
         var configuration = readConfiguration();
         var options = getBaseJmhConfig(configuration);
         options = processBenchmark(options, configuration, ScoreDirectorType.CONSTRAINT_STREAMS);
@@ -69,7 +88,9 @@ public final class Main extends AbstractMain<Configuration> {
 
         var runner = new Runner(options.build());
         var runResults = runner.run();
-        convertJfrToFlameGraphs();
+        if (!arguments.contains(SKIP_FLAME_GRAPHS)) {
+            convertJfrToFlameGraphs();
+        }
 
         var relativeScoreErrorThreshold = configuration.getRelativeScoreErrorThreshold();
         var thresholdForPrint = ((int) Math.round(relativeScoreErrorThreshold * 10_000)) / 100.0D;
