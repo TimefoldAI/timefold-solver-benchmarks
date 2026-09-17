@@ -2,7 +2,8 @@
 # with their binaries uploaded as artifacts.
 # This is done on GitHub infrastructure, to achieve maximum parallelization.
 #
-# The benchmark itself runs on a self-hosted runner which we completely control.
+# The benchmark itself runs on a Github-hosted Arm runner, a fresh 4-core VM for every job, so
+# nothing about the machine carries over between runs and nothing else shares it.
 # The two sides are measured alternately, one fork at a time, and never one after the other, so
 # both meet the same machine and anything it does divides out of their ratio. That is worth about a
 # third of the variance here; the rest is a speed offset drawn once per JVM, which no schedule can
@@ -421,10 +422,10 @@ jobs:
           # Both currently apply: the recordings carry engine="perf_events" and
           # kernelSymbols="true", which is the check to repeat after any runner change -
           #   jfr print --events ActiveSetting <file>
-          # The durable fix is to write both values into /etc/sysctl.d on the runner image, so no
-          # sudo is needed at benchmark time at all. Until then "sudo -n" fails immediately rather
-          # than waiting on a password prompt no job can answer, and the warning below carries the
-          # reason it gave.
+          # The runner image is Github's, not ours, so these have to be set here on every job and
+          # can only be asked for, never assumed. "sudo -n" fails immediately rather than waiting
+          # on a password prompt no job can answer, and the warning below carries the reason it
+          # gave, because a silent fallback to the ctimer engine is easy to miss.
           ensure_sysctl() { # key, wanted value, comparison
             # Try to set it, then report what the kernel actually holds - the attempt succeeding
             # is not the same as the value being right. Carry sudo's own complaint into the

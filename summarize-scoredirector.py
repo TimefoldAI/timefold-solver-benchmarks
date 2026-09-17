@@ -34,7 +34,7 @@ import sys
 # buy a tighter band is to spend forks. Re-measure this whenever the runners change.
 TOLERANCE_PCT = 3.0
 
-RUNNER_LABEL = "self-hosted"
+RUNNER_LABEL = "ubuntu-24.04-arm"
 
 UNRESOLVED = "⚠️"
 ABSENT = "—"
