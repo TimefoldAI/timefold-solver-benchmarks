@@ -459,7 +459,7 @@ jobs:
               # JMH does not fail the process when a benchmark trial errors out - it just omits it
               # from the results, so a crashed run can still exit 0.
               if [ -s "$RESULT_FILE" ]; then
-                printf '%10s fork %3d / %3d: %8.0f ops/s in %3d s\n' "$1" "$2" "$FORK_COUNT" \
+                printf '%10s fork %3s / %3s: %8.0f ops/s in %3s s\n' "$1" "$2" "$FORK_COUNT" \
                     "$(jq -r '.[0].primaryMetric.score' "$RESULT_FILE")" "$((SECONDS - STARTED))"
                 return 0
               fi
