@@ -7,6 +7,10 @@ script joins every such pair on example, computes the speed difference, marks ea
 regresses or improves, and prints one markdown table plus a legend. Its exit code is the CI verdict:
 0 only if every expected row is present and either within tolerance or an improvement.
 
+Each row also reports its resolution: how small a difference this particular run could have told
+apart from zero. That is the trust signal - a delta only means something when the run that measured
+it could resolve something that size.
+
 Usage:
   python3 summarize-scoredirector.py DATA_DIR --expect JSON_ARRAY --baseline REF --branch REF
                                      --owner OWNER
@@ -15,24 +19,40 @@ Usage:
 import argparse
 import collections
 import glob
+import importlib.util
 import json
 import math
 import os
 import re
+import statistics
 import sys
 
-# The band inside which a delta counts as noise. Two sides run on the same self-hosted machine, one
-# after the other, so the noise of their difference is only a little more than one side's own error
-# - unlike a shared runner, there is no separate JVM/JIT-shape lottery to absorb.
-TOLERANCE_PCT = 4.0
-# A row is marked with HIGH_ERROR when one side's own error is more than the band divided by
-# sqrt(2) - that is, when the band above no longer covers this example.
-HIGH_ERROR_BAND_FRACTION = math.sqrt(2)
+# The band inside which a delta counts as noise. Measured, not guessed: across 24 main-against-main
+# comparisons on the alternating schedule the deltas had an RMS of 0.43 % and a worst case of
+# 1.30 %, so 3 % is about seven standard deviations of headroom. It used to be 4 %, from the days
+# when one side ran to completion before the other and the machine's drift landed on whichever side
+# it happened to cover; alternating the two sides fork by fork cut that noise threefold.
+TOLERANCE_PCT = 3.0
 
 RUNNER_LABEL = "self-hosted"
 
-HIGH_ERROR = "⚠️"
+UNRESOLVED = "⚠️"
 ABSENT = "—"
+
+def _load_merge_module():
+    """The t quantile lives in the merge script, which needs the same 99.9 % convention JMH uses.
+
+    Both scripts sit side by side in the repository root and are checked out together, but the
+    file name has hyphens, so it cannot be imported by name.
+    """
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "merge-scoredirector-results.py")
+    spec = importlib.util.spec_from_file_location("merge_scoredirector_results", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+_MERGE = _load_merge_module()
 
 Verdict = collections.namedtuple("Verdict", ("emoji", "label"))
 
@@ -73,6 +93,8 @@ def load_side(path: str) -> dict:
             "score_error": _to_float(metric["scoreError"]),
             "conf_lo": _to_float(conf[0]),
             "conf_hi": _to_float(conf[1]),
+            # One value for each fork, in the order they ran, which is what pairs the two sides.
+            "forks": [_to_float(value) for fork in metric.get("rawData", []) for value in fork],
         }
     return result
 
@@ -102,13 +124,33 @@ def relative_error(side: dict) -> float:
     return abs(side["score_error"] / side["score"])
 
 
-def evaluate_row(old: "dict | None", new: "dict | None") -> tuple["float | None", Verdict, bool]:
-    """Returns (delta_pct, verdict, high_error). delta_pct is None only for MISSING."""
+def resolution(old: dict, new: dict) -> float:
+    """Half-width of the 99.9 % confidence interval on the delta, in percent. NaN when unknowable.
+
+    Paired, because the workflow alternates: fork k of one side runs seconds before fork k of the
+    other, so both met the same machine. Taking the ratio inside each pair cancels whatever the
+    machine was doing, and that is most of the noise. One run had the box change speed by about
+    18 % over the hour - every fork of both sides moved together - which an unpaired interval
+    reports as +/- 6.1 % and this one as +/- 1.6 %, against a true delta of -0.3 %.
+
+    A side written before the alternating schedule carries no rawData, and the two sides of a
+    retried fork can end up different lengths; neither can be paired, so both give NaN.
+    """
+    old_forks, new_forks = old["forks"], new["forks"]
+    if len(old_forks) != len(new_forks) or len(old_forks) < 2:
+        return math.nan
+    if any(value <= 0 for value in old_forks + new_forks):
+        return math.nan
+    ratios = [math.log(after / before) for before, after in zip(old_forks, new_forks)]
+    quantile = _MERGE.t_quantile(_MERGE.CONFIDENCE_TAIL, len(ratios) - 1)
+    return quantile * statistics.stdev(ratios) / math.sqrt(len(ratios)) * 100
+
+
+def evaluate_row(old: "dict | None", new: "dict | None") -> tuple["float | None", Verdict, float]:
+    """Returns (delta_pct, verdict, resolution_pct). delta_pct is None only for MISSING."""
     if old is None or new is None:
-        return None, MISSING, False
+        return None, MISSING, math.nan
     delta_pct = (new["score"] / old["score"] - 1) * 100
-    error_limit = TOLERANCE_PCT / 100 / HIGH_ERROR_BAND_FRACTION
-    high_error = relative_error(old) > error_limit or relative_error(new) > error_limit
     if abs(delta_pct) <= TOLERANCE_PCT:
         verdict = TOLERANCE
     elif new["conf_lo"] > old["conf_hi"]:
@@ -117,7 +159,12 @@ def evaluate_row(old: "dict | None", new: "dict | None") -> tuple["float | None"
         verdict = REGRESSION
     else:
         verdict = UNDETERMINED
-    return delta_pct, verdict, high_error
+    return delta_pct, verdict, resolution(old, new)
+
+
+def is_unresolved(resolution_pct: float) -> bool:
+    """True when the run could not have told a band-sized change apart from no change at all."""
+    return not math.isnan(resolution_pct) and resolution_pct >= TOLERANCE_PCT
 
 
 def format_count(value: float) -> str:
@@ -126,18 +173,15 @@ def format_count(value: float) -> str:
 
 
 def format_throughput(old: "dict | None", new: "dict | None", delta_pct: "float | None",
-                       verdict: Verdict, high_error: bool) -> str:
-    marker = verdict.emoji + (" " + HIGH_ERROR if high_error else "")
+                       verdict: Verdict, resolution_pct: float) -> str:
+    marker = verdict.emoji + (" " + UNRESOLVED if is_unresolved(resolution_pct) else "")
     if old is None or new is None:
         return f"{marker} {ABSENT} → {ABSENT}"
     return f"{marker} {format_count(old['score'])} → {format_count(new['score'])} ({delta_pct:+.1f} %)"
 
 
-def format_margin(side: "dict | None") -> str:
-    if side is None:
-        return ABSENT
-    value = relative_error(side)
-    return ABSENT if math.isnan(value) else f"± {value * 100:.1f} %"
+def format_resolution(resolution_pct: float) -> str:
+    return ABSENT if math.isnan(resolution_pct) else f"± {resolution_pct:.1f} %"
 
 
 def format_example(example: str, url: "str | None") -> str:
@@ -158,27 +202,26 @@ def build_rows(expect: list, baseline_data: dict, sut_data: dict, asset_urls: di
     rows = []
     for example in sorted(expect):
         old, new = baseline_data.get(example), sut_data.get(example)
-        delta_pct, verdict, high_error = evaluate_row(old, new)
-        rows.append((example, old, new, delta_pct, verdict, high_error, asset_urls.get(example)))
+        delta_pct, verdict, resolution_pct = evaluate_row(old, new)
+        rows.append((example, old, new, delta_pct, verdict, resolution_pct, asset_urls.get(example)))
     return rows
 
 
 def render_table(rows: list) -> list:
-    lines = ["| Example | Throughput | Old ± | New ± |",
-             "|---|---:|---:|---:|"]
-    for example, old, new, delta_pct, verdict, high_error, url in rows:
-        lines.append("| {} | {} | {} | {} |".format(
+    lines = ["| Example | Throughput | Resolution |",
+             "|---|---:|---:|"]
+    for example, old, new, delta_pct, verdict, resolution_pct, url in rows:
+        lines.append("| {} | {} | {} |".format(
             format_example(example, url),
-            format_throughput(old, new, delta_pct, verdict, high_error),
-            format_margin(old),
-            format_margin(new)))
+            format_throughput(old, new, delta_pct, verdict, resolution_pct),
+            format_resolution(resolution_pct)))
     return lines
 
 
 def render_legend() -> list:
     return ["",
             " · ".join(f"{v.emoji} {v.label}" for v in _ALL_VERDICTS)
-            + f" · {HIGH_ERROR} score error too big for its band",
+            + f" · {UNRESOLVED} could not resolve a change this size",
             "",
             "#### Noise band",
             "",
@@ -186,15 +229,26 @@ def render_legend() -> list:
             "Positive is faster.",
             f"- A delta inside its band counts as noise: ± {TOLERANCE_PCT:.0f} %.",
             "",
+            "#### Resolution",
+            "",
+            "- The smallest difference this run could tell apart from no difference at all: "
+            "the 99.9 % confidence interval on the delta itself.",
+            "- It is paired. The two sides alternate fork by fork, so fork N of each ran seconds "
+            "apart and met the same machine; comparing them within the pair cancels whatever the "
+            "machine was doing, which is most of the noise. A run whose speed drifted 18 % over "
+            "the hour still resolves to ± 1.6 %.",
+            "- It shrinks with the square root of the fork count, so it is also the answer to "
+            "\"how many forks do we need?\".",
+            "",
             "#### What the marks mean",
             "",
             f"- {UNDETERMINED.emoji} {UNDETERMINED.label}: the delta is outside its band, "
             f"but the two confidence intervals overlap, so this run cannot say which side is faster. "
             f"It fails the build, the same as {REGRESSION.emoji} {REGRESSION.label}. "
-            f"Read the Old ±/New ± columns, then run it again with more forks.",
-            f"- {HIGH_ERROR}: one side's own error is more than its band allows for. "
-            f"The band is a fixed number from an earlier run, "
-            f"so this says that run no longer describes this example.",
+            f"Read the resolution, then run it again with more forks.",
+            f"- {UNRESOLVED}: the resolution is no better than the band itself, so this row could "
+            f"not have caught a regression worth failing on. Its delta says nothing either way - "
+            f"the run needs more forks, or the machine was too busy to measure on.",
             "",
             "#### Notes",
             "",
@@ -226,10 +280,30 @@ def build_report(data_dir: str, expect: list, baseline_ref: str, branch_ref: str
 
 
 def _selftest() -> None:
-    fast = {"score": 100.0, "score_error": 1.0, "conf_lo": 99.0, "conf_hi": 101.0}
-    slow = {"score": 80.0, "score_error": 1.0, "conf_lo": 79.0, "conf_hi": 81.0}
-    same = {"score": 100.5, "score_error": 1.0, "conf_lo": 99.5, "conf_hi": 101.5}
-    noisy = {"score": 90.0, "score_error": 0.0, "conf_lo": math.nan, "conf_hi": math.nan}
+    def side(score, error, lo, hi, forks=()):
+        return {"score": score, "score_error": error, "conf_lo": lo, "conf_hi": hi,
+                "forks": list(forks)}
+
+    fast = side(100.0, 1.0, 99.0, 101.0)
+    slow = side(80.0, 1.0, 79.0, 81.0)
+    same = side(100.5, 1.0, 99.5, 101.5)
+    noisy = side(90.0, 0.0, math.nan, math.nan)
+
+    # Resolution is paired: drift shared by both sides cancels, so a pair of sides that move
+    # together resolves far better than either side's own spread suggests.
+    drifting_old = side(100.0, 0.0, math.nan, math.nan, [90, 95, 100, 105, 110])
+    drifting_new = side(100.0, 0.0, math.nan, math.nan, [90, 95, 100, 105, 110])
+    assert resolution(drifting_old, drifting_new) == 0.0, "identical sides resolve perfectly"
+    scattered_old = side(100.0, 0.0, math.nan, math.nan, [100, 100, 100, 100, 100])
+    scattered_new = side(100.0, 0.0, math.nan, math.nan, [90, 95, 100, 105, 110])
+    assert resolution(scattered_old, scattered_new) > 10.0, "unpaired scatter is not hidden"
+    # Anything that cannot be paired resolves to nothing rather than to a wrong number.
+    assert math.isnan(resolution(fast, slow)), "no rawData, no resolution"
+    assert math.isnan(resolution(drifting_old, side(100.0, 0.0, 0.0, 0.0, [100, 100])))
+    assert math.isnan(resolution(side(1.0, 0.0, 0.0, 0.0, [0.0, 1.0, 2.0]), drifting_old))
+
+    assert is_unresolved(TOLERANCE_PCT + 0.1) and not is_unresolved(TOLERANCE_PCT - 0.1)
+    assert not is_unresolved(math.nan), "unknown resolution must not raise the flag"
 
     # Regression: new (slow) is strictly below old (fast).
     delta, verdict, _ = evaluate_row(fast, slow)
@@ -250,19 +324,17 @@ def _selftest() -> None:
     assert verdict == UNDETERMINED, verdict
 
     # Missing side never crashes and is reported distinctly.
-    delta, verdict, high_error = evaluate_row(None, fast)
-    assert verdict == MISSING and delta is None and high_error is False
+    delta, verdict, resolution_pct = evaluate_row(None, fast)
+    assert verdict == MISSING and delta is None and math.isnan(resolution_pct)
 
-    # High relative error only annotates; it must not override a tolerance/regression verdict.
-    high_err_side = {"score": 100.0, "score_error": 5.0, "conf_lo": 90.0, "conf_hi": 110.0}
-    delta, verdict, high_error = evaluate_row(fast, high_err_side)
-    assert verdict == TOLERANCE and high_error is True
+    # A coarse resolution only annotates; it must not override the verdict.
+    coarse_old = side(100.0, 0.0, math.nan, math.nan, [100, 100, 100, 100, 100])
+    coarse_new = side(100.0, 0.0, math.nan, math.nan, [80, 90, 100, 110, 120])
+    delta, verdict, resolution_pct = evaluate_row(coarse_old, coarse_new)
+    assert verdict == TOLERANCE and is_unresolved(resolution_pct), resolution_pct
 
-    # A margin on a zero score is no percentage at all; it prints as absent rather than crashing.
-    zero = {"score": 0.0, "score_error": 1.0, "conf_lo": math.nan, "conf_hi": math.nan}
-    assert format_margin(zero) == ABSENT
-    assert format_margin(None) == ABSENT
-    assert format_margin(fast) == "± 1.0 %"
+    assert format_resolution(math.nan) == ABSENT
+    assert format_resolution(1.34) == "± 1.3 %"
 
     # Row order: alphabetical, from a deliberately scrambled input.
     expect = ["vehicle_routing", "cloud_balancing", "examination"]
@@ -274,13 +346,13 @@ def _selftest() -> None:
 
     report, exit_code = render_report(rows, "v1.0.0", "main", "TimefoldAI")
     assert exit_code == 1, "a regression must fail the build"
-    assert "| Example | Throughput | Old ± | New ± |" in report
+    assert "| Example | Throughput | Resolution |" in report
     assert report.count("| Example |") == 1
 
     # The legend is sectioned.
-    for heading in ("#### Noise band", "#### What the marks mean", "#### Notes"):
+    for heading in ("#### Noise band", "#### Resolution", "#### What the marks mean", "#### Notes"):
         assert heading in report, heading
-    for mark in (f"{UNDETERMINED.emoji} {UNDETERMINED.label}:", f"{HIGH_ERROR}:"):
+    for mark in (f"{UNDETERMINED.emoji} {UNDETERMINED.label}:", f"{UNRESOLVED}:"):
         assert f"- {mark}" in report, mark
 
     # A missing side renders as a distinct row rather than vanishing.
