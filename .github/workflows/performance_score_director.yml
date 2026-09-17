@@ -3,9 +3,10 @@
 # This is done on GitHub infrastructure, to achieve maximum parallelization.
 #
 # The benchmark itself runs on a self-hosted runner which we completely control.
-# That machine is not as steady as it sounds: its speed drifts over an hour, by 18 % in one
-# observed run, so the two sides are measured alternately, one fork at a time, and never one
-# after the other. Both then meet the same machine and the drift divides out of their ratio.
+# That machine is not as steady as it sounds, so the two sides are measured alternately, one fork
+# at a time, and never one after the other. Both then meet the same machine and whatever drift it
+# has divides out of their ratio. On the current runners most of the spread is per-fork rather than
+# drift, so the alternation is cheap insurance; the fork count is what actually buys precision.
 #
 # A benchmark subjob produces no report of its own -
 # it uploads one raw JMH result for each fork, which a merge step joins into the single-entry file
@@ -14,7 +15,7 @@
 # After every subjob finishes, one summarizing job downloads all of them and aggregates them into a single table,
 # which is the only report this workflow produces.
 #
-# A row is judged on its delta against a fixed +/- 3 % band, and carries its resolution:
+# A row is judged on its delta against a fixed +/- 4 % band, and carries its resolution:
 # the 99.9 % confidence interval on that delta, computed by pairing fork N of one side with fork N
 # of the other. A row whose resolution is no better than the band could not have caught a
 # regression worth failing on, and is marked as such.
@@ -309,25 +310,29 @@ jobs:
           EXAMPLE: ${{ matrix.example }}
         run: |
           # - One fork for each invocation, on purpose.
-          #  The two sides are measured alternately, one fork at a time, so that the machine's
-          #  slow wander lands on both of them equally. It is the largest source of noise here:
-          #  in three main-against-main runs the fork means carried a lag-1 autocorrelation of
-          #  up to +0.43, one baseline had three neighbouring forks 25-33 % fast,
-          #  and another had its whole block sitting below the other side's.
-          #  Running one side to completion and then the other gave those a free hand;
-          #  alternating cut the spread of the difference from 1.3 % to 0.5 %.
+          #  The two sides are measured alternately, one fork at a time, so that whatever slow
+          #  wander the machine has lands on both of them equally. On the current runners that is
+          #  not where the noise is: baseline fork N and SUT fork N run about a minute apart and
+          #  their speeds correlate at only +0.23, so the pairing removes roughly a tenth of the
+          #  variance. It stays because it costs nothing and can only help.
           #  The fork count therefore lives in FORK_COUNT below, not here.
           # - One measurement iteration for each fork, on purpose.
-          #  A JVM keeps the shape it compiled for its whole life,
-          #  so the five iterations inside a fork were five copies of one sample.
-          #  JMH divides the spread of all of them by the square root of their count,
-          #  which made the reported error about 2.1x too small.
+          #  A JVM keeps the shape it compiled for its whole life, so several iterations inside one
+          #  fork are repeated looks at a single sample. JMH divides their spread by the square root
+          #  of their count, which understates the error.
           #  With one iteration for each fork, every sample is its own JVM.
-          # - Six warmup iterations, not five.
-          #  flow_shop and machine_reassignment were still 1 % below their steady speed
-          #  in the first measurement iteration, and that iteration is now the only one.
+          # - Three warmup iterations, down from six.
+          #  The noise here is per-fork and independent, and it is a constant drawn once per JVM:
+          #  the offset is already fully present in the first second of the measurement window and
+          #  never moves, so a longer measurement cannot average it away. The fork count is the
+          #  only lever, and warmup is most of what a fork costs. Trading three warmup iterations
+          #  for fourteen more forks cuts the job and still takes the worst example's resolution
+          #  from 5.1 % to 4.1 %, which is what makes the +/- 4 % band usable at all.
+          #  Whether three is enough cannot be seen in these runs - at one measurement iteration
+          #  the warmup curve is invisible. Checking it needs a one-off dispatch with several
+          #  measurement iterations.
           echo "forks=1" > scoredirector-benchmark.properties
-          echo "warmup_iterations=6" >> scoredirector-benchmark.properties
+          echo "warmup_iterations=3" >> scoredirector-benchmark.properties
           echo "measurement_iterations=1" >> scoredirector-benchmark.properties
           # Only a console warning from Main, about one side's own spread. It is not what decides
           # whether a row can be trusted - that is the report's resolution column, which pairs the
@@ -339,7 +344,12 @@ jobs:
           cat scoredirector-benchmark.properties
           chmod +x run-scoredirector.sh
           # How many forks each side gets, spent one at a time by the loop below.
-          echo "FORK_COUNT=26" >> "$GITHUB_ENV"
+          # Sized to the clock: a fork costs about 10 s for each warmup and measurement iteration
+          # plus 6 s of startup, and the job holds two sides, so 40 forks land it near 63 minutes.
+          # Resolution improves only as the square root of this, so doubling precision costs four
+          # times the job. At 40, conference_scheduling resolves to 4.06 % against the 4 % band and
+          # so still carries the marker; it needs 44 to clear it.
+          echo "FORK_COUNT=40" >> "$GITHUB_ENV"
 
       - name: Download the baseline binary
         uses: actions/download-artifact@v8

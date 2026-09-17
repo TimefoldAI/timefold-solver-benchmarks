@@ -27,12 +27,12 @@ import re
 import statistics
 import sys
 
-# The band inside which a delta counts as noise. Measured, not guessed: across 24 main-against-main
-# comparisons on the alternating schedule the deltas had an RMS of 0.43 % and a worst case of
-# 1.30 %, so 3 % is about seven standard deviations of headroom. It used to be 4 %, from the days
-# when one side ran to completion before the other and the machine's drift landed on whichever side
-# it happened to cover; alternating the two sides fork by fork cut that noise threefold.
-TOLERANCE_PCT = 3.0
+# The band inside which a delta counts as noise. Measured, not guessed: across 35 main-against-main
+# comparisons on these runners the deltas had an RMS of 1.10 % and a worst case of 3.91 %, so 3 %
+# would have failed a run that found nothing. The noise here is per-fork and independent - pairing
+# fork N against fork N removes only about a tenth of it - so the band cannot be narrowed by
+# scheduling, only by spending forks. Re-measure this whenever the runners change.
+TOLERANCE_PCT = 4.0
 
 RUNNER_LABEL = "self-hosted"
 
@@ -127,11 +127,12 @@ def relative_error(side: dict) -> float:
 def resolution(old: dict, new: dict) -> float:
     """Half-width of the 99.9 % confidence interval on the delta, in percent. NaN when unknowable.
 
-    Paired, because the workflow alternates: fork k of one side runs seconds before fork k of the
-    other, so both met the same machine. Taking the ratio inside each pair cancels whatever the
-    machine was doing, and that is most of the noise. One run had the box change speed by about
-    18 % over the hour - every fork of both sides moved together - which an unpaired interval
-    reports as +/- 6.1 % and this one as +/- 1.6 %, against a true delta of -0.3 %.
+    Paired, because the workflow alternates: fork k of one side runs about a minute before fork k
+    of the other, so both met the same machine. Taking the ratio inside each pair cancels whatever
+    the machine was doing between them. How much that is worth depends on the hardware - on runners
+    whose speed wanders it was most of the noise, on the current ones the two forks of a pair
+    correlate at only +0.23 and the pairing is worth about a tenth of the variance. Pairing is
+    never worse than not pairing, so it is unconditional.
 
     A side written before the alternating schedule carries no rawData, and the two sides of a
     retried fork can end up different lengths; neither can be paired, so both give NaN.

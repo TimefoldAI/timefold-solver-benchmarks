@@ -81,7 +81,14 @@ public final class Main extends AbstractMain<Configuration> {
             return;
         }
         var configuration = readConfiguration();
-        var options = getBaseJmhConfig(configuration);
+        var options = getBaseJmhConfig(configuration)
+                // Commit and touch the whole heap at startup, instead of faulting it in during warmup.
+                // Every fork does identical work and burns identical CPU, yet some complete up to 26 % fewer
+                // operations, and the offset is already fully there in the first second of measurement and
+                // never changes - a constant drawn once per JVM. The heap's page backing is decided lazily
+                // from whatever state the host's memory is in, which fits that shape; this takes the draw away.
+                // Appended here, not in AbstractMain: coldstart measures startup, which is what this costs.
+                .jvmArgsAppend("-XX:+AlwaysPreTouch");
         options = processBenchmark(options, configuration, ScoreDirectorType.CONSTRAINT_STREAMS);
         options = processBenchmark(options, configuration, ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED);
         options = initAsyncProfiler(options);
