@@ -2,17 +2,24 @@
 # with their binaries uploaded as artifacts.
 # This is done on GitHub infrastructure, to achieve maximum parallelization.
 #
-# The benchmark itself runs on a self-hosted runner which we completely control;
-# a machine with stable performance characteristics is what makes the results comparable at all.
+# The benchmark itself runs on a Github-hosted Arm runner, a fresh 4-core VM for every job, so
+# nothing about the machine carries over between runs and nothing else shares it.
+# The two sides are measured alternately, one fork at a time, and never one after the other, so
+# both meet the same machine and anything it does divides out of their ratio. That is worth about a
+# third of the variance here; the rest is a speed offset drawn once per JVM, which no schedule can
+# cancel and only more forks can average away. The fork count is what buys precision.
 #
 # A benchmark subjob produces no report of its own -
-# it only uploads its raw JMH results as an artifact.
+# it uploads one raw JMH result for each fork, which a merge step joins into the single-entry file
+# the report expects. That merge, not JMH, computes the statistics: a fork keeps whatever shape it
+# compiled for its whole life, so the fork is the unit, not the iteration.
 # After every subjob finishes, one summarizing job downloads all of them and aggregates them into a single table,
 # which is the only report this workflow produces.
 #
-# Each benchmark gives a 99.9 % confidence interval.
-# The confidence intervals are compared to determine if the branch under test is a regression or an improvement.
-# The error threshold is expected to be below +/- 2.0 %.
+# A row is judged on its delta against a fixed +/- 3 % band, and carries its resolution:
+# the 99.9 % confidence interval on that delta, computed by pairing fork N of one side with fork N
+# of the other. A row whose resolution is no better than the band could not have caught a
+# regression worth failing on, and is marked as such.
 #
 # [1] Unless the baseline is a release tag, in which case its binaries are downloaded from a repository.
 #
@@ -263,7 +270,8 @@ jobs:
       group: perf-score_director-${{ matrix.example }}
       cancel-in-progress: true
     needs: [ decisions, build_baseline, build_sut ]
-    runs-on: self-hosted # We need a stable machine to actually run the benchmarks.
+    runs-on: ubuntu-24.04-arm # Github-hosted Arm runner; free and GA for this public repo.
+    timeout-minutes: 300
     strategy:
       fail-fast: false # Jobs fail if the benchmark error is over predefined thresholds; other benchmarks continue.
       matrix:
@@ -291,6 +299,10 @@ jobs:
         with:
           repository: TimefoldAI/timefold-solver-benchmarks
           path: ./timefold-solver-benchmarks
+          # The harness and the binaries have to come from one commit, for the same reason
+          # build_baseline gives: pinned to a branch, a harness fix on any other branch
+          # was silently never exercised by this workflow.
+          ref: ${{ github.sha }}
 
       - name: Configure the benchmark
         working-directory: ./timefold-solver-benchmarks
@@ -298,14 +310,45 @@ jobs:
         env:
           EXAMPLE: ${{ matrix.example }}
         run: |
-          echo "forks=20" > scoredirector-benchmark.properties
-          echo "warmup_iterations=5" >> scoredirector-benchmark.properties
-          echo "measurement_iterations=5" >> scoredirector-benchmark.properties
-          echo "relative_score_error_threshold=0.02" >> scoredirector-benchmark.properties
+          # - One fork for each invocation, on purpose.
+          #  The two sides are measured alternately, one fork at a time, so that anything the
+          #  machine does lands on both of them equally. Baseline fork N and SUT fork N run about a
+          #  minute apart and their speeds correlate at +0.39, so the pairing is worth about a
+          #  third of the variance.
+          #  The fork count therefore lives in FORK_COUNT below, not here.
+          # - One measurement iteration for each fork, on purpose.
+          #  A JVM keeps the shape it compiled for its whole life, so several iterations inside one
+          #  fork are repeated looks at a single sample. JMH divides their spread by the square root
+          #  of their count, which understates the error.
+          #  With one iteration for each fork, every sample is its own JVM.
+          # - Three warmup iterations.
+          #  What is left after the pairing is a speed offset drawn once per JVM: forks of one side
+          #  do identical work and burn identical CPU, yet finish different numbers of operations,
+          #  and the offset is already fully present in the first second of the measurement window
+          #  and never moves. A longer measurement cannot average that away; only more forks can.
+          #  So warmup is held to what the JIT needs and the rest of the clock goes to forks.
+          #  Whether three is enough cannot be seen in these runs - at one measurement iteration
+          #  the warmup curve is invisible. Checking it needs a one-off dispatch with several
+          #  measurement iterations.
+          echo "forks=1" > scoredirector-benchmark.properties
+          echo "warmup_iterations=3" >> scoredirector-benchmark.properties
+          echo "measurement_iterations=1" >> scoredirector-benchmark.properties
+          # Only a console warning from Main, about one side's own spread. It is not what decides
+          # whether a row can be trusted - that is the report's resolution column, which compares
+          # the two sides fork by fork instead of looking at either one alone.
+          # Set loosely enough that it speaks up only when a side is genuinely wild.
+          echo "relative_score_error_threshold=0.05" >> scoredirector-benchmark.properties
           echo "score_director_type=cs" >> scoredirector-benchmark.properties
           echo "example=$EXAMPLE" >> scoredirector-benchmark.properties
           cat scoredirector-benchmark.properties
           chmod +x run-scoredirector.sh
+          # How many forks each side gets, spent one at a time by the loop below.
+          # Sized to the clock: a fork costs about 10 s for each warmup and measurement iteration
+          # plus startup, and the job holds two sides, so 40 forks land it near 65 minutes.
+          # Resolution improves only as the square root of this, so doubling precision costs four
+          # times the job. At 40 every example resolves to better than the +/- 3 % band except
+          # patient_admission_scheduling, which sits just over it and carries the marker.
+          echo "FORK_COUNT=40" >> "$GITHUB_ENV"
 
       - name: Download the baseline binary
         uses: actions/download-artifact@v8
@@ -318,31 +361,17 @@ jobs:
           name: benchmarks-sut
           path: ./timefold-solver-benchmarks
 
+      # Both JDKs are installed before the benchmark, because the loop below switches between them
+      # for every fork and a step-level action cannot run inside a loop.
       - name: (Baseline) Setup JDK and Maven
         uses: actions/setup-java@v6.0.1
         with:
           java-version: ${{ github.event.inputs.jdk_baseline }}
           distribution: 'temurin'
           check-latest: true
-
-      - name: (Baseline) Run the benchmark
-        working-directory: ./timefold-solver-benchmarks
+      - name: (Baseline) Record the JDK
         shell: bash
-        env:
-          RUN_ID: ${{ env.BASELINE_DIR }}
-          TIMEFOLD_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
-        run: |
-          mkdir target
-          cp benchmarks-baseline.jar target/benchmarks.jar
-          ./run-scoredirector.sh
-          cp results/scoredirector/$RUN_ID/results.json baseline-results.json
-          # JMH does not fail the process when one benchmark trial errors out - it just omits it
-          # from the results, so a crashed run can still exit 0. One example must be present.
-          COUNT=$(jq 'length' baseline-results.json)
-          if [ "$COUNT" -ne 1 ]; then
-            echo "::error::Baseline run produced $COUNT/1 benchmark results - it did not produce metrics."
-            exit 1
-          fi
+        run: echo "JAVA_HOME_BASELINE=$JAVA_HOME" >> "$GITHUB_ENV"
 
       - name: (SUT) Setup JDK and Maven
         uses: actions/setup-java@v6.0.1
@@ -350,23 +379,173 @@ jobs:
           java-version: ${{ github.event.inputs.jdk_branch }}
           distribution: 'temurin'
           check-latest: true
+      - name: (SUT) Record the JDK
+        shell: bash
+        run: echo "JAVA_HOME_SUT=$JAVA_HOME" >> "$GITHUB_ENV"
 
-      - name: (SUT) Run the benchmark
+      - name: Verify the JDKs
+        shell: bash
+        env:
+          JDK_BASELINE: ${{ github.event.inputs.jdk_baseline }}
+          JDK_BRANCH: ${{ github.event.inputs.jdk_branch }}
+        run: |
+          # Fail now rather than benchmark the wrong JVM for an hour.
+          check_jdk() { # label, java home, requested major version
+            if [ -z "$2" ] || [ ! -x "$2/bin/java" ]; then
+              echo "::error::The $1 JDK is missing at '$2'."
+              exit 1
+            fi
+            # java.specification.version is a bare major version; the -version banner is not.
+            ACTUAL=$("$2/bin/java" -XshowSettings:properties -version 2>&1 \
+                | sed -n 's/.*java\.specification\.version = //p' | tr -d '[:space:]')
+            if [ "$ACTUAL" != "$3" ]; then
+              echo "::error::The $1 JDK is $ACTUAL, but $3 was requested."
+              exit 1
+            fi
+            echo "$1 JDK $ACTUAL at $2"
+          }
+          check_jdk baseline "$JAVA_HOME_BASELINE" "$JDK_BASELINE"
+          check_jdk sut "$JAVA_HOME_SUT" "$JDK_BRANCH"
+          # setup-java hands back the same installation for the same version,
+          # so the two may only differ when they were asked to.
+          if [ "$JDK_BASELINE" != "$JDK_BRANCH" ] && [ "$JAVA_HOME_BASELINE" = "$JAVA_HOME_SUT" ]; then
+            echo "::error::Different JDKs were requested, but both sides resolved to $JAVA_HOME_BASELINE."
+            exit 1
+          fi
+
+      - name: Prepare the machine for profiling
+        shell: bash
+        run: |
+          # The async profiler needs perf_event_paranoid at 1 or less to open perf events, and
+          # kptr_restrict at 0 to resolve kernel symbols. Done once, here, rather than once for
+          # every fork inside run-scoredirector.sh.
+          # Both currently apply: the recordings carry engine="perf_events" and
+          # kernelSymbols="true", which is the check to repeat after any runner change -
+          #   jfr print --events ActiveSetting <file>
+          # The runner image is Github's, not ours, so these have to be set here on every job and
+          # can only be asked for, never assumed. "sudo -n" fails immediately rather than waiting
+          # on a password prompt no job can answer, and the warning below carries the reason it
+          # gave, because a silent fallback to the ctimer engine is easy to miss.
+          ensure_sysctl() { # key, wanted value, comparison
+            # Try to set it, then report what the kernel actually holds - the attempt succeeding
+            # is not the same as the value being right. Carry sudo's own complaint into the
+            # warning, flattened to one line, because that names the reason.
+            REASON=$(sudo -n sysctl -q "$1=$2" 2>&1 | tr '\n' ' ') || true
+            ACTUAL=$(cat "/proc/sys/${1//.//}" 2>/dev/null || echo unknown)
+            if [ "$ACTUAL" != unknown ] && [ "$ACTUAL" -"$3" "$2" ] 2>/dev/null; then
+              echo "$1 = $ACTUAL"
+            else
+              echo "::warning::$1 is $ACTUAL, not $2; the profiler falls back to its ctimer engine and records no kernel symbols. $REASON"
+            fi
+          }
+          ensure_sysctl kernel.perf_event_paranoid 1 le
+          ensure_sysctl kernel.kptr_restrict 0 eq
+
+      - name: Run the benchmark
         working-directory: ./timefold-solver-benchmarks
         shell: bash
         env:
-          RUN_ID: ${{ env.SUT_DIR }}
           TIMEFOLD_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
         run: |
-          rm target/benchmarks.jar
-          cp benchmarks-sut.jar target/benchmarks.jar
-          ./run-scoredirector.sh
-          cp results/scoredirector/$RUN_ID/results.json sut-results.json
-          # JMH does not fail the process when one benchmark trial errors out - it just omits it
-          # from the results, so a crashed run can still exit 0. One example must be present.
-          COUNT=$(jq 'length' sut-results.json)
-          if [ "$COUNT" -ne 1 ]; then
-            echo "::error::SUT run produced $COUNT/1 benchmark results - it did not produce metrics."
+          # RUN_ID may hold a slash, so each fork writes its own results.json and its own JFR
+          # instead of overwriting the one before it.
+          mkdir -p logs
+          run_fork() { # side, fork id
+            case $1 in
+              baseline) HOME_DIR=$JAVA_HOME_BASELINE; RESULT_DIR=$BASELINE_DIR ;;
+              sut) HOME_DIR=$JAVA_HOME_SUT; RESULT_DIR=$SUT_DIR ;;
+            esac
+            RESULT_FILE="results/scoredirector/$RESULT_DIR/fork-$2/results.json"
+            LOG="logs/$1-fork-$2.log"
+            for ATTEMPT in 1 2; do
+              STARTED=$SECONDS
+              # Every one of these invocations is a single fork, which JMH announces as
+              # "Fork: 1 of 1", so its output cannot say how far along the run is.
+              # Keep it in a file and print one line for each fork instead.
+              JAVA_HOME="$HOME_DIR" BENCHMARK_JAR="benchmarks-$1.jar" RUN_ID="$RESULT_DIR/fork-$2" \
+                  ./run-scoredirector.sh --skip-flamegraphs > "$LOG" 2>&1 || true
+              # JMH does not fail the process when a benchmark trial errors out - it just omits it
+              # from the results, so a crashed run can still exit 0.
+              if [ -s "$RESULT_FILE" ]; then
+                printf '%10s fork %3s / %3s: %8.0f ops/s in %3s s\n' "$1" "$2" "$FORK_COUNT" \
+                    "$(jq -r '.[0].primaryMetric.score' "$RESULT_FILE")" "$((SECONDS - STARTED))"
+                return 0
+              fi
+              # A retried fork runs later than its partner on the other side, which weakens the
+              # pairing that the alternation exists to create. Say so loudly, with the evidence:
+              # this is the only place that log is ever read.
+              echo "::warning::The $1 fork-$2 produced no results on attempt $ATTEMPT."
+              tail -n 30 "$LOG"
+            done
+            echo "::error::The $1 fork-$2 produced no results, even after a retry."
+            exit 1
+          }
+          for FORK in $(seq -w 1 "$FORK_COUNT"); do
+            run_fork baseline "$FORK"
+            run_fork sut "$FORK"
+          done
+
+      - name: Merge the results
+        working-directory: ./timefold-solver-benchmarks
+        shell: bash
+        env:
+          JDK_BASELINE: ${{ github.event.inputs.jdk_baseline }}
+          JDK_BRANCH: ${{ github.event.inputs.jdk_branch }}
+        run: |
+          merge_side() { # side, result dir, results file, requested major version
+            COUNT=$(find "results/scoredirector/$2" -name results.json | wc -l)
+            if [ "$COUNT" -ne "$FORK_COUNT" ]; then
+              echo "::error::The $1 side produced $COUNT/$FORK_COUNT fork results."
+              exit 1
+            fi
+            python3 merge-scoredirector-results.py \
+                results/scoredirector/"$2"/fork-*/results.json --output "$3" --expect-jdk "$4"
+            COUNT=$(jq 'length' "$3")
+            if [ "$COUNT" -ne 1 ]; then
+              echo "::error::The $1 side merged to $COUNT/1 benchmark results."
+              exit 1
+            fi
+            # JMH names every fork's recording jfr-cpu.jfr in one directory for each benchmark,
+            # with no fork index, so a single multi-fork run kept only the last fork's profile.
+            # Concatenated recordings are one valid multi-chunk file, in which chunk N is fork N
+            # byte for byte, so nothing is lost by keeping only the merge:
+            #   jfr disassemble --max-chunks 1 --output <dir> jfr-cpu.jfr
+            RECORDINGS=$(find "results/scoredirector/$2" -path '*/fork-*/*' -name 'jfr-cpu.jfr' | sort)
+            if [ -z "$RECORDINGS" ]; then
+              # Only happens when the async profiler could not be loaded; it warns and carries on.
+              echo "::warning::The $1 side produced no JFR recordings."
+              return 0
+            fi
+            echo "$RECORDINGS" | xargs cat > "results/scoredirector/$2/jfr-cpu.jfr"
+            echo "$RECORDINGS" | xargs rm
+            # One fork holds too few samples to draw a useful flame graph, so the graphs are made
+            # here, once, from the merge. The per-fork recordings are gone, so the conversion
+            # finds exactly this one file.
+            JAVA_HOME="$5" BENCHMARK_JAR="benchmarks-$1.jar" RUN_ID="$2" \
+                ./run-scoredirector.sh --flamegraphs-only
+          }
+          merge_side baseline "$BASELINE_DIR" baseline-results.json "$JDK_BASELINE" "$JAVA_HOME_BASELINE"
+          merge_side sut "$SUT_DIR" sut-results.json "$JDK_BRANCH" "$JAVA_HOME_SUT"
+
+      - name: Verify what actually ran
+        working-directory: ./timefold-solver-benchmarks
+        shell: bash
+        env:
+          JDK_BASELINE: ${{ github.event.inputs.jdk_baseline }}
+          JDK_BRANCH: ${{ github.event.inputs.jdk_branch }}
+        run: |
+          # JMH records the JVM that ran the benchmark, which is evidence, unlike the environment
+          # this job set up for it.
+          BASELINE_JVM=$(jq -r '.[0].jvm' baseline-results.json)
+          SUT_JVM=$(jq -r '.[0].jvm' sut-results.json)
+          echo "baseline ran on $BASELINE_JVM"
+          echo "sut ran on $SUT_JVM"
+          if [ "$JDK_BASELINE" = "$JDK_BRANCH" ] && [ "$BASELINE_JVM" != "$SUT_JVM" ]; then
+            echo "::error::One JDK was requested for both sides, but they ran on different JVMs."
+            exit 1
+          fi
+          if [ "$JDK_BASELINE" != "$JDK_BRANCH" ] && [ "$BASELINE_JVM" = "$SUT_JVM" ]; then
+            echo "::error::Different JDKs were requested, but one JVM ran both sides."
             exit 1
           fi
 
@@ -380,11 +559,13 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: assets-${{ matrix.example }}
+          # The recording and its flame graphs now sit directly in the side's directory, one file
+          # for each side; the fork-* subdirectories below it hold only results.json.
           path: |
-            ./timefold-solver-benchmarks/results/scoredirector/${{ env.BASELINE_DIR }}/**/*.jfr
-            ./timefold-solver-benchmarks/results/scoredirector/${{ env.BASELINE_DIR }}/**/*.html
-            ./timefold-solver-benchmarks/results/scoredirector/${{ env.SUT_DIR }}/**/*.jfr
-            ./timefold-solver-benchmarks/results/scoredirector/${{ env.SUT_DIR }}/**/*.html
+            ./timefold-solver-benchmarks/results/scoredirector/${{ env.BASELINE_DIR }}/*.jfr
+            ./timefold-solver-benchmarks/results/scoredirector/${{ env.BASELINE_DIR }}/*.html
+            ./timefold-solver-benchmarks/results/scoredirector/${{ env.SUT_DIR }}/*.jfr
+            ./timefold-solver-benchmarks/results/scoredirector/${{ env.SUT_DIR }}/*.html
           if-no-files-found: warn
 
       # Empty when the step above found no assets (if-no-files-found: warn uploads nothing, so
@@ -414,6 +595,9 @@ jobs:
         uses: actions/checkout@v7
         with:
           path: ./timefold-solver-benchmarks
+          # Same reason as the benchmark job: the summarizer has to come from the commit
+          # that dispatched this run, or a change to it is never exercised before it is merged.
+          ref: ${{ github.sha }}
 
       - name: Setup Python
         uses: actions/setup-python@v7

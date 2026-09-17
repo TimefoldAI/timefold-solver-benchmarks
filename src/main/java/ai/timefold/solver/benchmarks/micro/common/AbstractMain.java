@@ -50,6 +50,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import one.convert.Arguments;
+import one.convert.JfrToFlame;
+import one.convert.JfrToHeatmap;
 import one.profiler.AsyncProfilerLoader;
 
 public abstract class AbstractMain<C extends AbstractConfiguration> {
@@ -146,9 +148,9 @@ public abstract class AbstractMain<C extends AbstractConfiguration> {
         var args = argStream.toArray(String[]::new);
         try {
             if (visualizationType == VisualizationType.FLAME_GRAPH) {
-                one.convert.JfrToFlame.convert(inputPath.toString(), output.toString(), new Arguments(args));
+                JfrToFlame.convert(inputPath.toString(), output.toString(), new Arguments(args));
             } else if (visualizationType == VisualizationType.HEAT_MAP) {
-                one.convert.JfrToHeatmap.convert(inputPath.toString(), output.toString(), new Arguments(args));
+                JfrToHeatmap.convert(inputPath.toString(), output.toString(), new Arguments(args));
             } else {
                 throw new IllegalArgumentException("Unsupported visualization: " + visualizationType);
             }
@@ -188,7 +190,7 @@ public abstract class AbstractMain<C extends AbstractConfiguration> {
                         // the thread keeps running in the interpreter or C1 while C2 compiles,
                         // so which profile the final code is built from is a race.
                         // Each JVM lost or won it once and kept that shape for its whole life,
-                        // which would split the forks of one benchmark into two speeds 10-30 % apart.
+                        // which split the forks of the move-provider benchmark into two distinct speeds.
                         "-Xbatch")
                 .result(resultsDirectory.resolve("results.json").toAbsolutePath().toString())
                 .resultFormat(ResultFormatType.JSON)

@@ -33,6 +33,7 @@ package ai.timefold.solver.benchmarks.micro.scoredirector;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Set;
 
 import ai.timefold.solver.benchmarks.micro.common.AbstractMain;
 
@@ -41,6 +42,19 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
 
 public final class Main extends AbstractMain<Configuration> {
+
+    /**
+     * Convert the JFR recordings already in the results directory and do nothing else.
+     * CI runs one fork for each invocation, so the flame graphs are made once, at the end,
+     * from the concatenation of every fork's recording.
+     */
+    private static final String FLAME_GRAPHS_ONLY = "--flamegraphs-only";
+    /**
+     * Run the benchmark, but leave the JFR recording alone.
+     * One fork does not have enough samples to draw a useful flame graph,
+     * and converting each of them would multiply the size of the archived assets.
+     */
+    private static final String SKIP_FLAME_GRAPHS = "--skip-flamegraphs";
 
     public Main() {
         super("scoredirector");
@@ -61,15 +75,30 @@ public final class Main extends AbstractMain<Configuration> {
     }
 
     public void run(String[] args) throws RunnerException, IOException {
+        var arguments = Set.of(args);
+        if (arguments.contains(FLAME_GRAPHS_ONLY)) {
+            convertJfrToFlameGraphs();
+            return;
+        }
         var configuration = readConfiguration();
-        var options = getBaseJmhConfig(configuration);
+        var options = getBaseJmhConfig(configuration)
+                // Commit and touch the whole heap at startup, instead of faulting it in during warmup.
+                // Forks of one side do identical work and burn identical CPU, yet differ in how many
+                // operations they finish, by a constant that is already fully present in the first second of
+                // measurement and never changes afterwards - a speed drawn once per JVM. Lazy page backing of
+                // the heap fits that shape, so this takes one candidate draw away. It has not been shown to
+                // help; it is kept because it is cheap, and it is a hedge, not a fix.
+                // Appended here, not in AbstractMain: coldstart measures startup, which is what this costs.
+                .jvmArgsAppend("-XX:+AlwaysPreTouch");
         options = processBenchmark(options, configuration, ScoreDirectorType.CONSTRAINT_STREAMS);
         options = processBenchmark(options, configuration, ScoreDirectorType.CONSTRAINT_STREAMS_JUSTIFIED);
         options = initAsyncProfiler(options);
 
         var runner = new Runner(options.build());
         var runResults = runner.run();
-        convertJfrToFlameGraphs();
+        if (!arguments.contains(SKIP_FLAME_GRAPHS)) {
+            convertJfrToFlameGraphs();
+        }
 
         var relativeScoreErrorThreshold = configuration.getRelativeScoreErrorThreshold();
         var thresholdForPrint = ((int) Math.round(relativeScoreErrorThreshold * 10_000)) / 100.0D;
