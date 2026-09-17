@@ -190,7 +190,7 @@ public abstract class AbstractMain<C extends AbstractConfiguration> {
                         // the thread keeps running in the interpreter or C1 while C2 compiles,
                         // so which profile the final code is built from is a race.
                         // Each JVM lost or won it once and kept that shape for its whole life,
-                        // which would split the forks of one benchmark into two speeds 10-30 % apart.
+                        // which split the forks of the move-provider benchmark into two distinct speeds.
                         "-Xbatch")
                 .result(resultsDirectory.resolve("results.json").toAbsolutePath().toString())
                 .resultFormat(ResultFormatType.JSON)

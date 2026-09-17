@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Merge the single-fork JMH result files of one side into the one file the report expects.
 
-CI runs the baseline and the SUT one fork at a time, alternating, so that machine wander lands on
-both sides equally instead of on whichever block it happens to cover. That leaves one results.json
-for each fork. This script joins them back into a single entry for each benchmark, identical in
+CI runs the baseline and the SUT one fork at a time, alternating, so that anything the machine
+does lands on both sides equally instead of on whichever block it happens to cover. That leaves one
+results.json for each fork. This script joins them back into a single entry for each benchmark, identical in
 shape to what a single multi-fork JMH run would have written, so summarize-scoredirector.py needs
 no knowledge of how the measurements were collected.
 

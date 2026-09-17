@@ -27,12 +27,12 @@ import re
 import statistics
 import sys
 
-# The band inside which a delta counts as noise. Measured, not guessed: across 35 main-against-main
-# comparisons on these runners the deltas had an RMS of 1.10 % and a worst case of 3.91 %, so 3 %
-# would have failed a run that found nothing. The noise here is per-fork and independent - pairing
-# fork N against fork N removes only about a tenth of it - so the band cannot be narrowed by
-# scheduling, only by spending forks. Re-measure this whenever the runners change.
-TOLERANCE_PCT = 4.0
+# The band inside which a delta counts as noise. Measured, not guessed: across 36 main-against-main
+# comparisons the deltas had an RMS of 0.55 % and a worst case of 1.61 %, so 3 % leaves about a
+# factor of two over anything actually seen and lets through roughly one false failure in a
+# thousand runs. Narrower is not free: the noise is per-fork and independent, so the only way to
+# buy a tighter band is to spend forks. Re-measure this whenever the runners change.
+TOLERANCE_PCT = 3.0
 
 RUNNER_LABEL = "self-hosted"
 
@@ -129,13 +129,12 @@ def resolution(old: dict, new: dict) -> float:
 
     Paired, because the workflow alternates: fork k of one side runs about a minute before fork k
     of the other, so both met the same machine. Taking the ratio inside each pair cancels whatever
-    the machine was doing between them. How much that is worth depends on the hardware - on runners
-    whose speed wanders it was most of the noise, on the current ones the two forks of a pair
-    correlate at only +0.23 and the pairing is worth about a tenth of the variance. Pairing is
-    never worse than not pairing, so it is unconditional.
+    the machine was doing between them. The two forks of a pair correlate at +0.39 here, so the
+    pairing is worth about a third of the variance; most of the spread is a per-JVM constant that
+    no schedule can cancel. Pairing is never worse than not pairing, so it is unconditional.
 
-    A side written before the alternating schedule carries no rawData, and the two sides of a
-    retried fork can end up different lengths; neither can be paired, so both give NaN.
+    A side carrying no rawData cannot be paired, and neither can two sides of different lengths,
+    which is what a retried fork leaves behind; both give NaN.
     """
     old_forks, new_forks = old["forks"], new["forks"]
     if len(old_forks) != len(new_forks) or len(old_forks) < 2:
@@ -234,10 +233,10 @@ def render_legend() -> list:
             "",
             "- The smallest difference this run could tell apart from no difference at all: "
             "the 99.9 % confidence interval on the delta itself.",
-            "- It is paired. The two sides alternate fork by fork, so fork N of each ran seconds "
-            "apart and met the same machine; comparing them within the pair cancels whatever the "
-            "machine was doing, which is most of the noise. A run whose speed drifted 18 % over "
-            "the hour still resolves to ± 1.6 %.",
+            "- It is paired. The two sides alternate fork by fork, so fork N of each ran about a "
+            "minute apart and met the same machine; comparing them within the pair cancels "
+            "whatever the machine was doing in between. Most of the remaining spread is a speed "
+            "offset drawn once per JVM, which only more forks can average away.",
             "- It shrinks with the square root of the fork count, so it is also the answer to "
             "\"how many forks do we need?\".",
             "",
