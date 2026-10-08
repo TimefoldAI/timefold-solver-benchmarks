@@ -15,15 +15,15 @@ on:
     inputs:
       jdk_baseline:
         description: 'JDK version'
-        default: '25'
+        default: '27'
         required: true
       baseline:
         description: 'Baseline branch or tag (branches need to use 999-SNAPSHOT)'
-        default: 'v2.6.0'
+        default: 'v2.7.1'
         required: true
       jdk_branch:
         description: 'JDK version'
-        default: '25'
+        default: '27'
         required: true
       branch:
         description: 'Branch to benchmark (needs to use 999-SNAPSHOT)'

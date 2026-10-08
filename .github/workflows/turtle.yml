@@ -5,7 +5,7 @@ on:
     inputs:
       jdk:
         description: 'JDK version'
-        default: '25'
+        default: '27'
         required: true
       branch:
         description: 'Branch to benchmark (needs to use 999-SNAPSHOT)'
