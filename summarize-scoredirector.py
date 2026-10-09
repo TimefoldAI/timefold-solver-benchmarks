@@ -293,48 +293,48 @@ def _selftest() -> None:
     # together resolves far better than either side's own spread suggests.
     drifting_old = side(100.0, 0.0, math.nan, math.nan, [90, 95, 100, 105, 110])
     drifting_new = side(100.0, 0.0, math.nan, math.nan, [90, 95, 100, 105, 110])
-    assert resolution(drifting_old, drifting_new) == 0.0, "identical sides resolve perfectly"
+    if resolution(drifting_old, drifting_new) != 0.0: raise AssertionError("identical sides resolve perfectly")
     scattered_old = side(100.0, 0.0, math.nan, math.nan, [100, 100, 100, 100, 100])
     scattered_new = side(100.0, 0.0, math.nan, math.nan, [90, 95, 100, 105, 110])
-    assert resolution(scattered_old, scattered_new) > 10.0, "unpaired scatter is not hidden"
+    if resolution(scattered_old, scattered_new) <= 10.0: raise AssertionError("unpaired scatter is not hidden")
     # Anything that cannot be paired resolves to nothing rather than to a wrong number.
-    assert math.isnan(resolution(fast, slow)), "no rawData, no resolution"
-    assert math.isnan(resolution(drifting_old, side(100.0, 0.0, 0.0, 0.0, [100, 100])))
-    assert math.isnan(resolution(side(1.0, 0.0, 0.0, 0.0, [0.0, 1.0, 2.0]), drifting_old))
+    if not math.isnan(resolution(fast, slow)): raise AssertionError("no rawData, no resolution")
+    if not math.isnan(resolution(drifting_old, side(100.0, 0.0, 0.0, 0.0, [100, 100]))): raise AssertionError()
+    if not math.isnan(resolution(side(1.0, 0.0, 0.0, 0.0, [0.0, 1.0, 2.0]), drifting_old)): raise AssertionError()
 
-    assert is_unresolved(TOLERANCE_PCT + 0.1) and not is_unresolved(TOLERANCE_PCT - 0.1)
-    assert not is_unresolved(math.nan), "unknown resolution must not raise the flag"
+    if not (is_unresolved(TOLERANCE_PCT + 0.1) and not is_unresolved(TOLERANCE_PCT - 0.1)): raise AssertionError()
+    if is_unresolved(math.nan): raise AssertionError("unknown resolution must not raise the flag")
 
     # Regression: new (slow) is strictly below old (fast).
     delta, verdict, _ = evaluate_row(fast, slow)
-    assert verdict == REGRESSION, verdict
-    assert delta < 0
+    if verdict != REGRESSION: raise AssertionError(verdict)
+    if not delta < 0: raise AssertionError()
 
     # Improvement: new (fast) is strictly above old (slow).
     delta, verdict, _ = evaluate_row(slow, fast)
-    assert verdict == IMPROVEMENT, verdict
-    assert delta > 0
+    if verdict != IMPROVEMENT: raise AssertionError(verdict)
+    if not delta > 0: raise AssertionError()
 
     # Within tolerance: old vs. a slightly higher score, well inside the band.
     delta, verdict, _ = evaluate_row(fast, same)
-    assert verdict == TOLERANCE, verdict
+    if verdict != TOLERANCE: raise AssertionError(verdict)
 
     # NaN confidence interval outside tolerance: can't prove improvement or regression.
     delta, verdict, _ = evaluate_row(fast, noisy)
-    assert verdict == UNDETERMINED, verdict
+    if not (verdict == UNDETERMINED): raise AssertionError(verdict)
 
     # Missing side never crashes and is reported distinctly.
     delta, verdict, resolution_pct = evaluate_row(None, fast)
-    assert verdict == MISSING and delta is None and math.isnan(resolution_pct)
+    if not (verdict == MISSING and delta is None and math.isnan(resolution_pct)): raise AssertionError()
 
     # A coarse resolution only annotates; it must not override the verdict.
     coarse_old = side(100.0, 0.0, math.nan, math.nan, [100, 100, 100, 100, 100])
     coarse_new = side(100.0, 0.0, math.nan, math.nan, [80, 90, 100, 110, 120])
     delta, verdict, resolution_pct = evaluate_row(coarse_old, coarse_new)
-    assert verdict == TOLERANCE and is_unresolved(resolution_pct), resolution_pct
+    if not (verdict == TOLERANCE and is_unresolved(resolution_pct)): raise AssertionError(resolution_pct)
 
-    assert format_resolution(math.nan) == ABSENT
-    assert format_resolution(1.34) == "± 1.3 %"
+    if not (format_resolution(math.nan) == ABSENT): raise AssertionError()
+    if not (format_resolution(1.34) == "± 1.3 %"): raise AssertionError()
 
     # Row order: alphabetical, from a deliberately scrambled input.
     expect = ["vehicle_routing", "cloud_balancing", "examination"]
@@ -342,31 +342,31 @@ def _selftest() -> None:
     sut = dict(baseline)
     sut["examination"] = slow
     rows = build_rows(expect, baseline, sut, {})
-    assert [r[0] for r in rows] == sorted(expect)
+    if not [r[0] for r in rows] == sorted(expect): raise AssertionError
 
     report, exit_code = render_report(rows, "v1.0.0", "main", "TimefoldAI")
-    assert exit_code == 1, "a regression must fail the build"
-    assert "| Example | Throughput | Resolution |" in report
-    assert report.count("| Example |") == 1
+    if not exit_code == 1: raise AssertionError("a regression must fail the build")
+    if not "| Example | Throughput | Resolution |" in report: raise AssertionError
+    if not report.count("| Example |") == 1: raise AssertionError
 
     # The legend is sectioned.
     for heading in ("#### Noise band", "#### Resolution", "#### What the marks mean", "#### Notes"):
-        assert heading in report, heading
+        if not heading in report: raise AssertionError(heading)
     for mark in (f"{UNDETERMINED.emoji} {UNDETERMINED.label}:", f"{UNRESOLVED}:"):
-        assert f"- {mark}" in report, mark
+        if f"- {mark}" not in report: raise AssertionError(mark)
 
     # A missing side renders as a distinct row rather than vanishing.
     missing_rows = build_rows(["cloud_balancing", "examination"], {"cloud_balancing": fast}, {"cloud_balancing": fast}, {})
     missing_report, missing_exit = render_report(missing_rows, "v1.0.0", "main", "TimefoldAI")
-    assert missing_exit == 1
-    assert f"{MISSING.emoji} {ABSENT} → {ABSENT}" in missing_report
+    if missing_exit != 1: raise AssertionError()
+    if f"{MISSING.emoji} {ABSENT} → {ABSENT}" not in missing_report: raise AssertionError()
 
     # load_side reads whichever *Example param is present, case-insensitively, and works for either
     # benchmark class's param name.
     for param_name in ("csExample", "csJustifiedExample"):
         params = {param_name: "CLOUD_BALANCING"}
         example_key = next(key for key in params if key.endswith("Example"))
-        assert params[example_key].lower() == "cloud_balancing", param_name
+        if params[example_key].lower() != "cloud_balancing": raise AssertionError(param_name)
 
     print("summarize-scoredirector.py: selftest OK")
 

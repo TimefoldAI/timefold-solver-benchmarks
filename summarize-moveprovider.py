@@ -351,69 +351,85 @@ def _selftest() -> None:
 
     # Regression: new (slow) is strictly below old (fast).
     delta, verdict, _ = evaluate_row(fast, slow, COMMIT_BAND)
-    assert verdict == REGRESSION, verdict
-    assert delta < 0
+    if verdict != REGRESSION: raise AssertionError(verdict)
+    if delta >= 0: raise AssertionError()
 
     # Improvement: new (fast) is strictly above old (slow).
     delta, verdict, _ = evaluate_row(slow, fast, COMMIT_BAND)
-    assert verdict == IMPROVEMENT, verdict
-    assert delta > 0
+    if verdict != IMPROVEMENT: raise AssertionError(verdict)
+    if delta <= 0: raise AssertionError()
 
     # Within tolerance: old vs. a slightly higher score, well inside either band.
     delta, verdict, _ = evaluate_row(fast, same, COMMIT_BAND)
-    assert verdict == TOLERANCE, verdict
+    if verdict != TOLERANCE: raise AssertionError(verdict)
 
     # NaN confidence interval outside tolerance: can't prove improvement or regression.
     delta, verdict, _ = evaluate_row(fast, noisy, COMMIT_BAND)
-    assert verdict == UNDETERMINED, verdict
+    if not verdict == UNDETERMINED: raise AssertionError(verdict)
 
     # The band belongs to the scenario, and a band is only ever a noise floor: a delta inside it is
     # not reported, whatever the confidence intervals say. drawOnly used to be looser than commitMove
     # to absorb the JIT compilation lottery; it no longer is, so the only thing to pin here is that
     # the band, not the confidence interval, decides the small-delta case.
-    assert evaluate_row(fast, noisy, TOLERANCE_PCT[COMMIT_MOVE])[1] == UNDETERMINED
-    assert evaluate_row(fast, noisy, 20.0)[1] == TOLERANCE, "a wide enough band swallows any delta"
-    assert set(TOLERANCE_PCT) == set(SCENARIOS), "every scenario needs a band"
+    if not evaluate_row(fast, noisy, TOLERANCE_PCT[COMMIT_MOVE])[1] == UNDETERMINED: raise AssertionError()
+    if not evaluate_row(fast, noisy, 20.0)[1] == TOLERANCE: raise AssertionError("a wide enough band swallows any delta")
+    if not set(TOLERANCE_PCT) == set(SCENARIOS): raise AssertionError("every scenario needs a band")
     for scenario, band in TOLERANCE_PCT.items():
-        assert band > 0, f"{scenario} needs a positive band"
+        if not band > 0: raise AssertionError(f"{scenario} needs a positive band")
 
     # Missing side never crashes and is reported distinctly.
     delta, verdict, high_error = evaluate_row(None, fast, COMMIT_BAND)
-    assert verdict == MISSING and delta is None and high_error is False
+    if not (verdict == MISSING and delta is None and high_error is False):
+        raise AssertionError()
 
     # High relative error only annotates; it must not override a tolerance/regression verdict.
     high_err_side = {"score": 100.0, "score_error": 5.0, "conf_lo": 90.0, "conf_hi": 110.0, "moved_values": 2.0}
     delta, verdict, high_error = evaluate_row(fast, high_err_side, COMMIT_BAND)
-    assert verdict == TOLERANCE and high_error is True
+    if not (verdict == TOLERANCE and high_error is True):
+        raise AssertionError()
 
     # The counter is a rate in the primary unit, so values/op is the quotient of the two scores.
     entry = {"secondaryMetrics": {MOVED_VALUES_KEY: {"score": 300.0}}}
-    assert read_moved_values(entry, 100.0) == 3.0
-    assert read_moved_values({"secondaryMetrics": {}}, 100.0) is None
-    assert read_moved_values(entry, 0.0) is None
-    assert read_moved_values({"secondaryMetrics": {MOVED_VALUES_KEY: {"score": "NaN"}}}, 100.0) is None
+    if not (read_moved_values(entry, 100.0) == 3.0):
+        raise AssertionError()
+    if not (read_moved_values({"secondaryMetrics": {}}, 100.0) is None):
+        raise AssertionError()
+    if not (read_moved_values(entry, 0.0) is None):
+        raise AssertionError()
+    if not (read_moved_values({"secondaryMetrics": {MOVED_VALUES_KEY: {"score": "NaN"}}}, 100.0) is None):
+        raise AssertionError()
 
     # ns/value: 100 ops/s moving 2 values each is 1e9 / 200 ns for each value.
-    assert ns_per_value(fast) == 1e9 / 200
-    assert ns_per_value(None) is None
-    assert ns_per_value({"score": 100.0, "moved_values": None}) is None
-    assert ns_per_value({"score": 100.0, "moved_values": 0.0}) is None
+    if not ns_per_value(fast) == 1e9 / 200:
+        raise AssertionError()
+    if not ns_per_value(None) is None:
+        raise AssertionError()
+    if not ns_per_value({"score": 100.0, "moved_values": None}) is None:
+        raise AssertionError()
+    if not ns_per_value({"score": 100.0, "moved_values": 0.0}) is None:
+        raise AssertionError()
 
     # The workload guard needs both sides, and ignores a difference within tolerance.
     heavier = dict(fast, moved_values=4.0)
     # 0.2 % apart: the two sides never agree to the last bit, and that must not raise the flag.
     barely = dict(fast, moved_values=2.004)
-    assert workload_changed(fast, heavier) is True
-    assert workload_changed(fast, barely) is False
-    assert workload_changed(fast, fast) is False
-    assert workload_changed(fast, dict(fast, moved_values=None)) is False
-    assert workload_changed(None, fast) is False
-    assert WORKLOAD_CHANGED in format_values_per_move(fast, heavier)
-    assert format_values_per_move(fast, fast) == "2.0"
-    assert format_values_per_move(None, None) == ABSENT
+    if not workload_changed(fast, heavier) is True:
+        raise AssertionError()
+    if not workload_changed(fast, barely) is False:
+        raise AssertionError()
+    if not workload_changed(fast, fast) is False:
+        raise AssertionError()
+    if not workload_changed(fast, dict(fast, moved_values=None)) is False:
+        raise AssertionError()
+    if not workload_changed(None, fast) is False:
+        raise AssertionError()
+    if not WORKLOAD_CHANGED in format_values_per_move(fast, heavier):
+        raise AssertionError()
+    if not format_values_per_move(fast, fast) == "2.0": raise AssertionError
+    if not format_values_per_move(None, None) == ABSENT: raise AssertionError
 
     # A workload change annotates only; it must never fail the build.
-    assert WORKLOAD_CHANGED not in {v.emoji for v in _FAILING_VERDICTS}
+    if WORKLOAD_CHANGED in {v.emoji for v in _FAILING_VERDICTS}: raise AssertionError
 
     # Row order, over every provider the benchmark has, from a deliberately scrambled input.
     basic = ["change", "swap", "assign", "unassign",
@@ -427,14 +443,14 @@ def _selftest() -> None:
     # Sorted for each family on its own, which is how render_report splits them before rendering.
     for prefix, names in (("basic:", basic), ("list:", listvar)):
         wanted_family = [prefix + n for n in names]
-        assert sorted(sorted(wanted_family), key=provider_sort_key) == wanted_family, \
-            sorted(sorted(wanted_family), key=provider_sort_key)
+        if not sorted(sorted(wanted_family), key=provider_sort_key) == wanted_family:
+            raise AssertionError(sorted(sorted(wanted_family), key=provider_sort_key))
     wanted = ["basic:" + n for n in basic] + ["list:" + n for n in listvar]
     # Every known provider must resolve to a real operation, or it silently lands in the tail.
     for provider_key in wanted:
-        assert provider_sort_key(provider_key)[1] < len(OPERATION_ORDER), provider_key
+        if provider_sort_key(provider_key)[1] >= len(OPERATION_ORDER): raise AssertionError(provider_key)
     # An unknown name sorts last rather than into the middle of a group.
-    assert provider_sort_key("basic:brand_new")[1] == len(OPERATION_ORDER)
+    if provider_sort_key("basic:brand_new")[1] != len(OPERATION_ORDER): raise AssertionError()
 
     # One row for each provider, split into the two families, and either scenario can fail the build.
     baseline = {("basic:change", COMMIT_MOVE): fast, ("basic:change", DRAW_ONLY): fast,
@@ -443,53 +459,53 @@ def _selftest() -> None:
     sut[("list:list_change", DRAW_ONLY)] = slow
     expect = ["basic:change", "list:list_change"]
     rows = build_rows(expect, baseline, sut, {})
-    assert len(rows) == len(expect)
-    assert [r[0] for r in rows] == expect
-    assert set(rows[0][1]) == set(SCENARIOS)
+    if len(rows) != len(expect): raise AssertionError()
+    if [r[0] for r in rows] != expect: raise AssertionError()
+    if not set(rows[0][1]) == set(SCENARIOS): raise AssertionError
     report, exit_code = render_report(rows, "v1.0.0", "main", "TimefoldAI")
-    assert exit_code == 1, "a regression in drawOnly alone must still fail"
-    assert "#### Basic variable" in report and "#### List variable" in report
-    assert report.count("| Move provider |") == 2
+    if not exit_code == 1: raise AssertionError("a regression in drawOnly alone must still fail")
+    if not ("#### Basic variable" in report and "#### List variable" in report): raise AssertionError
+    if not report.count("| Move provider |") == 2: raise AssertionError
 
     # Both ranking lines, for both families.
-    assert report.count("Highest generation ns/value:") == 2
-    assert report.count("Highest commit ns/value:") == 2
+    if not report.count("Highest generation ns/value:") == 2: raise AssertionError
+    if not report.count("Highest commit ns/value:") == 2: raise AssertionError
 
     # The column explainer, with one row for each of the four columns.
-    assert "#### What the columns mean" in report
+    if not "#### What the columns mean" in report: raise AssertionError
     for column in (f"`{COMMIT_MOVE}`", f"`{DRAW_ONLY}`", "`Values/move`", "`ns/value`"):
-        assert f"| {column} |" in report, column
-    assert str(DRAW_ONLY_DRAWS) in report
+        if not f"| {column} |" in report: raise AssertionError(column)
+    if not str(DRAW_ONLY_DRAWS) in report: raise AssertionError
 
     # The legend is sectioned, and every mark a label cannot explain by itself gets its own bullet.
     for heading in ("#### What the columns mean", "#### Noise bands", "#### What the marks mean",
                     "#### Notes"):
-        assert heading in report, heading
+        if not heading in report: raise AssertionError(heading)
     for mark in (f"{UNDETERMINED.emoji} {UNDETERMINED.label}:", f"{HIGH_ERROR}:", f"{WORKLOAD_CHANGED}:"):
-        assert f"- {mark}" in report, mark
+        if not f"- {mark}" in report: raise AssertionError(mark)
 
     # A ⚠️ cell names both its margins below the table; a clean table prints no such line.
-    assert error_notes(rows) == []
-    assert f"{HIGH_ERROR} CHANGE" not in report
+    if not error_notes(rows) == []: raise AssertionError()
+    if f"{HIGH_ERROR} CHANGE" in report: raise AssertionError()
     noisy_sut = dict(sut)
     noisy_sut[("basic:change", COMMIT_MOVE)] = high_err_side
     noisy_rows = build_rows(expect, baseline, noisy_sut, {})
     notes = error_notes(noisy_rows)
-    assert len(notes) == 1, notes
-    assert notes[0] == f"{HIGH_ERROR} CHANGE `{COMMIT_MOVE}`: ± 1.0 % old · ± 5.0 % new, against a +0.0 % delta", notes[0]
+    if not len(notes) == 1: raise AssertionError(notes)
+    if not notes[0] == f"{HIGH_ERROR} CHANGE `{COMMIT_MOVE}`: ± 1.0 % old · ± 5.0 % new, against a +0.0 % delta": raise AssertionError(notes[0])
     noisy_report, _ = render_report(noisy_rows, "v1.0.0", "main", "TimefoldAI")
-    assert notes[0] in noisy_report
+    if not notes[0] in noisy_report: raise AssertionError()
     # A margin on a zero score is no percentage at all; it prints as absent rather than crashing.
     zero = {"score": 0.0, "score_error": 1.0, "conf_lo": math.nan, "conf_hi": math.nan, "moved_values": 2.0}
     zero_rows = build_rows(["basic:change"],
                            {("basic:change", COMMIT_MOVE): high_err_side, ("basic:change", DRAW_ONLY): fast},
                            {("basic:change", COMMIT_MOVE): zero, ("basic:change", DRAW_ONLY): fast}, {})
-    assert error_notes(zero_rows) == [
-        f"{HIGH_ERROR} CHANGE `{COMMIT_MOVE}`: ± 5.0 % old · {ABSENT} new, against a -100.0 % delta"]
+    if not error_notes(zero_rows) == [
+        f"{HIGH_ERROR} CHANGE `{COMMIT_MOVE}`: ± 5.0 % old · {ABSENT} new, against a -100.0 % delta"]: raise AssertionError
 
     # An old baseline jar still reports singleDraw; the alias joins it to commitMove.
-    assert SCENARIO_ALIASES.get("singleDraw") == COMMIT_MOVE
-    assert "manyDraws" not in SCENARIO_ALIASES, "manyDraws has no counterpart and must drop out"
+    if not SCENARIO_ALIASES.get("singleDraw") == COMMIT_MOVE: raise AssertionError
+    if "manyDraws" in SCENARIO_ALIASES: raise AssertionError("manyDraws has no counterpart and must drop out")
 
     print("summarize-moveprovider.py: selftest OK")
 

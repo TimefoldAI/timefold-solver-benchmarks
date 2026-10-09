@@ -168,14 +168,14 @@ def merge_files(paths: list, expected_jdk: "str | None" = None) -> list:
 
 def _selftest() -> None:
     # JMH itself used 3.392 for 100 iterations; recovering that number validates the quantile.
-    assert abs(t_quantile(CONFIDENCE_TAIL, 99) - 3.392) < 0.001, t_quantile(CONFIDENCE_TAIL, 99)
+    if not abs(t_quantile(CONFIDENCE_TAIL, 99) - 3.392) < 0.001: raise AssertionError(t_quantile(CONFIDENCE_TAIL, 99))
     for degrees_of_freedom, expected in ((1, 636.619), (10, 4.587), (19, 3.883), (25, 3.725)):
         actual = t_quantile(CONFIDENCE_TAIL, degrees_of_freedom)
-        assert abs(actual - expected) < max(0.001, expected * 1e-5), (degrees_of_freedom, actual)
+        if not abs(actual - expected) < max(0.001, expected * 1e-5): raise AssertionError((degrees_of_freedom, actual))
 
-    assert percentile([1.0, 2.0, 3.0], 0.0) == 1.0
-    assert percentile([1.0, 2.0, 3.0], 50.0) == 2.0
-    assert percentile([1.0, 2.0, 3.0], 100.0) == 3.0
+    if not percentile([1.0, 2.0, 3.0], 0.0) == 1.0: raise AssertionError()
+    if not percentile([1.0, 2.0, 3.0], 50.0) == 2.0: raise AssertionError()
+    if not percentile([1.0, 2.0, 3.0], 100.0) == 3.0: raise AssertionError()
 
     def fork(*values, jvm="/jdk25/bin/java", version="25.0.4.1"):
         return {"benchmark": "Bench.run", "params": {"csExample": "CLOUD_BALANCING"},
@@ -187,22 +187,30 @@ def _selftest() -> None:
                                   "rawData": [list(values)]}}
 
     merged = merge_entries([fork(100.0), fork(102.0), fork(98.0), fork(104.0)])
-    assert merged["forks"] == 4 and merged["measurementIterations"] == 1
-    assert merged["primaryMetric"]["score"] == 101.0
+    if not (merged["forks"] == 4 and merged["measurementIterations"] == 1):
+        raise AssertionError
     expected_error = t_quantile(CONFIDENCE_TAIL, 3) * statistics.stdev([100.0, 102.0, 98.0, 104.0]) / 2
-    assert abs(merged["primaryMetric"]["scoreError"] - expected_error) < 1e-9
+    if not (abs(merged["primaryMetric"]["scoreError"] - expected_error) < 1e-9):
+        raise AssertionError
     low, high = merged["primaryMetric"]["scoreConfidence"]
-    assert abs(high - low - 2 * expected_error) < 1e-9
-    assert merged["primaryMetric"]["rawData"] == [[100.0], [102.0], [98.0], [104.0]], "fork order is kept"
-    assert merged["primaryMetric"]["scorePercentiles"]["0.0"] == 98.0
-    assert merged["primaryMetric"]["scoreUnit"] == "ops/s", "unrelated fields survive"
+    if not (abs(high - low - 2 * expected_error) < 1e-9):
+        raise AssertionError
+    if not (merged["primaryMetric"]["rawData"] == [[100.0], [102.0], [98.0], [104.0]]):
+        raise AssertionError
+    if not (merged["primaryMetric"]["scorePercentiles"]["0.0"] == 98.0):
+        raise AssertionError
+    if not (merged["primaryMetric"]["scoreUnit"] == "ops/s"):
+        raise AssertionError
 
     # Iterations inside a fork are not independent, so they must not inflate the sample count.
     spread = merge_entries([fork(100.0, 100.0, 100.0), fork(104.0, 104.0, 104.0)])
-    assert spread["measurementIterations"] == 3 and spread["forks"] == 2
-    assert spread["primaryMetric"]["score"] == 102.0
+    if not (spread["measurementIterations"] == 3 and spread["forks"] == 2):
+        raise AssertionError()
+    if not (spread["primaryMetric"]["score"] == 102.0):
+        raise AssertionError()
     two_fork_error = t_quantile(CONFIDENCE_TAIL, 1) * statistics.stdev([100.0, 104.0]) / math.sqrt(2)
-    assert abs(spread["primaryMetric"]["scoreError"] - two_fork_error) < 1e-9
+    if not (abs(spread["primaryMetric"]["scoreError"] - two_fork_error) < 1e-9):
+        raise AssertionError()
 
     for broken, reason in (
             ([fork(100.0), fork(102.0, jvm="/jdk21/bin/java")], "a different JVM"),
