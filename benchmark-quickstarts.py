@@ -318,6 +318,8 @@ def main() -> None:
 
     _print_table(name, all_speeds, args.runs)
     _write_csv(name, all_speeds, args.runs, args.output)
+    if len(all_speeds) < args.runs:
+        sys.exit(f"Only {len(all_speeds)}/{args.runs} runs succeeded.")
 
 
 if __name__ == "__main__":

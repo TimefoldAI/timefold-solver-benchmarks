@@ -341,8 +341,11 @@ jobs:
       # and ride along inside the data-* artifact -
       # that's the only artifact the report job downloads,
       # so this is how a row in its table can link straight to these assets.
+      # The archive steps also run after a failed benchmark step,
+      # so the report still gets whatever the job measured.
       - name: Archive benchmark assets
         id: archive_assets
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
           name: assets-${{ matrix.example }}
@@ -353,11 +356,13 @@ jobs:
 
       # Empty when the step above found no assets; summarize-quickstarts.py treats that as "no link".
       - name: Record the assets artifact URL
+        if: ${{ !cancelled() }}
         shell: bash
         run: |
           echo "${{ steps.archive_assets.outputs.artifact-url }}" > assets-url.txt
 
       - name: Archive benchmark data
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
           name: data-${{ matrix.example }}
