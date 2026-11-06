@@ -8,43 +8,35 @@ jobs:
   trigger:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout timefold-solver-benchmarks
-        uses: actions/checkout@v7
-        with:
-          path: ./timefold-solver-benchmarks
-          repository: TimefoldAI/timefold-solver-benchmarks
       - name: Checkout timefold-solver
         uses: actions/checkout@v7
         with:
           path: ./timefold-solver
           repository: TimefoldAI/timefold-solver
-      # Runs the workflows in this order:
-      # 1. turtle.yml
-      # 2. performance_score_director.yml
-      # 3. performance_quickstarts.yml
-      # Gives enough time between triggers to let the previous workflow get fully queued
-      # before another starts interfering with it.
-      # It is imperative that the performance jobs run in their entirety and are not pre-empted by other jobs,
-      # otherwise the performance results will be inconsistent and unreliable.
-      # The turtle jobs can run at any time,
-      # as they run on Github runners, and not on our custom performance runner
-      # and therefore cannot interfere with the performance jobs.
-      - name: Schedule the other workflow
+          # Full history without file contents, so that "git log --since" sees every commit of the past day.
+          fetch-depth: 0
+          filter: blob:none
+      # All workflows run on Github-hosted runners, one job per runner, so they cannot interfere with each other.
+      - name: Schedule the other workflows
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.BENCHMARK_PUBLISH_TOKEN }}
         run: |
-          cd timefold-solver
-          if git log --since="24 hours ago" --oneline | grep -q .; then
-            cd ../timefold-solver-benchmarks
-            echo '{}' | gh workflow run turtle.yml --json
-            echo "Launched nightly turtle tests." >> $GITHUB_STEP_SUMMARY
-            echo '{}' | gh workflow run performance_score_director.yml --json
-            echo "Launched nightly score director perf tests." >> $GITHUB_STEP_SUMMARY
-            sleep 5m
-            echo '{}' | gh workflow run performance_quickstarts.yml --json
-            echo "Queued nightly quickstart perf tests." >> $GITHUB_STEP_SUMMARY
+          changed() { git -C timefold-solver log --since="24 hours ago" --oneline -- "$@" | grep -q .; }
+          launch() {
+            echo '{}' | gh workflow run "$1" --json --repo TimefoldAI/timefold-solver-benchmarks
+            echo "Launched nightly $2." >> $GITHUB_STEP_SUMMARY
+          }
+          # Core (and "build", which holds the BOM) affects every benchmark;
+          # Quarkus integration and the service module only affect the quickstarts.
+          if changed core build; then
+            launch turtle.yml "turtle tests"
+            launch performance_score_director.yml "score director perf tests"
+            launch performance_move_provider.yml "move provider perf tests"
+            launch performance_quickstarts.yml "quickstart perf tests"
+          elif changed quarkus-integration service; then
+            launch performance_quickstarts.yml "quickstart perf tests"
           else
             # Don't waste money.
-            echo "No commits in the past 24 hours." >> $GITHUB_STEP_SUMMARY
+            echo "No commits to the benchmarked modules in the past 24 hours." >> $GITHUB_STEP_SUMMARY
           fi

@@ -3,7 +3,7 @@
 
 Usage:
   python3 benchmark.py QUICKSTART DIRECTORY [--runs N] [--parallel N]
-                       [--time-limit S] [--base-port N] [--output FILE]
+                       [--time-limit S] [--base-port N] [--output FILE] [--jfr-dir DIR]
 
 Measures "move evaluation speed" (moves/sec) from the solver's "Solving ended:"
 log line. Starts a fresh JVM for each run, reports aggregate stats.
@@ -27,25 +27,25 @@ from pathlib import Path
 SERVER_READY_TIMEOUT = 60   # seconds to wait for "started in" in logs
 PORT_FREE_TIMEOUT = 30      # seconds to wait for port to be released
 
-# Quickstart name → REST trigger config.
-# demo: GET endpoint for problem data (None = server pre-loads its own data)
-# solve: POST endpoint to start solving
-QUICKSTARTS: dict[str, dict[str, str | None]] = {
-    "bed-allocation":           {"demo": "/demo-data",         "solve": "/schedules"},
-    "conference-scheduling":    {"demo": "/demo-data",         "solve": "/schedules"},
-    "employee-scheduling":      {"demo": "/demo-data/SMALL",   "solve": "/schedules"},
-    "facility-location":        {"demo": None,                 "solve": "/flp/solve"},
-    "flight-crew-scheduling":   {"demo": "/demo-data",         "solve": "/schedules"},
-    "food-packaging":           {"demo": None,                 "solve": "/schedule/solve"},
-    "maintenance-scheduling":   {"demo": "/demo-data/SMALL",   "solve": "/schedules"},
-    "meeting-scheduling":       {"demo": "/demo-data",         "solve": "/schedules"},
-    "order-picking":            {"demo": None,                 "solve": "/orderPicking/solve"},
-    "project-job-scheduling":   {"demo": "/demo-data",         "solve": "/schedules"},
-    "school-timetabling":       {"demo": "/demo-data/SMALL",   "solve": "/timetables"},
-    "sports-league-scheduling": {"demo": "/demo-data",         "solve": "/schedules"},
-    "task-assigning":           {"demo": "/demo-data",         "solve": "/schedules"},
-    "tournament-scheduling":    {"demo": "/demo-data",         "solve": "/schedules"},
-    "vehicle-routing":          {"demo": "/demo-data/FIRENZE", "solve": "/route-plans"},
+# Quickstart name → REST trigger config of the service module.
+# demo: GET endpoint that returns a complete model request
+# solve: POST endpoint that accepts the model request and starts solving
+QUICKSTARTS: dict[str, dict[str, str]] = {
+    "bed-allocation":           {"demo": "/v1/demo-data/BASIC",   "solve": "/v1/schedules"},
+    "conference-scheduling":    {"demo": "/v1/demo-data/BASIC",   "solve": "/v1/schedules"},
+    "employee-scheduling":      {"demo": "/v1/demo-data/BASIC",   "solve": "/v1/schedules"},
+    "facility-location":        {"demo": "/v1/demo-data/BASIC",   "solve": "/v1/plans"},
+    "flight-crew-scheduling":   {"demo": "/v1/demo-data/BASIC",   "solve": "/v1/schedules"},
+    "food-packaging":           {"demo": "/v1/demo-data/BASIC",   "solve": "/v1/schedules"},
+    "maintenance-scheduling":   {"demo": "/v1/demo-data/BASIC",   "solve": "/v1/schedules"},
+    "meeting-scheduling":       {"demo": "/v1/demo-data/BASIC",   "solve": "/v1/schedules"},
+    "order-picking":            {"demo": "/v1/demo-data/BASIC",   "solve": "/v1/picking-plans"},
+    "project-job-scheduling":   {"demo": "/v1/demo-data/BASIC",   "solve": "/v1/schedules"},
+    "school-timetabling":       {"demo": "/v1/demo-data/BASIC",   "solve": "/v1/timetables"},
+    "sports-league-scheduling": {"demo": "/v1/demo-data/BASIC",   "solve": "/v1/schedules"},
+    "task-assigning":           {"demo": "/v1/demo-data/BASIC",   "solve": "/v1/schedules"},
+    "tournament-scheduling":    {"demo": "/v1/demo-data/BASIC",   "solve": "/v1/schedules"},
+    "vehicle-routing":          {"demo": "/v1/demo-data/FIRENZE", "solve": "/v1/route-plans"},
 }
 
 # Matches the solver-level summary line only (not per-phase summaries).
@@ -93,6 +93,7 @@ def _run_once(
     total_runs: int,
     port: int,
     time_limit: int,
+    jfr_dir: Path | None,
 ) -> int | None:
     """Start server, trigger solving, capture speed, kill server. Returns moves/sec or None."""
     base_url = f"http://127.0.0.1:{port}"
@@ -103,11 +104,17 @@ def _run_once(
         _log(f"[{name}] run {run_idx}/{total_runs}: ERR (port {port} still busy)")
         return None
 
+    jfr_args = []
+    if jfr_dir:
+        jfr_args = [f"-XX:StartFlightRecording=settings=default,filename={jfr_dir / f'run-{run_idx:02d}.jfr'}"]
     proc = subprocess.Popen(
         [
             "java",
+            *jfr_args,
             f"-Dquarkus.http.port={port}",
-            f"-Dquarkus.timefold.solver.termination.spent-limit={time_limit}s",
+            f"-Dtimefold.model.termination.spent-limit=PT{time_limit}S",
+            # Replaces the service default (Diminished Returns), which ends solves early; it cannot fire before the spent limit.
+            f"-Dtimefold.model.termination.unimproved-spent-limit=PT{time_limit}S",
             "-Dquarkus.timefold.solver.move-thread-count=NONE",
             "-Dquarkus.log.category.ai.timefold.solver.level=INFO",
             "-Dquarkus.console.color=false",
@@ -148,26 +155,17 @@ def _run_once(
                 _log(f"[{name}] run {run_idx}/{total_runs}: ERR (server not ready in {SERVER_READY_TIMEOUT}s)")
             return None
 
-        # Fetch demo data (if needed) and trigger solving.
-        demo_path = config["demo"]
-        solve_path = config["solve"]
-        if demo_path:
-            with urllib.request.urlopen(f"{base_url}{demo_path}", timeout=30) as resp:
-                body = resp.read()
-            req = urllib.request.Request(
-                f"{base_url}{solve_path}",
-                data=body,
-                headers={"Content-Type": "application/json"},
-                method="POST",
-            )
-        else:
-            req = urllib.request.Request(
-                f"{base_url}{solve_path}",
-                data=b"",
-                method="POST",
-            )
+        # Fetch the demo model request and post it as-is; posting starts solving.
+        with urllib.request.urlopen(f"{base_url}{config['demo']}", timeout=30) as resp:
+            body = resp.read()
+        req = urllib.request.Request(
+            f"{base_url}{config['solve']}",
+            data=body,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
         with urllib.request.urlopen(req, timeout=30):
-            pass  # async quickstarts return jobId; we don't need it
+            pass  # returns the dataset metadata; we don't need it
 
         # Wait for "Solving ended:" in server logs.
         if speed_event.wait(timeout=run_timeout):
@@ -252,6 +250,8 @@ def main() -> None:
                    help="first port in the pool; each parallel instance uses base-port+i (default: 8080)")
     p.add_argument("--output", default="benchmark-results.csv", metavar="FILE",
                    help="CSV output path (default: benchmark-results.csv)")
+    p.add_argument("--jfr-dir", type=Path, metavar="DIR",
+                   help="record each run with plain JFR (settings=default) into DIR/run-NN.jfr")
     args = p.parse_args()
 
     name = args.quickstart
@@ -274,6 +274,9 @@ def main() -> None:
     _log(f"    Ports     : {base_port}–{base_port + args.parallel - 1}\n")
 
     config = QUICKSTARTS[name]
+    jfr_dir = args.jfr_dir.resolve() if args.jfr_dir else None
+    if jfr_dir:
+        jfr_dir.mkdir(parents=True, exist_ok=True)
 
     # Port pool: one slot per parallel instance, each on a distinct port.
     port_q: queue.Queue[int] = queue.Queue()
@@ -297,7 +300,7 @@ def main() -> None:
                     if run_idx > args.runs:
                         break
                     run_counter[0] += 1
-                s = _run_once(name, config, directory, run_idx, args.runs, port, args.time_limit)
+                s = _run_once(name, config, directory, run_idx, args.runs, port, args.time_limit, jfr_dir)
                 if s is None:
                     abort.set()
                     break
@@ -317,6 +320,8 @@ def main() -> None:
 
     _print_table(name, all_speeds, args.runs)
     _write_csv(name, all_speeds, args.runs, args.output)
+    if len(all_speeds) < args.runs:
+        sys.exit(f"Only {len(all_speeds)}/{args.runs} runs succeeded.")
 
 
 if __name__ == "__main__":
