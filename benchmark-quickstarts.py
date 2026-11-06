@@ -113,6 +113,8 @@ def _run_once(
             *jfr_args,
             f"-Dquarkus.http.port={port}",
             f"-Dtimefold.model.termination.spent-limit=PT{time_limit}S",
+            # Replaces the service default (Diminished Returns), which ends solves early; it cannot fire before the spent limit.
+            f"-Dtimefold.model.termination.unimproved-spent-limit=PT{time_limit}S",
             "-Dquarkus.timefold.solver.move-thread-count=NONE",
             "-Dquarkus.log.category.ai.timefold.solver.level=INFO",
             "-Dquarkus.console.color=false",
