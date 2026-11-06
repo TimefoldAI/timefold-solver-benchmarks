@@ -44,19 +44,16 @@ def _to_float(value: str) -> float:
 def load_side(path: str) -> dict:
     """Reads one CSV written by benchmark-quickstarts.py, keyed by quickstart name.
 
-    A quickstart whose runs all failed has no mean, and is left out, so it reports as missing.
+    A row without a positive mean or without confidence bounds (fewer than two runs) is left out,
+    so it reports as missing instead of passing unchecked.
     """
     result = {}
     with open(path, newline="") as f:
         for row in csv.DictReader(f):
-            if not row["mean"]:
+            score, conf_lo, conf_hi = (_to_float(row[key]) for key in ("mean", "ci_lower", "ci_upper"))
+            if not score > 0 or math.isnan(conf_lo) or math.isnan(conf_hi):
                 continue
-            result[row["quickstart"]] = {
-                "score": float(row["mean"]),
-                "conf_lo": _to_float(row["ci_lower"]),
-                "conf_hi": _to_float(row["ci_upper"]),
-                "forks": [],
-            }
+            result[row["quickstart"]] = {"score": score, "conf_lo": conf_lo, "conf_hi": conf_hi, "forks": []}
     return result
 
 
@@ -202,15 +199,22 @@ def _selftest() -> None:
             "data-a/assets-url.txt": "https://example.com/a\n",
             "data-b/baseline.csv": header + "b,20,100,98,102,1,99,101\n",
             "data-b/sut.csv": header + "b,0,,,,,,\n",
+            # One run per side: means within tolerance, but no confidence bounds.
+            "data-d/baseline.csv": header + "d,1,100,100,100,,,\n",
+            "data-d/sut.csv": header + "d,1,101,101,101,,,\n",
+            "data-e/baseline.csv": header + "e,20,0,0,0,0,0,0\n",
+            "data-e/sut.csv": header + "e,20,0,0,0,0,0,0\n",
         }
         for name, content in files.items():
             os.makedirs(os.path.join(data_dir, os.path.dirname(name)), exist_ok=True)
             with open(os.path.join(data_dir, name), "w") as f:
                 f.write(content)
-        report, exit_code = build_report(data_dir, ["a", "b", "c"], "v2.8.0", "main", "TimefoldAI")
+        baseline, sut, _ = load_all(data_dir)
+        assert set(baseline) == {"a", "b"} and set(sut) == {"a"}, (baseline, sut)
+        report, exit_code = build_report(data_dir, ["a", "b", "c", "d", "e"], "v2.8.0", "main", "TimefoldAI")
         assert exit_code == 1
         assert "[A](https://example.com/a)" in report, report
-        assert report.count(_SD.MISSING.emoji + " ") >= 2, report  # b's SUT failed, c has no data
+        assert "missing data 4" in report, report  # b's SUT failed, c has no data, d has no bounds, e is zero
         assert "100 → 80 (-20.0 %)" in report, report
 
     print("summarize-quickstarts.py: selftest OK")
