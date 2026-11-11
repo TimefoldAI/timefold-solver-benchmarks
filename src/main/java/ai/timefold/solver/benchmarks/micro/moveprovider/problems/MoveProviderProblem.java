@@ -1,9 +1,5 @@
 package ai.timefold.solver.benchmarks.micro.moveprovider.problems;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
-
 import ai.timefold.solver.benchmarks.micro.moveprovider.Example;
 import ai.timefold.solver.benchmarks.micro.moveprovider.MoveProviderCase;
 import ai.timefold.solver.benchmarks.micro.moveprovider.jmh.AbstractMoveProviderBenchmark;
@@ -18,6 +14,7 @@ import ai.timefold.solver.core.impl.localsearch.scope.LocalSearchStepScope;
 import ai.timefold.solver.core.impl.neighborhood.NeighborhoodsBasedMoveRepository;
 import ai.timefold.solver.core.impl.neighborhood.stream.DefaultMoveStreamFactory;
 import ai.timefold.solver.core.impl.score.constraint.ConstraintMatchPolicy;
+import ai.timefold.solver.core.impl.score.director.InnerScore;
 import ai.timefold.solver.core.impl.score.director.InnerScoreDirector;
 import ai.timefold.solver.core.impl.score.director.ScoreDirectorFactory;
 import ai.timefold.solver.core.impl.score.director.ScoreDirectorFactoryFactory;
@@ -26,8 +23,13 @@ import ai.timefold.solver.core.impl.solver.random.RandomSource;
 import ai.timefold.solver.core.impl.solver.scope.SolverScope;
 import ai.timefold.solver.core.preview.api.move.Move;
 import ai.timefold.solver.core.preview.api.neighborhood.MoveProvider;
-
+import ai.timefold.solver.core.preview.api.neighborhood.selection.FixedWeightMoveSelectionStrategy;
 import org.openjdk.jmh.infra.Blackhole;
+
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Runs one {@link MoveProviderCase} through the two scenarios the benchmark measures.
@@ -115,12 +117,17 @@ public final class MoveProviderProblem<Solution_> {
         moveProvider = (MoveProvider<Solution_>) moveProviderCase.createMoveProvider(solutionDescriptor.getMetaModel());
         // Prepare the lifecycle. A fresh repository every iteration: its dataset session binds to
         // this iteration's working solution.
-        moveRepository = new NeighborhoodsBasedMoveRepository<>(moveStreamFactory, List.of(moveProvider));
+        moveRepository = new NeighborhoodsBasedMoveRepository<>(moveStreamFactory,
+                new LinkedHashMap<>(Map.of(moveProvider.getId(), moveProvider)),
+                FixedWeightMoveSelectionStrategy::new);
         var solverScope = new SolverScope<Solution_>();
         solverScope.setScoreDirector(scoreDirector);
         solverScope.setWorkingRandom(RandomSource.seeded(0)); // Fully reproducible random selection.
         moveRepository.solvingStarted(solverScope);
         phaseScope = new LocalSearchPhaseScope<>(solverScope, 0);
+        var localSearchStepScope = new LocalSearchStepScope<>(phaseScope);
+        localSearchStepScope.setScore(InnerScore.fullyAssigned((Score) scoreDirector.getScoreDefinition().getZeroScore()));
+        phaseScope.setLastCompletedStepScope(localSearchStepScope);
         moveRepository.phaseStarted(phaseScope); // Also calls scoreDirector.setMoveRepository(moveRepository).
         invocationCounter = 0;
     }
