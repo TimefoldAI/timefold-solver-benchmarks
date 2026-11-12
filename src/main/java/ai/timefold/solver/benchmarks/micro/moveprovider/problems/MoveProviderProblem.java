@@ -1,5 +1,10 @@
 package ai.timefold.solver.benchmarks.micro.moveprovider.problems;
 
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
+
 import ai.timefold.solver.benchmarks.micro.moveprovider.Example;
 import ai.timefold.solver.benchmarks.micro.moveprovider.MoveProviderCase;
 import ai.timefold.solver.benchmarks.micro.moveprovider.jmh.AbstractMoveProviderBenchmark;
@@ -24,12 +29,8 @@ import ai.timefold.solver.core.impl.solver.scope.SolverScope;
 import ai.timefold.solver.core.preview.api.move.Move;
 import ai.timefold.solver.core.preview.api.neighborhood.MoveProvider;
 import ai.timefold.solver.core.preview.api.neighborhood.selection.FixedWeightMoveSelectionStrategy;
-import org.openjdk.jmh.infra.Blackhole;
 
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
+import org.openjdk.jmh.infra.Blackhole;
 
 /**
  * Runs one {@link MoveProviderCase} through the two scenarios the benchmark measures.
