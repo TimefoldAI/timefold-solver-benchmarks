@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Same moves, same order and same weights as BenchmarkNeighborhoodProvider.java. -->
+<solver xmlns="https://timefold.ai/xsd/solver">
+  <constructionHeuristic/>
+  <localSearch>
+    <unionMoveSelector>
+      <changeMoveSelector>
+        <entitySelector>
+          <entityClass>org.acme.employeescheduling.domain.Shift</entityClass>
+        </entitySelector>
+        <valueSelector variableName="employee"/>
+      </changeMoveSelector>
+      <swapMoveSelector>
+        <entitySelector>
+          <entityClass>org.acme.employeescheduling.domain.Shift</entityClass>
+        </entitySelector>
+      </swapMoveSelector>
+    </unionMoveSelector>
+  </localSearch>
+</solver>

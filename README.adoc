@@ -54,3 +54,20 @@ The benchmark results will be published as a CSV file in the `results` directory
 
 In the default configuration, the benchmark will run for many hours and fully occupy 4 CPUs.
 Only run the benchmark on a quiet machine, otherwise results will be skewed.
+== Move selectors vs. Neighborhoods
+
+Compares move selectors with the Neighborhoods API on the quickstarts, on one solver branch.
+Run the `Move Selectors vs. Neighborhoods` workflow (`.github/workflows/performance_neighborhoods.yml`).
+
+Both variants list the same moves explicitly, in the same order, with equal weights.
+The configuration of each quickstart is in `neighborhoods-benchmark/<quickstart>/`:
+`selectors-solverConfig.xml`, `neighborhoods-solverConfig.xml` and `BenchmarkNeighborhoodProvider.java`.
+`prepare-neighborhoods-variant.sh` copies these files into a quickstart before its build.
+`neighborhoods-benchmark/generate.py` generates them; when a quickstart changes its planning entities or variables, update its `SPEC` and run it.
+
+For each run index, the benchmark runs the selectors variant and then the Neighborhoods variant, with that run index as the random seed.
+The best score is the verdict: each seed pair is a win, a loss or a tie for Neighborhoods.
+The workflow fails when Neighborhoods lose clearly more pairs than they win, more than chance would explain.
+The move evaluation speed of each side is shown to explain a verdict; it is not judged.
+Each quickstart solves its largest demo dataset (`LARGE` where it exists, else the default), set in the workflow's `decisions` job.
+vehicle-routing is not included, because Neighborhoods do not support nearby selection yet.

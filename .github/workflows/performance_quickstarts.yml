@@ -299,14 +299,16 @@ jobs:
             --runs $RUNS \
             --time-limit $TIME_LIMIT \
             --output baseline.csv \
-            --jfr-dir jfr-baseline
-          # One file for each side; JFR chunks concatenate into a valid recording.
-          RECORDINGS=$(find jfr-baseline -name '*.jfr' | sort)
-          if [ -z "$RECORDINGS" ]; then
-            echo "::warning::The baseline side produced no JFR recordings."
+            --jfr-dir jfr-baseline \
+            --jfr-settings timefold-solver-benchmarks/profiling.jfc
+          # Every run records, so all runs carry the same overhead; only the first is kept,
+          # as all of them would take gigabytes.
+          if [ -f jfr-baseline/run-01.jfr ]; then
+            mv jfr-baseline/run-01.jfr baseline.jfr
           else
-            echo "$RECORDINGS" | xargs cat > baseline.jfr
+            echo "::warning::The baseline side produced no JFR recording for run 1."
           fi
+          rm -rf jfr-baseline
 
       - name: (SUT) Setup JDK
         uses: actions/setup-java@v6.2.0
@@ -327,14 +329,16 @@ jobs:
             --runs $RUNS \
             --time-limit $TIME_LIMIT \
             --output sut.csv \
-            --jfr-dir jfr-sut
-          # One file for each side; JFR chunks concatenate into a valid recording.
-          RECORDINGS=$(find jfr-sut -name '*.jfr' | sort)
-          if [ -z "$RECORDINGS" ]; then
-            echo "::warning::The sut side produced no JFR recordings."
+            --jfr-dir jfr-sut \
+            --jfr-settings timefold-solver-benchmarks/profiling.jfc
+          # Every run records, so all runs carry the same overhead; only the first is kept,
+          # as all of them would take gigabytes.
+          if [ -f jfr-sut/run-01.jfr ]; then
+            mv jfr-sut/run-01.jfr sut.jfr
           else
-            echo "$RECORDINGS" | xargs cat > sut.jfr
+            echo "::warning::The sut side produced no JFR recording for run 1."
           fi
+          rm -rf jfr-sut
 
       # Uploaded before "Archive benchmark data" (and given an id)
       # so its artifact-url output can be recorded into a file

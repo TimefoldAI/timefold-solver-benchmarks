@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<solver xmlns="https://timefold.ai/xsd/solver">
+  <enablePreviewFeature>NEIGHBORHOODS</enablePreviewFeature>
+  <neighborhoods>
+    <neighborhoodProviderClass>org.acme.foodpackaging.domain.BenchmarkNeighborhoodProvider</neighborhoodProviderClass>
+  </neighborhoods>
+  <constructionHeuristic>
+    <queuedEntityPlacer>
+      <entitySelector id="placerEntityLine">
+        <entityClass>org.acme.foodpackaging.domain.Line</entityClass>
+      </entitySelector>
+      <changeMoveSelector>
+        <entitySelector mimicSelectorRef="placerEntityLine"/>
+        <valueSelector variableName="operator"/>
+      </changeMoveSelector>
+    </queuedEntityPlacer>
+  </constructionHeuristic>
+  <constructionHeuristic>
+    <queuedValuePlacer>
+      <valueSelector id="placerValueLine" variableName="jobs"/>
+      <changeMoveSelector>
+        <valueSelector mimicSelectorRef="placerValueLine" variableName="jobs"/>
+      </changeMoveSelector>
+    </queuedValuePlacer>
+  </constructionHeuristic>
+  <localSearch/>
+</solver>

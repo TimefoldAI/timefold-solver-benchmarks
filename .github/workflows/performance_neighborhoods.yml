@@ -1,0 +1,316 @@
+# Compares move selectors with the Neighborhoods API on one solver branch, quickstart by quickstart.
+#
+# Each quickstart is built twice from the same sources, on GitHub infrastructure,
+# with the solver config XML of neighborhoods-benchmark/<quickstart>/ selecting the variant.
+# Both variants list the same moves, in the same order, with equal weights;
+# see prepare-neighborhoods-variant.sh.
+#
+# The benchmark job runs both variants in turn (selectors, then Neighborhoods, for each run index),
+# with random seed N for run N, on the same Arm runner as the other benchmarks.
+# The report job joins all quickstarts into one table (summarize-neighborhoods.py).
+# The best score is the verdict: the job fails when Neighborhoods score clearly worse, or data is missing.
+# Move evaluation speed is shown to explain a verdict; it is not judged.
+#
+# A quickstart with a larger demo dataset is benchmarked on that dataset only.
+# vehicle-routing is not included: Neighborhoods do not support nearby selection yet.
+#
+name: Move Selectors vs. Neighborhoods
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      jdk:
+        description: 'JDK version'
+        default: '27'
+        required: true
+      branch:
+        description: 'Branch to benchmark (needs to use 999-SNAPSHOT)'
+        default: 'main'
+        required: true
+      branch_owner:
+        description: 'User owning the branch'
+        default: 'TimefoldAI'
+        required: true
+      runs:
+        description: 'Solver runs per quickstart per variant'
+        default: '50'
+        required: false
+      time_limit:
+        description: 'Solver time limit per run in seconds'
+        default: '60'
+        required: false
+
+run-name: "Move selectors vs. Neighborhoods on ${{ github.event.inputs.branch_owner }}'s ${{ github.event.inputs.branch }} (Java ${{ github.event.inputs.jdk }})"
+
+jobs:
+  decisions:
+    runs-on: ubuntu-latest
+    outputs:
+      quickstarts: ${{ steps.enumerate.outputs.quickstarts }}
+      targets: ${{ steps.enumerate.outputs.targets }}
+      rows: ${{ steps.enumerate.outputs.rows }}
+    steps:
+      # Single source of truth for the benchmark matrix and for the summarizing job.
+      - name: Enumerate quickstarts
+        id: enumerate
+        shell: bash
+        run: |
+          QUICKSTARTS='["bed-allocation","conference-scheduling","employee-scheduling","facility-location","flight-crew-scheduling","food-packaging","maintenance-scheduling","meeting-scheduling","order-picking","project-job-scheduling","school-timetabling","sports-league-scheduling","task-assigning","tournament-scheduling"]'
+          # Each quickstart on its largest demo dataset; "" is the quickstart's default dataset.
+          LARGEST='{"employee-scheduling":"LARGE","school-timetabling":"LARGE"}'
+          TARGETS=$(jq -c --argjson largest "$LARGEST" \
+            '[.[] | {quickstart: ., dataset: ($largest[.] // "")}
+                  | . + {row: (if .dataset == "" then .quickstart else "\(.quickstart)-\(.dataset)" end)}]' <<< "$QUICKSTARTS")
+          {
+            echo "quickstarts=$QUICKSTARTS"
+            echo "targets=$TARGETS"
+            echo "rows=$(jq -c '[.[].row]' <<< "$TARGETS")"
+          } >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: decisions
+    runs-on: ubuntu-latest # Leverage massive parallelization of Github-hosted runners.
+    strategy:
+      fail-fast: true # If one compilation fails, abort everything.
+      matrix:
+        example: ${{ fromJSON(needs.decisions.outputs.quickstarts) }}
+    steps:
+      - name: Checkout timefold-quickstarts
+        uses: actions/checkout@v7
+        with:
+          repository: TimefoldAI/timefold-quickstarts
+          path: ./timefold-quickstarts
+          ref: development
+
+      - name: Checkout timefold-solver-benchmarks
+        uses: actions/checkout@v7
+        with:
+          path: ./timefold-solver-benchmarks
+          # The move configuration has to come from the commit that dispatched this run.
+          ref: ${{ github.sha }}
+
+      - name: Setup JDK and Maven
+        uses: actions/setup-java@v6.2.0
+        with:
+          java-version: 25 # Always build with the least recent supported JDK.
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Checkout timefold-solver
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ github.event.inputs.branch_owner }}/timefold-solver
+          ref: ${{ github.event.inputs.branch }}
+          path: ./timefold-solver
+
+      - name: Quickly build timefold-solver
+        working-directory: ./timefold-solver
+        shell: bash
+        run: ./mvnw -B -Dquickly -Drevision=999-SNAPSHOT clean install
+
+      - name: Checkout timefold-solver-enterprise
+        uses: actions/checkout@v7
+        with:
+          repository: TimefoldAI/timefold-solver-enterprise
+          ref: main
+          token: ${{ secrets.BENCHMARK_PUBLISH_TOKEN }}
+          path: ./timefold-solver-enterprise
+
+      - name: Switch timefold-solver-enterprise to branch under test if it exists
+        working-directory: ./timefold-solver-enterprise
+        shell: bash
+        env:
+          TARGET_BRANCH: ${{ github.event.inputs.branch }}
+        run: |
+          # Match a branch OR a tag named $TARGET_BRANCH (no --heads): the branch under test may
+          # also be a tag. Falls back to the already-checked-out `main` if no match exists.
+          if git ls-remote --exit-code origin "$TARGET_BRANCH" > /dev/null; then
+            git fetch --depth=1 origin "$TARGET_BRANCH"
+            git checkout -B "$TARGET_BRANCH" FETCH_HEAD
+          fi
+          git status
+
+      - name: Quickly build timefold-solver-enterprise
+        working-directory: ./timefold-solver-enterprise
+        shell: bash
+        run: ./mvnw -B -Dquickly -Drevision=999-SNAPSHOT clean install
+
+      - name: Switch quickstarts to branch under test if it exists
+        working-directory: ./timefold-quickstarts
+        shell: bash
+        env:
+          TARGET_BRANCH: ${{ github.event.inputs.branch }}
+        run: |
+          # Match a branch OR a tag named $TARGET_BRANCH (no --heads): the branch under test may
+          # also be a tag, and quickstarts is tagged in lockstep with solver releases.
+          # Falls back to the already-checked-out `development` if no match exists.
+          if git ls-remote --exit-code origin "$TARGET_BRANCH" > /dev/null; then
+            git fetch --depth=1 origin "$TARGET_BRANCH"
+            git checkout -B "$TARGET_BRANCH" FETCH_HEAD
+          fi
+          git status
+
+      - name: Build both variants of the quickstart
+        shell: bash
+        env:
+          QUICKSTART_DIR: ./timefold-quickstarts/use-cases/${{ matrix.example }}
+        run: |
+          for VARIANT in selectors neighborhoods; do
+            FLAG=$(timefold-solver-benchmarks/prepare-neighborhoods-variant.sh \
+              ${{ matrix.example }} "$VARIANT" "$QUICKSTART_DIR")
+            mvn -B -DskipTests -Penterprise clean package "$FLAG" -f "$QUICKSTART_DIR/pom.xml"
+            mv "$QUICKSTART_DIR/target/quarkus-app" "./$VARIANT-app"
+          done
+
+      - name: Upload the selectors binaries
+        uses: actions/upload-artifact@v7
+        with:
+          name: selectors-${{ matrix.example }}
+          path: ./selectors-app/
+          if-no-files-found: error
+
+      - name: Upload the Neighborhoods binaries
+        uses: actions/upload-artifact@v7
+        with:
+          name: neighborhoods-${{ matrix.example }}
+          path: ./neighborhoods-app/
+          if-no-files-found: error
+
+  benchmark:
+    needs: [ decisions, build ]
+    runs-on: ubuntu-24.04-arm # Github-hosted Arm runner; free and GA for this public repo.
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false # One broken quickstart must not hide the others.
+      matrix:
+        target: ${{ fromJSON(needs.decisions.outputs.targets) }}
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: 'x'
+
+      - name: Checkout timefold-solver-benchmarks
+        uses: actions/checkout@v7
+        with:
+          path: ./timefold-solver-benchmarks
+          # The harness has to come from the commit that dispatched this run,
+          # or a change to it is never exercised before it is merged.
+          ref: ${{ github.sha }}
+
+      - name: Download the selectors binaries
+        uses: actions/download-artifact@v8
+        with:
+          name: selectors-${{ matrix.target.quickstart }}
+          path: ./selectors-app
+
+      - name: Download the Neighborhoods binaries
+        uses: actions/download-artifact@v8
+        with:
+          name: neighborhoods-${{ matrix.target.quickstart }}
+          path: ./neighborhoods-app
+
+      - name: Setup JDK
+        uses: actions/setup-java@v6.2.0
+        with:
+          java-version: ${{ github.event.inputs.jdk }}
+          distribution: 'temurin'
+          check-latest: true
+
+      - name: Run the benchmark
+        shell: bash
+        env:
+          TIMEFOLD_LICENSE: ${{ secrets.TIMEFOLD_SOLVER_CI_PROD_LICENSE }}
+          RUNS: ${{ github.event.inputs.runs }}
+          TIME_LIMIT: ${{ github.event.inputs.time_limit }}
+          QUICKSTART: ${{ matrix.target.quickstart }}
+          DATASET: ${{ matrix.target.dataset }}
+        run: |
+          python3 timefold-solver-benchmarks/benchmark-quickstarts.py \
+            "$QUICKSTART" ./selectors-app ./neighborhoods-app \
+            ${DATASET:+--dataset "$DATASET"} \
+            --runs $RUNS \
+            --time-limit $TIME_LIMIT \
+            --seed-from-run-index \
+            --time-only \
+            --output selectors.csv neighborhoods.csv \
+            --jfr-dir jfr-selectors jfr-neighborhoods \
+            --jfr-settings timefold-solver-benchmarks/profiling.jfc
+          # Every run records, so all runs carry the same overhead; only seed 1 of each side is kept,
+          # as all of them would take gigabytes.
+          for SIDE in selectors neighborhoods; do
+            if [ -f "jfr-$SIDE/run-01.jfr" ]; then
+              mv "jfr-$SIDE/run-01.jfr" "$SIDE.jfr"
+            else
+              echo "::warning::The $SIDE side produced no JFR recording for seed 1."
+            fi
+            rm -rf "jfr-$SIDE"
+          done
+
+      # Uploaded before "Archive benchmark data" (and given an id)
+      # so its artifact-url output can ride along inside the data-* artifact,
+      # the only artifact the report job downloads.
+      - name: Archive benchmark assets
+        id: archive_assets
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: assets-${{ matrix.target.row }}
+          path: |
+            ./selectors.jfr
+            ./neighborhoods.jfr
+          if-no-files-found: warn
+
+      # Empty when the step above found no assets; summarize-neighborhoods.py treats that as "no link".
+      - name: Record the assets artifact URL
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          echo "${{ steps.archive_assets.outputs.artifact-url }}" > assets-url.txt
+
+      - name: Archive benchmark data
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: data-${{ matrix.target.row }}
+          path: |
+            ./selectors.csv
+            ./neighborhoods.csv
+            ./assets-url.txt
+          if-no-files-found: error
+
+  report:
+    needs: [ decisions, benchmark ]
+    if: always() && needs.decisions.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout timefold-solver-benchmarks
+        uses: actions/checkout@v7
+        with:
+          path: ./timefold-solver-benchmarks
+          ref: ${{ github.sha }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.x'
+
+      - name: Download the benchmark data
+        uses: actions/download-artifact@v8
+        with:
+          pattern: data-*
+          path: ./data
+
+      - name: Summarize the results
+        working-directory: ./timefold-solver-benchmarks
+        shell: bash
+        env:
+          ROWS: ${{ needs.decisions.outputs.rows }}
+          BRANCH: ${{ github.event.inputs.branch }}
+          OWNER: ${{ github.event.inputs.branch_owner }}
+        run: |
+          python3 summarize-neighborhoods.py ../data \
+            --expect "$ROWS" --branch "$BRANCH" --owner "$OWNER" \
+            >> "$GITHUB_STEP_SUMMARY"

@@ -22,21 +22,39 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.BENCHMARK_PUBLISH_TOKEN }}
         run: |
-          changed() { git -C timefold-solver log --since="24 hours ago" --oneline -- "$@" | grep -q .; }
+          # No pipe into "grep -q": under pipefail, git's SIGPIPE after grep exits would read as "nothing changed".
+          changed() { [ -n "$(git -C timefold-solver log -1 --since="24 hours ago" --format=%H -- "$@")" ]; }
           launch() {
             echo '{}' | gh workflow run "$1" --json --repo TimefoldAI/timefold-solver-benchmarks
             echo "Launched nightly $2." >> $GITHUB_STEP_SUMMARY
           }
-          # Core (and "build", which holds the BOM) affects every benchmark;
+          launched=false
+          launch_if_changed() {
+            local workflow=$1 description=$2
+            shift 2
+            if changed "$@"; then
+              launch "$workflow" "$description"
+              launched=true
+            fi
+          }
+          CORE=core/src/main/java/ai/timefold/solver/core
+          # Core (and "build", which holds the BOM) affects every whole-solver benchmark;
           # Quarkus integration and the service module only affect the quickstarts.
-          if changed core build; then
-            launch turtle.yml "turtle tests"
-            launch performance_score_director.yml "score director perf tests"
-            launch performance_move_provider.yml "move provider perf tests"
-            launch performance_quickstarts.yml "quickstart perf tests"
-          elif changed quarkus-integration service; then
-            launch performance_quickstarts.yml "quickstart perf tests"
-          else
+          launch_if_changed turtle.yml "turtle tests" core build
+          launch_if_changed performance_quickstarts.yml "quickstart perf tests" core build quarkus-integration service
+          # The microbenchmarks only run when the code they measure changes.
+          launch_if_changed performance_score_director.yml "score director perf tests" \
+            "$CORE/impl/bavet" "$CORE/impl/score"
+          # Move providers: their streams run on the Bavet nodes in impl/bavet/common,
+          # and every committed move runs through the score director.
+          launch_if_changed performance_move_provider.yml "move provider perf tests" \
+            "$CORE/impl/neighborhood" "$CORE/preview/api/neighborhood" "$CORE/impl/move" "$CORE/preview/api/move" \
+            "$CORE/impl/bavet/common" "$CORE/impl/score/director"
+          # Only Neighborhoods code changes this comparison often enough to pay for it.
+          launch_if_changed performance_neighborhoods.yml "move selectors vs. Neighborhoods tests" \
+            "$CORE/impl/neighborhood" "$CORE/impl/move/builtin" "$CORE/impl/bavet/common" \
+            "$CORE/preview/api/neighborhood" "$CORE/preview/api/move/builtin"
+          if [ "$launched" = false ]; then
             # Don't waste money.
-            echo "No commits to the benchmarked modules in the past 24 hours." >> $GITHUB_STEP_SUMMARY
+            echo "No commits to the benchmarked code in the past 24 hours." >> $GITHUB_STEP_SUMMARY
           fi

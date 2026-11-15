@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Same moves, same order and same weights as BenchmarkNeighborhoodProvider.java. -->
+<solver xmlns="https://timefold.ai/xsd/solver">
+  <constructionHeuristic/>
+  <localSearch>
+    <unionMoveSelector>
+      <listChangeMoveSelector>
+        <valueSelector variableName="pickTasks"/>
+      </listChangeMoveSelector>
+      <listSwapMoveSelector>
+        <valueSelector variableName="pickTasks"/>
+      </listSwapMoveSelector>
+      <kOptListMoveSelector>
+        <minimumK>2</minimumK>
+        <maximumK>2</maximumK>
+        <valueSelector variableName="pickTasks"/>
+      </kOptListMoveSelector>
+    </unionMoveSelector>
+  </localSearch>
+</solver>
