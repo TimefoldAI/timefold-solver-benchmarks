@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Same moves, same order and same weights as BenchmarkNeighborhoodProvider.java. -->
+<solver xmlns="https://timefold.ai/xsd/solver">
+  <constructionHeuristic/>
+  <localSearch>
+    <unionMoveSelector>
+      <changeMoveSelector>
+        <entitySelector>
+          <entityClass>org.acme.tournamentschedule.domain.TeamAssignment</entityClass>
+        </entitySelector>
+        <valueSelector variableName="team"/>
+      </changeMoveSelector>
+      <swapMoveSelector>
+        <entitySelector>
+          <entityClass>org.acme.tournamentschedule.domain.TeamAssignment</entityClass>
+        </entitySelector>
+      </swapMoveSelector>
+    </unionMoveSelector>
+  </localSearch>
+</solver>

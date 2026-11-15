@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Same moves, same order and same weights as BenchmarkNeighborhoodProvider.java. -->
+<solver xmlns="https://timefold.ai/xsd/solver">
+  <constructionHeuristic>
+    <queuedEntityPlacer>
+      <entitySelector id="placerEntityLine">
+        <entityClass>org.acme.foodpackaging.domain.Line</entityClass>
+      </entitySelector>
+      <changeMoveSelector>
+        <entitySelector mimicSelectorRef="placerEntityLine"/>
+        <valueSelector variableName="operator"/>
+      </changeMoveSelector>
+    </queuedEntityPlacer>
+  </constructionHeuristic>
+  <constructionHeuristic>
+    <queuedValuePlacer>
+      <valueSelector id="placerValueLine" variableName="jobs"/>
+      <changeMoveSelector>
+        <valueSelector mimicSelectorRef="placerValueLine" variableName="jobs"/>
+      </changeMoveSelector>
+    </queuedValuePlacer>
+  </constructionHeuristic>
+  <localSearch>
+    <unionMoveSelector>
+      <changeMoveSelector>
+        <entitySelector>
+          <entityClass>org.acme.foodpackaging.domain.Line</entityClass>
+        </entitySelector>
+        <valueSelector variableName="operator"/>
+      </changeMoveSelector>
+      <swapMoveSelector>
+        <entitySelector>
+          <entityClass>org.acme.foodpackaging.domain.Line</entityClass>
+        </entitySelector>
+      </swapMoveSelector>
+      <listChangeMoveSelector>
+        <valueSelector variableName="jobs"/>
+      </listChangeMoveSelector>
+      <listSwapMoveSelector>
+        <valueSelector variableName="jobs"/>
+      </listSwapMoveSelector>
+      <kOptListMoveSelector>
+        <minimumK>2</minimumK>
+        <maximumK>2</maximumK>
+        <valueSelector variableName="jobs"/>
+      </kOptListMoveSelector>
+    </unionMoveSelector>
+  </localSearch>
+</solver>

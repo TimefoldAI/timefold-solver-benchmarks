@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<solver xmlns="https://timefold.ai/xsd/solver">
+  <enablePreviewFeature>NEIGHBORHOODS</enablePreviewFeature>
+  <neighborhoods>
+    <neighborhoodProviderClass>org.acme.flightcrewscheduling.domain.BenchmarkNeighborhoodProvider</neighborhoodProviderClass>
+  </neighborhoods>
+  <constructionHeuristic/>
+  <localSearch/>
+</solver>

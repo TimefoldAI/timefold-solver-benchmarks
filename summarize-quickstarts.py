@@ -58,7 +58,7 @@ def load_side(path: str) -> dict:
 
 
 def load_all(data_dir: str) -> tuple[dict, dict, dict]:
-    """The third dict maps quickstart -> assets artifact URL (JFR recordings of both sides)."""
+    """The third dict maps quickstart -> assets artifact URL (JFR recording of run 1 of each side)."""
     baseline, sut, asset_urls = {}, {}, {}
     for baseline_path in glob.glob(os.path.join(data_dir, "*", "baseline.csv")):
         quickstart_dir = os.path.dirname(baseline_path)
@@ -147,8 +147,8 @@ def render_legend() -> list:
             "#### Notes",
             "",
             "- Each run is a fresh JVM that solves the quickstart's demo dataset for the time limit.",
-            "- A quickstart name links to the one GitHub Actions artifact holding the JFR recordings "
-            "of both sides.",
+            "- A quickstart name links to the one GitHub Actions artifact holding the JFR recording "
+            "of run 1 of each side, made with profiling.jfc.",
             f"- Measured on `{_SD.RUNNER_LABEL}`."]
 
 
