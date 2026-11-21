@@ -52,7 +52,7 @@ run-name: "TimefoldAI's ${{ github.event.inputs.baseline }} vs. ${{ github.event
 
 jobs:
   decisions:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04-arm
     outputs:
       quickstarts: ${{ steps.enumerate.outputs.quickstarts }}
     steps:
@@ -66,7 +66,7 @@ jobs:
 
   build_baseline:
     needs: decisions
-    runs-on: ubuntu-latest # Leverage massive parallelization of Github-hosted runners.
+    runs-on: ubuntu-26.04-arm # Leverage massive parallelization of Github-hosted runners.
     strategy:
       fail-fast: true # If one compilation fails, abort everything.
       matrix:
@@ -142,7 +142,7 @@ jobs:
 
   build_sut:
     needs: decisions
-    runs-on: ubuntu-latest # Leverage massive parallelization of Github-hosted runners.
+    runs-on: ubuntu-26.04-arm # Leverage massive parallelization of Github-hosted runners.
     strategy:
       fail-fast: true # If one compilation fails, abort everything.
       matrix:
@@ -232,7 +232,7 @@ jobs:
 
   benchmark:
     needs: [ decisions, build_baseline, build_sut ]
-    runs-on: ubuntu-24.04-arm # Github-hosted Arm runner; free and GA for this public repo.
+    runs-on: ubuntu-26.04-arm # Github-hosted Arm runner; free and GA for this public repo.
     timeout-minutes: 300
     strategy:
       fail-fast: false # The report job gives the verdict; one broken quickstart must not hide the others.
@@ -379,7 +379,7 @@ jobs:
   report:
     needs: [ decisions, benchmark ]
     if: always() && needs.decisions.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04-arm
     steps:
       - name: Checkout timefold-solver-benchmarks
         uses: actions/checkout@v7

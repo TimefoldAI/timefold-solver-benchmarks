@@ -67,7 +67,7 @@ MOVE_GROUP_PREFIXES = (("mass_", 3), ("sub_pillar_", 2), ("sub_list_", 2), ("pil
 OPERATION_ORDER = ("change", "swap", "tail_swap", "two_opt", "assign", "unassign")
 
 WORST_COUNT = 3
-RUNNER_LABEL = "ubuntu-24.04-arm"
+RUNNER_LABEL = "ubuntu-26.04-arm"
 # Mirrors AbstractMoveProviderBenchmark.DRAW_ONLY_DRAWS. Only ever printed, in the legend; the
 # metrics need no divisor, because @OperationsPerInvocation already makes the reported unit one draw.
 DRAW_ONLY_DRAWS = 500

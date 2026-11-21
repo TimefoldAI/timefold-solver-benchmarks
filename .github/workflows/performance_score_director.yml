@@ -55,7 +55,7 @@ run-name: "TimefoldAI's ${{ github.event.inputs.baseline }} vs. ${{ github.event
 
 jobs:
   decisions:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04-arm
     outputs:
       baseline_solver_version: ${{ steps.step1.outputs.version }}
       needs_snapshot_built: ${{ steps.step1.outputs.needs_snapshot_built }}
@@ -91,7 +91,7 @@ jobs:
 
   build_baseline:
     needs: decisions
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04-arm
     steps:
       - name: Checkout timefold-solver-benchmarks
         uses: actions/checkout@v7
@@ -174,7 +174,7 @@ jobs:
           if-no-files-found: error
 
   build_sut:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04-arm
     steps:
       - name: Checkout timefold-solver-benchmarks
         uses: actions/checkout@v7
@@ -270,7 +270,7 @@ jobs:
       group: perf-score_director-${{ matrix.example }}
       cancel-in-progress: true
     needs: [ decisions, build_baseline, build_sut ]
-    runs-on: ubuntu-24.04-arm # Github-hosted Arm runner; free and GA for this public repo.
+    runs-on: ubuntu-26.04-arm # Github-hosted Arm runner; free and GA for this public repo.
     timeout-minutes: 300
     strategy:
       fail-fast: false # Jobs fail if the benchmark error is over predefined thresholds; other benchmarks continue.
@@ -589,7 +589,7 @@ jobs:
   report:
     needs: [ decisions, benchmark ]
     if: always() && needs.decisions.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04-arm
     steps:
       - name: Checkout timefold-solver-benchmarks
         uses: actions/checkout@v7
