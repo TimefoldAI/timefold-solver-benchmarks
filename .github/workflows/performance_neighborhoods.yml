@@ -92,7 +92,7 @@ jobs:
           ref: ${{ github.sha }}
 
       - name: Setup JDK and Maven
-        uses: actions/setup-java@v6.2.0
+        uses: actions/setup-java@v6.3.0
         with:
           java-version: 25 # Always build with the least recent supported JDK.
           distribution: 'temurin'
@@ -213,7 +213,7 @@ jobs:
           path: ./neighborhoods-app
 
       - name: Setup JDK
-        uses: actions/setup-java@v6.2.0
+        uses: actions/setup-java@v6.3.0
         with:
           java-version: ${{ github.event.inputs.jdk }}
           distribution: 'temurin'
